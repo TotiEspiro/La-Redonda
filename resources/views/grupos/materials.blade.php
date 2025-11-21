@@ -23,21 +23,15 @@
                         class="filter-btn px-4 py-2 rounded-lg bg-button text-white text-sm font-medium">
                     Todos
                 </button>
-                <button onclick="filterMaterials('pdf')" 
-                        class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300">
-                    📄 PDF
-                </button>
-                <button onclick="filterMaterials('doc')" 
-                        class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300">
-                    📝 Documentos
-                </button>
-                <button onclick="filterMaterials('image')" 
-                        class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300">
-                    🖼️ Imágenes
+                <button onclick="filterMaterials('video')" 
+                        class="filter-btn px-4 py-2 rounded-lg bg-button text-white flex items-center text-sm font-medium">
+                        <img src="../../img/icono_documentos.png" class="w-4 h-4 mr-1">
+                    Documentos
                 </button>
                 <button onclick="filterMaterials('video')" 
-                        class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300">
-                    🎬 Videos
+                        class="filter-btn px-4 py-2 rounded-lg bg-button text-white flex items-center text-sm font-medium">
+                        <img src="../../img/icono_multimedia.png" class="w-4 h-4 mr-1">
+                    Videos
                 </button>
             </div>
             
@@ -46,7 +40,7 @@
                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-button focus:border-button w-full sm:w-64"
                        onkeyup="searchMaterials()">
                 <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
-                    🔍
+                    <img src="../../img/icono_buscar.png" class="w-4 h-4">
                 </div>
             </div>
         </div>
@@ -153,7 +147,6 @@
         <!-- Mensaje vacío -->
         @if($materials->isEmpty())
         <div class="text-center py-16 bg-white rounded-lg border border-gray-200">
-            <div class="text-6xl text-gray-300 mb-4">📚</div>
             <h3 class="text-xl font-semibold text-gray-600 mb-2">No hay materiales disponibles</h3>
             <p class="text-gray-500 mb-4">Aún no se han subido materiales para este grupo.</p>
             <p class="text-sm text-gray-400">Los administradores del grupo podrán subir material pronto.</p>

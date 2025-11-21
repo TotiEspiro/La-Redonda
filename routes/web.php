@@ -9,6 +9,7 @@ use App\Http\Controllers\DonationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserHomeController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\DiarioController;
 use App\Http\Controllers\admin\AnnouncementController;
 use App\Http\Controllers\admin\EvangelioDiarioController;
 
@@ -101,17 +102,20 @@ Route::get('/olvide-contraseña', function () {
     return view('auth.forgot-password');
 })->name('password.request');
 
-// Rutas del Diario de La Redonda - Solo para usuarios con roles de grupo parroquial
-Route::middleware(['auth', 'grupo_parroquial'])->prefix('diario')->group(function () {
-    Route::get('/', [UserHomeController::class, 'index'])->name('diario.index');
-    Route::post('/entrada/crear', [UserHomeController::class, 'createEntry'])->name('diario.create');
-    Route::get('/entrada/{id}', [UserHomeController::class, 'getEntry'])->name('diario.get');
-    Route::put('/entrada/{id}/actualizar', [UserHomeController::class, 'updateEntry'])->name('diario.update');
-    Route::delete('/entrada/{id}/eliminar', [UserHomeController::class, 'deleteEntry'])->name('diario.delete');
-    Route::post('/entrada/{id}/favorito', [UserHomeController::class, 'toggleFavorite'])->name('diario.favorite');
+// =============================================
+// DIARIO DE LA REDONDA - Rutas actualizadas
+// =============================================
+Route::prefix('diario')->middleware(['auth'])->group(function () {
+    Route::get('/', [DiarioController::class, 'index'])->name('diario.index');
+    Route::post('/', [DiarioController::class, 'store'])->name('diario.store');
+    Route::get('/favorites', [DiarioController::class, 'favorites'])->name('diario.favorites');
+    Route::get('/search', [DiarioController::class, 'search'])->name('diario.search');
+    Route::get('/{id}', [DiarioController::class, 'show'])->name('diario.show');
+    Route::put('/{id}', [DiarioController::class, 'update'])->name('diario.update');
+    Route::delete('/{id}', [DiarioController::class, 'destroy'])->name('diario.destroy');
+    Route::post('/{id}/toggle-favorite', [DiarioController::class, 'toggleFavorite'])->name('diario.toggle-favorite'); // ✅ AGREGADA
 });
 
-// Rutas de Gestión de Grupos Parroquiales - Nuevas rutas
 Route::middleware(['auth'])->prefix('grupos')->group(function () {
     // Dashboard de administración para AdminGrupoParroquial
     Route::get('/{groupRole}/dashboard', [GroupController::class, 'groupDashboard'])->name('grupos.dashboard');
@@ -123,4 +127,23 @@ Route::middleware(['auth'])->prefix('grupos')->group(function () {
     Route::post('/{groupRole}/upload', [GroupController::class, 'uploadMaterial'])->name('groups.upload');
     Route::delete('/material/{id}/delete', [GroupController::class, 'deleteMaterial'])->name('groups.delete');
     Route::get('/material/{id}/download', [GroupController::class, 'downloadMaterial'])->name('groups.download');
+});
+
+// Ruta para servir archivos JavaScript del diario
+Route::get('/js/diario/{file}', function ($file) {
+    $path = resource_path("js/diario/{$file}");
+    
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    
+    $content = file_get_contents($path);
+    $response = response($content, 200);
+    $response->header('Content-Type', 'application/javascript');
+    
+    return $response;
+})->where('file', '.*\.js$')->name('diario.js');
+
+Route::fallback(function () {
+    return response()->view('errors.404', [], 404);
 });

@@ -102,7 +102,6 @@
 
             @if($materials->isEmpty())
             <div class="text-center py-12">
-                <div class="text-6xl text-gray-300 mb-4">📚</div>
                 <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay materiales aún</h3>
                 <p class="text-gray-500">Comienza subiendo el primer material para el grupo.</p>
             </div>

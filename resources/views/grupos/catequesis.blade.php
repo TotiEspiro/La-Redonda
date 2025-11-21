@@ -1,7 +1,7 @@
 <!-- Grupo 1 -->
 <div class="group border border-gray-200 rounded-lg p-6 hover:border-button hover:shadow-md transition-all duration-300">
-    <div class="qr-placeholder w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center text-text-light mx-auto mb-6 text-center">
-    [IMAGEN CATEQUESIS NIÑOS]
+    <div class="qr-placeholder w-64 h-48 rounded-xl flex items-center justify-center text-text-light mx-auto mb-6 text-center">
+    <img src="../img/catequesis_niños.jpg" alt="">
     </div>
     <h3 class="text-lg font-semibold text-text-dark mb-3 text-center">Catequesis de Niños</h3>
     <p class="text-text-light text-sm mb-4 text-center">
@@ -15,8 +15,8 @@
 
 <!-- Grupo 2 -->
 <div class="group border border-gray-200 rounded-lg p-6 hover:border-button hover:shadow-md transition-all duration-300">
-   <div class="qr-placeholder w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center text-text-light mx-auto mb-6 text-center">
-    [IMAGEN CATEQUESIS ADOLESCENTES]
+   <div class="qr-placeholder w-64 h-48 rounded-xl flex items-center justify-center text-text-light mx-auto mb-6 text-center">
+    <img src="../img/catequesis_adolescentes.jpg" alt="">
     </div>
     <h3 class="text-lg font-semibold text-text-dark mb-3 text-center">Catequesis de Adolescentes</h3>
     <p class="text-text-light text-sm mb-4 text-center">
@@ -30,8 +30,8 @@
 
 <!-- Grupo 3 -->
 <div class="group border border-gray-200 rounded-lg p-6 hover:border-button hover:shadow-md transition-all duration-300">
-    <div class="qr-placeholder w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center text-text-light mx-auto mb-6 text-center">
-    [IMAGEN CATEQUESIS ADULTOS]
+    <div class="qr-placeholder w-64 h-48 rounded-xl flex items-center justify-center text-text-light mx-auto mb-6 text-center">
+   <img src="../img/catequesis_mayores.jpg" alt="">
     </div>
     <h3 class="text-lg font-semibold text-text-dark mb-3 text-center">Catequesis de Adultos</h3>
     <p class="text-text-light text-sm mb-4 text-center">

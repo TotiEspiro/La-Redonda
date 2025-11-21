@@ -10,10 +10,10 @@
                     <h1 class="text-4xl font-semibold text-text-dark mb-8 border-b-2 border-black pb-2">Bienvenidos a La Redonda Joven</h1>
 
                     <div class="space-y-4">
-                        <p class="text-text-dark">La Iglesia de la Inmaculada Concepción, conocida cariñosamente como "La Redonda", es un faro de fe y comunidad en el corazón de Belgrano.</p>
-                        <p class="text-text-dark">Con casi 150 años de historia, nuestra iglesia combina la rica tradición católica con una vibrante vida comunitaria que acoge a personas de todas las edades.</p>
+                        <p class="text-text-dark">La Iglesia de la Inmaculada Concepción, conocida cariñosamente como  <strong>"La Redonda"</strong>, es un faro de fe y comunidad en el corazón de Belgrano.</p>
+                        <p class="text-text-dark">Con casi <strong>150 años</strong> de historia, nuestra iglesia combina la rica tradición católica con una vibrante vida comunitaria que acoge a personas de todas las edades.</p>
                         <p class="text-text-dark">En La Redonda Joven, creemos en el poder transformador del evangelio y en la importancia de construir una comunidad donde cada persona se sienta valorada y acompañada.</p>
-                        <p class="text-text-dark">Ofrecemos diversos grupos y actividades para jóvenes, adultos y familias, buscando crecer juntos en la fe y el servicio a los demás.</p>
+                        <p class="text-text-dark">Ofrecemos diversos <strong>grupos y actividades para jóvenes, adultos y familias</strong>, buscando crecer juntos en la fe y el servicio a los demás.</p>
                         <p class="text-text-dark">Te invitamos a ser parte de nuestra familia parroquial, donde juntos podemos construir un mundo más fraterno según el corazón de Dios.</p>
                     </div>
                 </div>
@@ -21,19 +21,18 @@
                 <!-- Imagen -->
                 <div>
                     <div>
-                        <img src="img/iglesia_la_redonda.jpg" alt="La Redonda" class="m-auto">
+                        <img src="img/iglesia_la_redonda.jpg" alt="La Redonda" class="m-auto rounded-xl shadow-2xl transform transition duration-500 hover:scale-105 hover:shadow-3xl w-80 h-90">
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Avisos Parroquiales -->
 <!-- Avisos Parroquiales -->
 <section class="py-8 bg-background-light">
     <div class="container max-w-7xl mx-auto px-4">
         <h2 class="text-3xl font-semibold text-center text-text-dark mb-8 border-b-2 border-black pb-2">Avisos Parroquiales</h2>
-        
+
         @if(isset($announcements) && $announcements->count() > 0)
         <div class="carousel-container relative max-w-4xl mx-auto overflow-hidden">
             <div class="carousel-track flex transition-transform duration-300 ease-in-out" id="carouselTrack">
@@ -86,11 +85,11 @@
     <div class="container max-w-7xl mx-auto px-4">
         <div class="gospel-content text-left max-w-4xl mx-auto">
             <h2 class="gospel-title text-3xl text-center font-semibold text-text-dark mb-6">Evangelio del Día</h2>
-            
+
             @php
                 $evangelioHoy = \App\Models\EvangelioDiario::obtenerEvangelioHoy();
             @endphp
-            
+
             @if($evangelioHoy && $evangelioHoy->contenido)
                 <p class="gospel-text italic text-lg mb-4 leading-loose">
                     {!! nl2br(e($evangelioHoy->contenido)) !!}
@@ -112,14 +111,12 @@
         <div class="container max-w-7xl mx-auto px-4">
             <h2 class="text-3xl font-semibold text-center text-text-dark mb-8 border-b-2 border-black pb-2">Grupos Parroquiales</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <!-- Imagen -->
                 <div>
-                    <div class="groups-image w-full h-72 bg-gray-100 rounded-lg flex items-center justify-center text-text-light border-2 border-dashed border-gray-300">
-                        [IMAGEN GRUPOS PARROQUIALES]
+                    <div class="flex items-center justify-center">
+                       <img src="../img/imagen_grupos.jpg" class="rounded-lg" alt="Grupos">
                     </div>
                 </div>
-                <!-- Texto -->
-                <div class="space-y-4">
+                <div class="space-y-8">
                     <p class="text-text-dark">En La Redonda Joven contamos con una diversidad de grupos que enriquecen nuestra vida comunitaria y espiritual:</p>
                     <p class="text-text-dark"><strong>Juventud:</strong> Grupo de jóvenes (18-35 años) que se reúne los viernes para compartir, orar y servir.</p>
                     <p class="text-text-dark"><strong>Adultos:</strong> Encuentros semanales de formación y oración para adultos y familias.</p>
@@ -188,26 +185,23 @@
         </div>
     </section>
 
-    <!-- Modales para Avisos Dinámicos -->
+<!-- Modales para Avisos Parroquiales -->
 @if(isset($announcements) && $announcements->count() > 0)
     @foreach($announcements as $announcement)
     <div id="{{ $announcement->modal_id }}" class="modal hidden fixed inset-0 bg-black bg-opacity-70 z-50 items-center justify-center p-4">
         <div class="modal-content bg-white p-8 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
             <span class="modal-close absolute top-4 right-6 cursor-pointer text-2xl text-text-light hover:text-button transition-colors z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md">&times;</span>
-            
-            <!-- Imagen del anuncio -->
+
             @if($announcement->image_url)
             <div class="mb-6">
-                <img src="{{ $announcement->image_url }}" 
-                     alt="{{ $announcement->title }}" 
+                <img src="{{ $announcement->image_url }}"
+                     alt="{{ $announcement->title }}"
                      class="w-full h-64 object-cover rounded-lg shadow-md">
             </div>
             @endif
-            
-            <!-- Título -->
+
             <h3 class="text-3xl font-bold text-button mb-4 border-b-2 border-button pb-2">{{ $announcement->title }}</h3>
-            
-            <!-- Descripción corta -->
+
             @if($announcement->short_description)
             <div class="mb-4">
                 <p class="text-lg text-text-dark font-semibold italic border-l-4 border-button pl-4 py-1 bg-gray-50 rounded">
@@ -215,13 +209,11 @@
                 </p>
             </div>
             @endif
-            
-            <!-- Descripción completa -->
+
             <div class="text-text-dark mb-6 whitespace-pre-line leading-relaxed text-base">
                 {!! nl2br(e($announcement->full_description)) !!}
             </div>
-            
-            <!-- Información adicional -->
+
             <div class="border-t border-gray-200 pt-4 mt-4">
                 <div class="flex flex-wrap gap-4 text-sm text-text-light">
                     <div class="flex items-center">

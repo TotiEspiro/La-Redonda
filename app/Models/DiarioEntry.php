@@ -5,8 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Illuminate\Contracts\Encryption\DecryptException;
-use Illuminate\Support\Facades\Crypt;
 
 class DiarioEntry extends Model
 {
@@ -25,48 +23,10 @@ class DiarioEntry extends Model
         'is_favorite' => 'boolean'
     ];
 
-    // Atributos que NO se guardan en la base, solo para uso interno
-    protected $appends = ['title', 'content'];
-
-    // Atributos que deben ser encriptados
-    protected $encrypted = ['title', 'content'];
-
     // Relación con usuario
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    // Mutator para título - encripta al guardar
-    public function setTitleAttribute($value)
-    {
-        $this->attributes['title_encrypted'] = Crypt::encryptString($value);
-    }
-
-    // Accessor para título - desencripta al leer
-    public function getTitleAttribute()
-    {
-        try {
-            return Crypt::decryptString($this->attributes['title_encrypted'] ?? '');
-        } catch (DecryptException $e) {
-            return 'Título no disponible';
-        }
-    }
-
-    // Mutator para contenido - encripta al guardar
-    public function setContentAttribute($value)
-    {
-        $this->attributes['content_encrypted'] = Crypt::encryptString($value);
-    }
-
-    // Accessor para contenido - desencripta al leer
-    public function getContentAttribute()
-    {
-        try {
-            return Crypt::decryptString($this->attributes['content_encrypted'] ?? '');
-        } catch (DecryptException $e) {
-            return 'Contenido no disponible';
-        }
     }
 
     // Scope para obtener solo las entradas del usuario autenticado
@@ -94,28 +54,73 @@ class DiarioEntry extends Model
         return $types[$this->type] ?? $this->type;
     }
 
-    // Accesor para contenido truncado (para previews)
+    // Accesor para contenido truncado (para previews) - CORREGIDO
     public function getExcerptAttribute()
     {
-        try {
-            $content = Crypt::decryptString($this->attributes['content_encrypted'] ?? '');
-            return Str::limit(strip_tags($content), 100);
-        } catch (DecryptException $e) {
-            return 'Contenido no disponible';
+        $content = $this->content;
+        
+        // Si es texto normal o reflexión, mostrar excerpt normal
+        if ($this->type === 'texto' || $this->type === 'reflexion') {
+            // Limpiar HTML y mostrar texto plano
+            $cleanContent = strip_tags($content);
+            return Str::limit($cleanContent, 100) ?: 'Sin contenido';
         }
+        
+        // Si es lista (tareas), mostrar información de tareas
+        if ($this->type === 'lista') {
+            try {
+                // Verificar si el contenido es un array JSON
+                if ($this->isJson($content)) {
+                    $tasks = json_decode($content, true);
+                    if (is_array($tasks) && count($tasks) > 0) {
+                        $totalTasks = count($tasks);
+                        $completed = count(array_filter($tasks, function($task) {
+                            return ($task['completed'] ?? false) === true;
+                        }));
+                        return "📋 {$completed}/{$totalTasks} tareas completadas";
+                    }
+                }
+            } catch (\Exception $e) {
+                // Si hay error al decodificar JSON
+            }
+            return '📋 Lista de tareas';
+        }
+        
+        // Si es mapa conceptual, mostrar información de nodos
+        if ($this->type === 'mapa_conceptual') {
+            try {
+                // Verificar si el contenido es un array JSON
+                if ($this->isJson($content)) {
+                    $mapData = json_decode($content, true);
+                    if (is_array($mapData) && isset($mapData['nodes']) && count($mapData['nodes']) > 0) {
+                        $nodeCount = count($mapData['nodes']);
+                        return "🗺️ Mapa con {$nodeCount} nodos";
+                    }
+                }
+            } catch (\Exception $e) {
+                // Si hay error al decodificar JSON
+            }
+            return '🗺️ Mapa conceptual';
+        }
+        
+        // Fallback para tipos desconocidos o contenido inválido
+        return '📄 Contenido';
+    }
+
+    // Método auxiliar para verificar si es JSON válido
+    private function isJson($string)
+    {
+        if (!is_string($string)) {
+            return false;
+        }
+        
+        json_decode($string);
+        return json_last_error() === JSON_ERROR_NONE;
     }
 
     // Verificar si la entrada pertenece al usuario
     public function belongsToUser($userId = null)
     {
         return $this->user_id === ($userId ?? auth()->id());
-    }
-
-    // Método para crear entrada de forma segura
-    public static function createEncrypted(array $attributes = [])
-    {
-        $entry = new static($attributes);
-        $entry->save();
-        return $entry;
     }
 }

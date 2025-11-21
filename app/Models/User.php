@@ -13,6 +13,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'diario_data',
+        'last_diario_entry',
     ];
 
     protected $hidden = [
@@ -22,8 +24,193 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'last_diario_entry' => 'datetime',
     ];
 
+    // ========== MÉTODOS PARA DIARIO ==========
+    
+    // Accesor para diario_data
+    public function getDiarioDataAttribute($value)
+    {
+        if (!$value || $value === 'null' || $value === '[]') {
+            return [];
+        }
+        
+        try {
+            $data = json_decode($value, true);
+            return is_array($data) ? $data : [];
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    // Mutator para diario_data
+    public function setDiarioDataAttribute($value)
+    {
+        $dataToStore = is_array($value) ? $value : [];
+        $this->attributes['diario_data'] = json_encode($dataToStore);
+    }
+
+    // Método para agregar una nueva entrada al diario
+    public function addDiarioEntry($data)
+    {
+        if (!$this->canAccessDiario()) {
+            throw new \Exception('No tiene permisos para acceder al diario');
+        }
+
+        $diarioData = $this->diario_data;
+        
+        // Generar nuevo ID
+        $entryId = count($diarioData) > 0 ? max(array_column($diarioData, 'id')) + 1 : 1;
+        
+        $entry = [
+            'id' => $entryId,
+            'title' => $data['title'] ?? '', // ✅ NO encriptar
+            'content' => $data['content'] ?? '', // ✅ NO encriptar
+            'type' => $data['type'] ?? 'texto',
+            'color' => $data['color'] ?? '#3b82f6',
+            'is_favorite' => (bool)($data['is_favorite'] ?? false),
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString()
+        ];
+        
+        $diarioData[] = $entry;
+        $this->diario_data = $diarioData;
+        $this->last_diario_entry = now();
+        $this->save();
+        
+        return $entry;
+    }
+
+    // Obtener una entrada específica del diario
+    public function getDiarioEntry($entryId)
+    {
+        if (!$this->canAccessDiario()) {
+            return null;
+        }
+
+        $diarioData = $this->diario_data;
+        
+        foreach ($diarioData as $entry) {
+            if ($entry['id'] == $entryId) {
+                return $entry;
+            }
+        }
+        
+        return null;
+    }
+
+    // Actualizar una entrada del diario
+    public function updateDiarioEntry($entryId, $data)
+    {
+        if (!$this->canAccessDiario()) {
+            return false;
+        }
+
+        $diarioData = $this->diario_data;
+        $updated = false;
+        
+        foreach ($diarioData as &$entry) {
+            if ($entry['id'] == $entryId) {
+                $entry['title'] = $data['title'] ?? $entry['title']; // ✅ NO encriptar
+                $entry['content'] = $data['content'] ?? $entry['content']; // ✅ NO encriptar
+                $entry['type'] = $data['type'] ?? $entry['type'];
+                $entry['color'] = $data['color'] ?? $entry['color'];
+                $entry['is_favorite'] = (bool)($data['is_favorite'] ?? $entry['is_favorite']);
+                $entry['updated_at'] = now()->toDateTimeString();
+                $updated = true;
+                break;
+            }
+        }
+        
+        if ($updated) {
+            $this->diario_data = $diarioData;
+            $this->last_diario_entry = now();
+            $this->save();
+            return true;
+        }
+        
+        return false;
+    }
+
+    // Eliminar una entrada del diario
+    public function deleteDiarioEntry($entryId)
+    {
+        if (!$this->canAccessDiario()) {
+            return false;
+        }
+
+        $diarioData = $this->diario_data;
+        $newData = [];
+        $deleted = false;
+        
+        foreach ($diarioData as $entry) {
+            if ($entry['id'] != $entryId) {
+                $newData[] = $entry;
+            } else {
+                $deleted = true;
+            }
+        }
+        
+        if ($deleted) {
+            $this->diario_data = array_values($newData);
+            $this->save();
+            return true;
+        }
+        
+        return false;
+    }
+
+    // Obtener todas las entradas del diario
+    public function getDiarioEntries($decryptTitles = true)
+    {
+        if (!$this->canAccessDiario()) {
+            return [];
+        }
+
+        $entries = $this->diario_data;
+        
+        // Ordenar por fecha de creación (más reciente primero)
+        usort($entries, function($a, $b) {
+            return strtotime($b['created_at']) - strtotime($a['created_at']);
+        });
+        
+        return $entries;
+    }
+
+    // Obtener entradas favoritas
+    public function getFavoriteDiarioEntries()
+    {
+        $entries = $this->getDiarioEntries();
+        return array_filter($entries, function($entry) {
+            return $entry['is_favorite'] === true;
+        });
+    }
+
+    // Buscar entradas por término
+    public function searchDiarioEntries($searchTerm)
+    {
+        if (!$this->canAccessDiario()) {
+            return [];
+        }
+
+        $entries = $this->getDiarioEntries();
+        $results = [];
+        
+        foreach ($entries as $entry) {
+            $title = $entry['title'] ?? '';
+            $content = $entry['content'] ?? '';
+            
+            if (stripos($title, $searchTerm) !== false || stripos($content, $searchTerm) !== false) {
+                $results[] = $entry;
+            }
+        }
+        
+        return $results;
+    }
+
+    // ========== ROLES ==========
+    
     // Relación muchos a muchos con roles
     public function roles()
     {
@@ -156,14 +343,13 @@ class User extends Authenticatable
         return implode(', ', $this->role_names);
     }
 
-    // Verificar permisos (puedes expandir esto según necesites)
+    // Verificar permisos
     public function canAccess($module)
     {
         $permissions = [
             'admin_panel' => ['superadmin', 'admin'],
             'grupos_management' => ['superadmin', 'admin', 'admin_grupo_parroquial'],
             'diario' => ['superadmin', 'admin', 'admin_grupo_parroquial', 'catequesis', 'juveniles', 'acutis', 'juan_pablo', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor'],
-            // Agregar más permisos según necesites
         ];
 
         return $this->hasAnyRole($permissions[$module] ?? []);

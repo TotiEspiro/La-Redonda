@@ -34,12 +34,12 @@
             <div class="footer-section px-4 border-r-2 border-black">
                 <h3 class="text-xl font-semibold text-text-dark mb-6">Grupos Parroquiales</h3>
                 <ul class="footer-links space-y-3">
-                    <li><a href="#" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Grupos Juveniles</a></li>
-                    <li><a href="#" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Carlo Acutis</a></li>
-                    <li><a href="#" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Juan Pablo II</a></li>
-                    <li><a href="#" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Noche de Caridad</a></li>
-                    <li><a href="#" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Grupo Misionero</a></li>
-                    <li><a href="#" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Coro Parroquial</a></li>
+                    <li><a href="http://127.0.0.1:8000/grupos/jovenes" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Juveniles</a></li>
+                    <li><a href="http://127.0.0.1:8000/grupos/jovenes" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Carlo Acutis</a></li>
+                    <li><a href="http://127.0.0.1:8000/grupos/jovenes" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Juan Pablo II</a></li>
+                    <li><a href="http://127.0.0.1:8000/grupos/especiales" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Noche de Caridad</a></li>
+                    <li><a href="http://127.0.0.1:8000/grupos/especiales" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Grupo Misionero</a></li>
+                    <li><a href="http://127.0.0.1:8000/grupos/jovenes" class="text-text-dark no-underline hover:text-button hover:underline transition-colors block py-1">Coro Parroquial</a></li>
                 </ul>
             </div>
 

@@ -1,11 +1,11 @@
-<nav class="bg-nav-footer py-4 sticky top-0 z-50 border-b-2 border-sky-400">
+<nav class="bg-nav-footer py-5 sticky top-0 z-50 border-b-2 border-sky-400">
     <div class="container max-w-7xl mx-auto px-4">
         <div class="flex justify-between items-center">
             <!-- Logo -->
             <div class="flex-1">
                 <a href="{{ url('/') }}" class="inline-block">
-                    <div class="h-15 w-38 border-dashed flex items-center justify-center">
-                        <img src="{{ asset('img/logo_redonda.png') }}" alt="logo_redonda" class="h-[70px]">
+                    <div class="h-15 w-38 border-dashed flex items-center justify-center m-auto">
+                        <img src="{{ asset('img/logo_redonda_texto.png') }}" alt="logo_redonda" class="h-[70px]">
                     </div>
                 </a>
             </div>
@@ -28,7 +28,7 @@
             </button>
 
             <!-- Menú Desplegable -->
-            <div class="mobile-menu hidden absolute top-full right-0 bg-nav-footer w-64 shadow-lg rounded-bl-lg z-40 border-2 border-button" id="mobileMenu">                
+            <div class="mobile-menu hidden absolute top-full right-0 bg-nav-footer w-64 shadow-lg rounded-bl-lg z-40 border-2 border-button" id="mobileMenu">
                 <!-- Grupos - Versión Móvil -->
                 <div class="border-b border-gray-200">
                     <button class="w-full text-left px-6 py-4 text-text-dark font-medium hover:bg-button hover:text-white hover:pl-8 transition-all cursor-pointer flex justify-between items-center" id="mobileGruposToggle" type="button">
@@ -65,7 +65,7 @@
                                         $userMemberGroups = Auth::user()->roles->filter(function($role) {
                                             return in_array($role->name, ['catequesis', 'juveniles', 'acutis', 'juan_pablo', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor']);
                                         });
-                                        
+
                                         // Si es admin o superadmin, mostrar todos los grupos
                                         if (Auth::user()->isAdmin() || Auth::user()->isSuperAdmin()) {
                                             $userMemberGroups = collect([
@@ -110,7 +110,7 @@
                                                 return in_array($role->name, ['catequesis', 'juveniles', 'acutis', 'juan_pablo', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor']);
                                             });
                                         }
-                                        
+
                                         // Si es admin o superadmin, mostrar todos los grupos
                                         if (Auth::user()->isAdmin() || Auth::user()->isSuperAdmin()) {
                                             $userGroups = collect([
@@ -152,7 +152,7 @@
                             Diario La Redonda
                         </a>
                     @endif
-                @endauth                
+                @endauth
                 <!-- Sección de autenticación -->
                 <div class="p-4 border-t border-gray-300">
                     @auth
@@ -174,12 +174,12 @@
                                     Panel Admin
                                 </a>
                             @endif
-                            
+
                             <!-- Botón para ir al perfil -->
                             <a href="{{ url('/perfil') }}" class="block bg-button text-white px-4 py-2 rounded-lg font-semibold no-underline text-center hover:bg-blue-500 transition-colors">
                                 Mi Perfil
                             </a>
-                            
+
                             <form method="POST" action="{{ route('logout') }}" class="inline-block w-full">
                                 @csrf
                                 <button type="submit" class="w-full bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold no-underline text-center hover:bg-gray-600 transition-colors">
@@ -211,16 +211,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileGruposToggle = document.getElementById('mobileGruposToggle');
     const mobileGruposSubmenu = document.getElementById('mobileGruposSubmenu');
     const gruposArrow = document.getElementById('gruposArrow');
-    
+
     // Nuevos elementos para gestión de grupos
     const mobileGestionGruposToggle = document.getElementById('mobileGestionGruposToggle');
     const mobileGestionGruposSubmenu = document.getElementById('mobileGestionGruposSubmenu');
     const gestionGruposArrow = document.getElementById('gestionGruposArrow');
-    
+
     const mobileMaterialesToggle = document.getElementById('mobileMaterialesToggle');
     const mobileMaterialesSubmenu = document.getElementById('mobileMaterialesSubmenu');
     const materialesArrow = document.getElementById('materialesArrow');
-    
+
     // Elementos de las líneas del hamburguesa
     const line1 = document.getElementById('line1');
     const line2 = document.getElementById('line2');
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hamburgerMenu.addEventListener('click', function(e) {
             e.stopPropagation();
             const isHidden = mobileMenu.classList.toggle('hidden');
-            
+
             // Animación del hamburguesa a X
             if (isHidden) {
                 // Estado: Hamburguesa (volver a estado normal)
@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mobileGruposToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const isHidden = mobileGruposSubmenu.classList.toggle('hidden');
-                
+
                 // Animación de la flecha
                 if (isHidden) {
                     gruposArrow.textContent = '▸';
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mobileGestionGruposToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const isHidden = mobileGestionGruposSubmenu.classList.toggle('hidden');
-                
+
                 // Animación de la flecha
                 if (isHidden) {
                     gestionGruposArrow.textContent = '▸';
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mobileMaterialesToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const isHidden = mobileMaterialesSubmenu.classList.toggle('hidden');
-                
+
                 // Animación de la flecha
                 if (isHidden) {
                     materialesArrow.textContent = '▸';
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('click', function(event) {
             const isClickInsideHamburger = hamburgerMenu.contains(event.target);
             const isClickInsideMenu = mobileMenu.contains(event.target);
-            
+
             if (!isClickInsideHamburger && !isClickInsideMenu && !mobileMenu.classList.contains('hidden')) {
                 closeAllMenus();
             }
@@ -326,12 +326,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (mobileMaterialesSubmenu) {
                 mobileMaterialesSubmenu.classList.add('hidden');
             }
-            
+
             // Resetear hamburguesa a estado normal
             line1.classList.remove('rotate-45', 'translate-y-2');
             line2.classList.remove('opacity-0');
             line3.classList.remove('-rotate-45', '-translate-y-2');
-            
+
             // Resetear flechas
             if (gruposArrow) {
                 gruposArrow.textContent = '▸';
