@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 19-11-2025 a las 04:28:04
+-- Tiempo de generación: 25-11-2025 a las 05:17:25
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -47,9 +47,8 @@ CREATE TABLE `announcements` (
 INSERT INTO `announcements` (`id`, `title`, `short_description`, `full_description`, `image`, `modal_id`, `is_active`, `order`, `created_at`, `updated_at`) VALUES
 (6, 'Encuentro de todas las comunidades de la Redonda', 'Encuentro de todas las comunidades', 'El pasado 15/08 se realizo el encuentro que involucro a todas las comunidades tanto jovenes como mayores', 'announcements/1762300131_img-20250719-wa0077.jpg', 'modal_aHgsXXtK', 1, 1, '2025-11-05 02:48:26', '2025-11-05 02:48:51'),
 (8, 'Corpus Christi 2025', 'La comunidad joven el dia 21/06/25 fue parte del Corpus Christi', 'El pasado 21/06/25 la comunidad joven y la comunidad la parroquia de Santa Ana fue parte del Corpus Christi', 'announcements/1762302383_img-20250622-wa0041.jpg', 'modal_F7twTjly', 1, 2, '2025-11-05 03:26:23', '2025-11-05 03:26:23'),
-(9, 'Peña Folklorica 14/11/25', 'Compra tus entradas para la peña de La Redonda en Tamarisco', 'Se acerca la ultima peña comunitaria folklorica de La Redonda este 14 de noviembre de 2025 en tamarisco', 'announcements/1762302590_imagen-de-whatsapp-2025-10-27-a-las-211415-03c12cd8.jpg', 'modal_U69uGotq', 1, 0, '2025-11-05 03:29:50', '2025-11-05 03:29:50'),
-(10, 'Peña Folklorica 14/11/25', 'El dìa 14/11/25 se llevará a cabo la peña folklorica comunitaria de La Redonda', 'El dìa 14/11/25 se llevará a cabo la peña folklorica comunitaria de La Redonda', 'announcements/1762554979_recurso-55.png', 'modal_OZwTe7Up', 1, 4, '2025-11-06 16:09:00', '2025-11-08 01:36:19'),
-(11, 'Retiro de Jovenes', 'WGREGRG', 'REG3R5GRGRG3', 'announcements/1763217861_img-20250622-wa0041.jpg', 'modal_BrduRabV', 1, 3, '2025-11-15 17:44:21', '2025-11-15 17:44:21');
+(9, 'Peña Folklorica 14/11/25', 'Compra tus entradas para la peña de La Redonda en Tamarisco', 'Se acerca la ultima peña comunitaria folklorica de La Redonda este 14 de noviembre de 2025 en tamarisco', 'announcements/1763937753_cropped.jpg', 'modal_U69uGotq', 1, 0, '2025-11-05 03:29:50', '2025-11-24 01:42:33'),
+(11, 'Retiro de Jovenes', 'Compartimos, junto a la comunidad de @parroquia.sanisidrolabrador, un fin de semana de encuentro, fraternidad y oración', 'Compartimos, junto a la comunidad de @parroquia.sanisidrolabrador, un fin de semana de encuentro, fraternidad y oración \r\n\r\nÉl nos llama, nos invita a permanecer fieles y entregados, con la certeza de sabernos hijos plenamente amados, misericordiados para misericordiar, firmes en la esperanza de Aquel que no defrauda \r\n\r\nAgradecemos especialmente a todos los miembros de nuestras comunidades que nos acompañaron, tanto en el servicio como en la oración', 'announcements/1763937579_cropped.jpg', 'modal_BrduRabV', 1, 3, '2025-11-15 17:44:21', '2025-11-24 01:39:39');
 
 -- --------------------------------------------------------
 
@@ -99,7 +98,8 @@ CREATE TABLE `evangelio_diario` (
 --
 
 INSERT INTO `evangelio_diario` (`id`, `contenido`, `referencia`, `fecha`, `created_at`, `updated_at`) VALUES
-(1, '\"Porque tanto amó Dios al mundo que dio a su Hijo único, para que todo el que crea en él no perezca, sino que tenga vida eterna. Porque Dios no envió a su Hijo para juzgar al mundo, sino para que el mundo se salve por él.\"', 'Juan 3:16-18', '2025-10-30', '2025-10-31 01:21:26', '2025-10-31 01:21:26');
+(1, '\"Porque tanto amó Dios al mundo que dio a su Hijo único, para que todo el que crea en él no perezca, sino que tenga vida eterna. Porque Dios no envió a su Hijo para juzgar al mundo, sino para que el mundo se salve por él.\"', 'Juan 3:16-18', '2025-10-30', '2025-10-31 01:21:26', '2025-10-31 01:21:26'),
+(2, 'Levantando los ojos, Jesús vio a unos ricos que ponían sus ofrendas en el tesoro del Templo. Vio también a una viuda de condición muy humilde, que ponía dos pequeñas monedas de cobre, y dijo: \"Les aseguro que esta pobre viuda ha dado más que nadie. Porque todos los demás dieron como ofrenda algo de lo que les sobraba, pero ella, de su indigencia, dio todo lo que tenía para vivir.\"', 'San Lucas 21,1-4', '2025-11-24', '2025-11-24 23:46:34', '2025-11-24 23:46:34');
 
 -- --------------------------------------------------------
 
@@ -330,11 +330,15 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `diario_data`, `last_diario_entry`, `role`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Administrador', 'admin@laredonda.com', NULL, '$2y$12$3pRn7/rg3daEb1EdIbrFeeLy2iNyObytv.Kz0thd4Iu.YDLg.sa2y', '[{\"id\":2,\"title\":\"fvbreberbe\",\"content\":\"{\\\"nodes\\\":[]}\",\"type\":\"mapa_conceptual\",\"color\":\"#3b82f6\",\"is_favorite\":false,\"created_at\":\"2025-11-19 00:56:15\",\"updated_at\":\"2025-11-19 01:19:08\"}]', '2025-11-19 04:19:08', 'admin', NULL, '2025-10-17 21:54:40', '2025-11-19 04:19:08'),
+(1, 'Administrador', 'admin@laredonda.com', NULL, '$2y$12$3pRn7/rg3daEb1EdIbrFeeLy2iNyObytv.Kz0thd4Iu.YDLg.sa2y', '[{\"id\":2,\"title\":\"fvbreberbe\",\"content\":\"{\\\"nodes\\\":[{\\\"id\\\":\\\"node-1\\\",\\\"text\\\":\\\"\\\",\\\"position\\\":{\\\"x\\\":70,\\\"y\\\":70}},{\\\"id\\\":\\\"node-2\\\",\\\"text\\\":\\\"\\\",\\\"position\\\":{\\\"x\\\":110,\\\"y\\\":246}}],\\\"connections\\\":[]}\",\"type\":\"mapa_conceptual\",\"color\":\"#3b82f6\",\"is_favorite\":true,\"created_at\":\"2025-11-19 00:56:15\",\"updated_at\":\"2025-11-21 23:38:35\"}]', '2025-11-22 02:38:35', 'admin', NULL, '2025-10-17 21:54:40', '2025-11-22 02:38:35'),
 (4, 'Super Administrador', 'superadmin@laredonda.com', NULL, '$2y$12$ky31tyVRjmk7KrUTtOUV/u73en.oP3uFMxMqAQdD1twnG/AfhIctG', NULL, NULL, 'superadmin', NULL, '2025-11-08 03:32:31', '2025-11-08 03:32:31'),
-(5, 'Tomas Espiro', 'tomas.espiro@davinci.edu.ar', NULL, '$2y$12$s2.rVM8wEn5w7QYad6FKhuiurIdUV4eIKcSzEDiP030HkHtREvFHy', '[{\"id\":1,\"title\":\"vrvrv\",\"content\":\"<p>btebtgbet<\\/p>\",\"type\":\"texto\",\"color\":\"#3b82f6\",\"is_favorite\":false,\"created_at\":\"2025-11-18 23:48:08\",\"updated_at\":\"2025-11-18 23:48:08\"},{\"id\":2,\"title\":\"THTHBTHTHTHE\",\"content\":\"[{\\\"text\\\":\\\"bfgbrfberfberbbtr\\\",\\\"completed\\\":false}]\",\"type\":\"lista\",\"color\":\"#3b82f6\",\"is_favorite\":true,\"created_at\":\"2025-11-18 23:48:29\",\"updated_at\":\"2025-11-19 00:27:09\"}]', '2025-11-19 03:27:09', 'user', NULL, '2025-11-08 06:34:50', '2025-11-19 03:27:09'),
-(6, 'Jeremias Gonzalez', 'totiespiro@gmail.com', NULL, '$2y$12$8rUmRexmvUjHaUvH29mHGOkZ66F/7yqPqO.ldAntR5lUNEMWUcuWi', NULL, NULL, 'user', NULL, '2025-11-08 20:22:07', '2025-11-08 20:22:07'),
-(7, 'Gerardo Muñoz', 'test@laredonda.com', NULL, '$2y$12$nj4.9tcN6bBxdiY/J2r.zOckEkaTQ/hur.czVO/ucgaoZwwawMQU6', NULL, NULL, 'user', NULL, '2025-11-08 20:28:31', '2025-11-08 20:28:31');
+(5, 'Tomas Espiro', 'tomas.espiro@davinci.edu.ar', NULL, '$2y$12$s2.rVM8wEn5w7QYad6FKhuiurIdUV4eIKcSzEDiP030HkHtREvFHy', '[{\"id\":1,\"title\":\"Desierto 24\\/11\",\"content\":\"<p>btebtgbet<\\/p>\",\"type\":\"texto\",\"color\":\"#3b82f6\",\"is_favorite\":false,\"created_at\":\"2025-11-18 23:48:08\",\"updated_at\":\"2025-11-24 21:53:00\"},{\"id\":2,\"title\":\"Encuentro 29\\/11\",\"content\":\"[{\\\"text\\\":\\\"Enviar Encuesta\\\",\\\"completed\\\":false},{\\\"text\\\":\\\"Preparar Desierto\\\",\\\"completed\\\":false},{\\\"text\\\":\\\"Preparar Dinamica\\\",\\\"completed\\\":false},{\\\"text\\\":\\\"Imprimir Desierto\\\",\\\"completed\\\":false}]\",\"type\":\"lista\",\"color\":\"#3b82f6\",\"is_favorite\":true,\"created_at\":\"2025-11-18 23:48:29\",\"updated_at\":\"2025-11-24 21:51:35\"}]', '2025-11-25 00:53:00', 'user', NULL, '2025-11-08 06:34:50', '2025-11-25 00:53:00'),
+(8, 'Coordinación Acutis', 'coordiacutis@redonda.com', NULL, '$2y$12$ANVu/cx8YJWMXHIgfJFC7uBpV6KXRpFGp.5cZxL.Uzfas050voJb2', '[{\"id\":1,\"title\":\"Cosas\",\"content\":\"[]\",\"type\":\"lista\",\"color\":\"#82125f\",\"is_favorite\":false,\"created_at\":\"2025-11-23 23:15:17\",\"updated_at\":\"2025-11-23 23:15:17\"}]', '2025-11-24 02:15:17', 'user', NULL, '2025-11-23 20:57:04', '2025-11-24 02:15:17'),
+(9, 'Coordinación Juveniles', 'coordijuve@redonda.com', NULL, '$2y$12$Fb9wBYP2bvmoAA/Xq.knLOnWkH/xV74IoMWpuglwVNO2Rzz9hISdm', NULL, NULL, 'user', NULL, '2025-11-23 20:57:36', '2025-11-23 20:57:36'),
+(10, 'Coordinación Juan Pablo II', 'coordijuanpablo@redonda.com', NULL, '$2y$12$GdrdhMcw1cGK3itdO6N/DOqjJmpRqxQMHCmDQrpiYVtav/tKmzGEu', NULL, NULL, 'user', NULL, '2025-11-23 20:58:52', '2025-11-23 20:58:52'),
+(11, 'Coordinación Coro', 'coordicoro@redonda.com', NULL, '$2y$12$VWjON1x0jNwHDxJYzYGD9uXt1x1UegGrnOGdFUnOkryzGRH6tsVni', NULL, NULL, 'user', NULL, '2025-11-23 20:59:23', '2025-11-23 20:59:23'),
+(12, 'Coordinación Catequesis', 'coordicatequesis@redonda.com', NULL, '$2y$12$VtlUZIwlfBfpbDCtVDu3a.bQqVOckAcD7rhqt1g8yB8XIh.sM9e.i', NULL, NULL, 'user', NULL, '2025-11-23 21:00:06', '2025-11-23 21:00:06'),
+(13, 'Coordinación Misionero', 'coordimisionero@redonda.com', NULL, '$2y$12$f8rZqxvSLPRuSiALdEk24.z2DuRzxXtzMLe9ZmatbBOqAG2sF9PnG', NULL, NULL, 'user', NULL, '2025-11-24 01:50:01', '2025-11-24 01:50:01');
 
 -- --------------------------------------------------------
 
@@ -359,9 +363,18 @@ INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `created_at`, `updated_at`
 (3, 4, 1, '2025-11-08 04:23:27', '2025-11-08 04:23:27'),
 (6, 5, 6, NULL, NULL),
 (7, 5, 3, NULL, NULL),
-(8, 6, 3, NULL, NULL),
-(9, 6, 7, NULL, NULL),
-(10, 7, 6, NULL, NULL);
+(11, 12, 3, NULL, NULL),
+(12, 12, 4, NULL, NULL),
+(13, 11, 3, NULL, NULL),
+(14, 11, 8, NULL, NULL),
+(15, 10, 3, NULL, NULL),
+(16, 10, 7, NULL, NULL),
+(17, 9, 3, NULL, NULL),
+(18, 9, 5, NULL, NULL),
+(19, 8, 6, NULL, NULL),
+(20, 8, 3, NULL, NULL),
+(21, 13, 3, NULL, NULL),
+(22, 13, 13, NULL, NULL);
 
 --
 -- Índices para tablas volcadas
@@ -477,7 +490,7 @@ ALTER TABLE `donations`
 -- AUTO_INCREMENT de la tabla `evangelio_diario`
 --
 ALTER TABLE `evangelio_diario`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `groups`
@@ -525,13 +538,13 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT de la tabla `user_roles`
 --
 ALTER TABLE `user_roles`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- Restricciones para tablas volcadas

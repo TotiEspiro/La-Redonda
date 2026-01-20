@@ -23,23 +23,19 @@ class Announcement extends Model
         'is_active' => 'boolean',
     ];
 
-    // Accessor para obtener la URL completa de la imagen
     public function getImageUrlAttribute()
     {
         if (!$this->image) {
             return null;
         }
         
-        // Si ya es una URL completa, retornarla directamente
         if (filter_var($this->image, FILTER_VALIDATE_URL)) {
             return $this->image;
         }
         
-        // Si es una ruta relativa, generar la URL completa
         return asset('storage/' . $this->image);
     }
 
-    // Método para obtener la ruta original de la imagen (sin URL)
     public function getRawImagePath()
     {
         return $this->getRawOriginal('image');

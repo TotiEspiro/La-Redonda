@@ -1,17 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Elementos del DOM
     const intentionForm = document.getElementById('intentionForm');
     const confirmationModalIntention = document.getElementById('confirmationModalIntention');
     
-    console.log('Intention form:', intentionForm);
-    console.log('Confirmation modal:', confirmationModalIntention);
     
     if (intentionForm && confirmationModalIntention) {
         const modalClose = confirmationModalIntention.querySelector('.modal-close');
         const cancelBtn = document.getElementById('cancelIntention');
         const confirmBtn = document.getElementById('confirmIntention');
 
-        // Mapeo de tipos de intención para mostrar texto amigable
         const intentionTypeMap = {
             'salud': 'Salud',
             'intenciones': 'Intenciones',
@@ -19,19 +15,16 @@ document.addEventListener('DOMContentLoaded', function() {
             'difuntos': 'Difuntos'
         };
 
-        // Validar y enviar formulario
         intentionForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log('Form submitted');
+            
 
-            // Obtener valores del formulario
             const intentionType = document.getElementById('intentionType').value;
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
 
-            console.log('Form values:', { intentionType, name, email });
+            
 
-            // Validaciones básicas
             if (!intentionType) {
                 alert('Por favor, seleccione el tipo de intención');
                 return;
@@ -42,24 +35,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Mostrar modal de confirmación
             showConfirmationModal(intentionType, name, email);
         });
 
-        // Mostrar modal de confirmación
         function showConfirmationModal(intentionType, name, email) {
-            console.log('Showing confirmation modal');
             
-            // Actualizar información en el modal
+            
             document.getElementById('confirmIntentionType').textContent = intentionTypeMap[intentionType] || intentionType;
             document.getElementById('confirmName').textContent = name;
             document.getElementById('confirmEmailIntention').textContent = email;
 
-            // Mostrar modal
             confirmationModalIntention.classList.remove('hidden');
             confirmationModalIntention.classList.add('flex');
             document.body.style.overflow = 'hidden';
-            console.log('Modal should be visible now');
+            
         }
 
         // Cerrar modal
@@ -81,10 +70,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Confirmar intención
         if (confirmBtn) {
             confirmBtn.addEventListener('click', function() {
-                // Enviar datos al servidor
                 const formData = new FormData(intentionForm);
                 
-                // Usar la ruta correcta: /intenciones/guardar
                 fetch('/intenciones/guardar', {
                     method: 'POST',
                     headers: {

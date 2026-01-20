@@ -1,82 +1,56 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="py-12">
+<div class="py-8 md:py-12 bg-background-light min-h-screen">
     <div class="container max-w-7xl mx-auto px-4">
-        <!-- Header de Categoría -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-semibold text-text-dark mb-4 border-b-2 border-black pb-2">{{ $categoria }}</h1>
-            <p class="text-text-dark text-lg max-w-3xl mx-auto">
+        <div class="text-center mb-10 md:mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-text-dark mb-4 border-b-2 border-black pb-2 inline-block px-4">{{ $categoria }}</h1>
+            <p class="text-text-dark text-base md:text-lg max-w-3xl mx-auto mt-4 leading-relaxed px-2">
                 {{ $descripcion }}
             </p>
         </div>
 
-        <!-- Grupos de la Categoría -->
-        <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-8 border border-gray-100">
             @if($groups->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($groups as $group)
-                    <a href="{{ route('grupos.show', $group->id) }}" class="block border border-gray-200 rounded-lg p-6 hover:border-button hover:shadow-md transition-all duration-300">
+                    <a href="{{ route('grupos.show', $group->id) }}" class="block border border-gray-200 rounded-xl p-5 hover:border-button hover:shadow-lg transition-all duration-300 group h-full flex flex-col bg-gray-50 hover:bg-white">
                         @if($group->image)
-                        <div class="mb-4">
-                            <img src="{{ Storage::url($group->image) }}" alt="{{ $group->name }}" class="w-full h-48 object-cover rounded-lg">
+                        <div class="mb-4 overflow-hidden rounded-lg shadow-sm">
+                            <img src="{{ Storage::url($group->image) }}" alt="{{ $group->name }}" class="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500">
                         </div>
                         @endif
                         
-                        <h3 class="text-xl font-semibold text-text-dark mb-3">{{ $group->name }}</h3>
-                        <p class="text-text-dark mb-4">{{ $group->description }}</p>
+                        <h3 class="text-xl font-bold text-text-dark mb-3 group-hover:text-button transition-colors">{{ $group->name }}</h3>
+                        <p class="text-gray-600 mb-4 text-sm leading-relaxed flex-grow">{{ $group->description }}</p>
                         
-                        <div class="space-y-2 text-sm text-text-light">
+                        <div class="space-y-2 text-sm text-gray-500 pt-4 border-t border-gray-200 mt-auto">
                             @if($group->age_range)
                             <div class="flex items-center">
-                                <span class="mr-2">👥</span>
+                                <span class="mr-2 text-lg">👥</span>
                                 <span>{{ $group->age_range }}</span>
                             </div>
                             @endif
                             
-                            @if($group->meeting_days)
+                            @if($group->meeting_days || $group->meeting_time)
                             <div class="flex items-center">
-                                <span class="mr-2">📅</span>
-                                <span>{{ $group->meeting_days }}</span>
-                            </div>
-                            @endif
-                            
-                            @if($group->meeting_time)
-                            <div class="flex items-center">
-                                <span class="mr-2">🕒</span>
-                                <span>{{ $group->meeting_time }}</span>
+                                <span class="mr-2 text-lg">📅</span>
+                                <span>{{ $group->meeting_days }} {{ $group->meeting_time }}</span>
                             </div>
                             @endif
                             
                             @if($group->location)
                             <div class="flex items-center">
-                                <span class="mr-2">📍</span>
+                                <span class="mr-2 text-lg">📍</span>
                                 <span>{{ $group->location }}</span>
                             </div>
                             @endif
                         </div>
-                        
-                        @if($group->contact_email || $group->contact_phone)
-                        <div class="mt-4 pt-4 border-t border-gray-200">
-                            <h4 class="font-semibold text-text-dark mb-2">Contacto:</h4>
-                            @if($group->contact_email)
-                            <a href="mailto:{{ $group->contact_email }}" class="text-button hover:text-blue-500 text-sm">
-                                📧 {{ $group->contact_email }}
-                            </a>
-                            @endif
-                            @if($group->contact_phone)
-                            <div class="text-text-light text-sm">
-                                📞 {{ $group->contact_phone }}
-                            </div>
-                            @endif
-                        </div>
-                        @endif
                     </a>
                     @endforeach
                 </div>
             @else
-                <!-- Grupos por defecto cuando no hay grupos en la BD -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                     @if($categoria == 'Catequesis')
                         @include('grupos.catequesis')
                     @elseif($categoria == 'Jóvenes')
@@ -90,10 +64,9 @@
             @endif
         </div>
 
-        <!-- Botón Volver -->
-        <div class="text-center mt-8">
-            <a href="{{ route('grupos.index') }}" class="inline-block bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
-                ← Volver a Grupos Parroquiales
+        <div class="text-center mt-8 md:mt-12">
+            <a href="{{ route('grupos.index') }}" class="inline-flex items-center bg-white text-gray-700 border border-gray-300 px-6 py-3 rounded-full font-semibold hover:bg-gray-50 hover:text-black transition-all shadow-sm">
+                <span class="mr-2">←</span> Volver a Grupos
             </a>
         </div>
     </div>

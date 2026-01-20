@@ -13,7 +13,7 @@ class UserHomeController extends Controller
         $this->middleware(['auth', 'grupo_parroquial']);
     }
 
-    // Home del usuario con el diario - SOLO sus propias entradas
+    // Home del usuario con el diario 
     public function index()
     {
         $user = Auth::user();
@@ -67,7 +67,7 @@ class UserHomeController extends Controller
         }
     }
 
-    // Obtener entrada para editar - SOLO si pertenece al usuario
+    // Obtener entrada para editar 
     public function getEntry($id)
     {
         try {
@@ -149,7 +149,7 @@ class UserHomeController extends Controller
         }
     }
 
-    // Eliminar entrada - SOLO si pertenece al usuario
+    // Eliminar entrada
     public function deleteEntry($id)
     {
         try {
@@ -172,7 +172,7 @@ class UserHomeController extends Controller
         }
     }
 
-    // Toggle favorito - SOLO si pertenece al usuario
+    // Toggle favorito 
     public function toggleFavorite($id)
     {
         try {

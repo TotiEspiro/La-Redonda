@@ -23,7 +23,6 @@ class CheckGrupoParroquial
             'costureras', 'misioneros', 'caridad_comedor'
         ];
 
-        // Verificar si el usuario tiene al menos un rol de grupo parroquial
         $hasGrupoParroquialRole = $user->hasAnyRole($grupoParroquialRoles);
         
         // Solo permitir acceso si tiene rol de grupo parroquial O es admin/superadmin

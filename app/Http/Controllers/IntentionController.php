@@ -21,7 +21,7 @@ class IntentionController extends Controller
             'intentionType' => 'required|in:salud,intenciones,accion-gracias,difuntos',
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            // 'message' => 'required|string|min:10|max:1000', // REMOVED - este campo no existe en el formulario
+            
         ]);
 
         try {
@@ -29,8 +29,8 @@ class IntentionController extends Controller
                 'type' => $validated['intentionType'],
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'message' => 'Intención de ' . $validated['intentionType'], // Mensaje por defecto
-                'user_id' => Auth::id(), // Si el usuario está logueado
+                'message' => 'Intención de ' . $validated['intentionType'], 
+                'user_id' => Auth::id(), 
                 'status' => 'pending',
             ]);
 

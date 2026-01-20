@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class AnnouncementController extends Controller
 {
-    /**
-     * Display a listing of the announcements.
-     */
+    
     public function index()
     {
         $announcements = Announcement::orderBy('order')
@@ -23,17 +21,13 @@ class AnnouncementController extends Controller
         return view('admin.announcements.index', compact('announcements'));
     }
 
-    /**
-     * Show the form for creating a new announcement.
-     */
+    
     public function create()
     {
         return view('admin.announcements.create');
     }
 
-    /**
-     * Store a newly created announcement in storage.
-     */
+    
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -47,15 +41,11 @@ class AnnouncementController extends Controller
         ]);
 
         try {
-            // Generar modal_id único
             $validated['modal_id'] = 'modal_' . Str::random(8);
 
-            // Manejar la carga de imagen (priorizar imagen recortada)
             if ($request->has('cropped_image') && !empty($request->cropped_image)) {
-                // Procesar imagen recortada en base64
                 $imageData = $request->cropped_image;
                 
-                // Determinar el tipo MIME y extensión
                 $mime = null;
                 $extension = 'jpg';
                 
@@ -123,17 +113,13 @@ class AnnouncementController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified announcement.
-     */
+    
     public function edit(Announcement $announcement)
     {
         return view('admin.announcements.edit', compact('announcement'));
     }
 
-    /**
-     * Update the specified announcement in storage.
-     */
+
     public function update(Request $request, Announcement $announcement)
     {
         $validated = $request->validate([
@@ -141,7 +127,7 @@ class AnnouncementController extends Controller
             'short_description' => 'required|string|max:500',
             'full_description' => 'required|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'cropped_image' => 'nullable|string', // Base64 image para edición
+            'cropped_image' => 'nullable|string', 
             'is_active' => 'sometimes|boolean',
             'order' => 'required|integer|min:0'
         ]);
@@ -233,9 +219,7 @@ class AnnouncementController extends Controller
         }
     }
 
-    /**
-     * Remove the specified announcement from storage.
-     */
+    
     public function destroy(Announcement $announcement)
     {
         try {
@@ -256,9 +240,7 @@ class AnnouncementController extends Controller
         }
     }
 
-    /**
-     * Eliminar todos los anuncios
-     */
+    // Eliminar todos los anuncios
     public function deleteAll()
     {
         try {
@@ -291,9 +273,7 @@ class AnnouncementController extends Controller
         }
     }
 
-    /**
-     * Toggle the status of the specified announcement.
-     */
+
     public function toggleStatus(Announcement $announcement)
     {
         try {
@@ -337,9 +317,7 @@ class AnnouncementController extends Controller
         }
     }
 
-    /**
-     * Bulk actions for announcements.
-     */
+    
     public function bulkActions(Request $request)
     {
         $request->validate([

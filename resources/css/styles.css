@@ -3,11 +3,8 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-
-/* Fuentes Poppins */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-/* Variables CSS para colores */
 :root {
     --nav-footer-color: #a4e0f3;
     --button-color: #5cb1e3;
@@ -46,22 +43,20 @@
     }
 }
 
-/* Para el checkmark de radio buttons */
 .frequency-option input:checked + .checkmark {
     background-color: theme('colors.button');
     border-color: theme('colors.button');
 }
 
-/* Clase personalizada para el botón de administrador */
 .bg-admin-button {
     background-color: var(--admin-button-color);
 }
 
 .bg-admin-button:hover {
-    background-color: #7a9bc7; /* Versión más oscura para hover */
+    background-color: #7a9bc7; 
 }
 
-/* Responsive - mantener en CSS */
+
 @media (max-width: 768px) {
     .announcement-card {
         min-width: 100%;
@@ -134,7 +129,6 @@
             }
         }
 
-        /* Estilos para modales */
         .modal-content {
             animation: modalAppear 0.3s ease;
         }
@@ -151,8 +145,7 @@
         }
 
        
-/* Estilos mejorados para el carrusel */
-/* Agregar estos estilos a tu CSS */
+
 .carousel-container {
   overflow: hidden;
 }
@@ -163,13 +156,12 @@
 }
 
 .announcement-card {
-  flex: 0 0 calc(50% - 1rem); /* 2 tarjetas por slide con gap */
+  flex: 0 0 calc(50% - 1rem); 
   box-sizing: border-box;
 }
 
-/* Asegurar que las tarjetas tengan el mismo tamaño */
 .announcement-card {
-  min-height: 400px; /* Ajusta según necesites */
+  min-height: 400px; 
   display: flex;
   flex-direction: column;
 }
@@ -187,7 +179,7 @@
 
 
 
-/* Responsive para móviles */
+
 @media (max-width: 768px) {
     .carousel-track {
         gap: 1rem;
@@ -195,7 +187,7 @@
     }
     
     .announcement-card {
-        min-width: calc(100% - 0.5rem); /* En móvil mostrar 1 tarjeta */
+        min-width: calc(100% - 0.5rem); 
         flex: 0 0 calc(100% - 0.5rem);
     }
     
@@ -206,14 +198,12 @@
     }
 }
 
-/* Para tablets */
 @media (max-width: 1024px) and (min-width: 769px) {
     .carousel-container {
         max-width: 90%;
     }
 }
 
-/* Animaciones para la pantalla de carga */
 @keyframes bounce {
     0%, 100% {
         transform: translateY(0);
@@ -227,7 +217,6 @@
     animation: bounce 2s infinite;
 }
 
-/* Spinner de carga */
 .loading-spinner {
     width: 50px;
     height: 50px;
@@ -238,7 +227,7 @@
     width: 100%;
     height: 100%;
     border: 3px solid transparent;
-    border-top: 3px solid #5cb1e3; /* Color button */
+    border-top: 3px solid #5cb1e3; 
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -252,14 +241,12 @@
     }
 }
 
-/* Transición suave para ocultar */
 .fade-out {
     opacity: 0;
     pointer-events: none;
 }
 
 
-/* Estilos para el cropper */
 .cropper-container {
     direction: ltr;
     font-size: 0;

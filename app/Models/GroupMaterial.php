@@ -26,25 +26,21 @@ class GroupMaterial extends Model
         'file_size' => 'integer'
     ];
 
-    // Relación con el usuario que subió el material
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Scope para materiales de un grupo específico
     public function scopeForGroup($query, $groupRole)
     {
         return $query->where('group_role', $groupRole)->where('is_active', true);
     }
 
-    // Scope para materiales del usuario
     public function scopeByUser($query, $userId = null)
     {
         return $query->where('user_id', $userId ?? auth()->id());
     }
 
-    // Accesor para el nombre del grupo
     public function getGroupNameAttribute()
     {
         $groupNames = [
@@ -64,38 +60,55 @@ class GroupMaterial extends Model
         return $groupNames[$this->group_role] ?? $this->group_role;
     }
 
-    // Accesor para el icono según el tipo de archivo
     public function getFileIconAttribute()
     {
+        $basePath = 'img/'; 
+        
+        // Mapeo de tipos a nombres de archivo de imagen
         $icons = [
-            'pdf' => '📄',
-            'doc' => '📝',
-            'docx' => '📝',
-            'xls' => '📊',
-            'xlsx' => '📊',
-            'ppt' => '📽️',
-            'pptx' => '📽️',
-            'image' => '🖼️',
-            'video' => '🎬',
-            'audio' => '🎵',
-            'zip' => '📦'
+            'pdf' => 'icono_docs.png',
+            
+            // Microsoft Office
+            'doc' => 'icono_docs.png', 
+            'docx' => 'word.png',
+            'xls' => 'excel.png', 
+            'xlsx' => 'excel.png',
+            'ppt' => 'icono_docs.png', 
+            'pptx' => 'powerpoint.png',
+            
+            // Multimedia
+            'image' => 'image.png',
+            'video' => 'icono_video.png',
+            'audio' => 'audio.png',
+            
+            // Otros
+            'zip' => 'icono_archivo.png'
         ];
 
-        return $icons[$this->file_type] ?? '📎';
+        // Obtiene el nombre del archivo o usa default.png
+        $filename = $icons[$this->file_type] ?? 'default.png';
+        
+        return $basePath . $filename;
     }
 
-    // Accesor para tamaño formateado
+    // Tipos permitidos para vista previa
+    public function getCanPreviewAttribute()
+    {
+        return in_array($this->file_type, [
+            'image', 'video', 'audio', 'pdf', 
+            'doc', 'xls', 'ppt', 
+            'jpg', 'jpeg', 'png', 'gif', 'webp',
+            'mp4', 'webm', 'mp3', 'wav',
+            'docx', 'xlsx', 'pptx'
+        ]);
+    }
+
     public function getFileSizeFormattedAttribute()
     {
         $bytes = $this->file_size;
-        if ($bytes >= 1073741824) {
-            return number_format($bytes / 1073741824, 2) . ' GB';
-        } elseif ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . ' MB';
-        } elseif ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2) . ' KB';
-        } else {
-            return $bytes . ' bytes';
-        }
+        if ($bytes >= 1073741824) return number_format($bytes / 1073741824, 2) . ' GB';
+        elseif ($bytes >= 1048576) return number_format($bytes / 1048576, 2) . ' MB';
+        elseif ($bytes >= 1024) return number_format($bytes / 1024, 2) . ' KB';
+        else return $bytes . ' bytes';
     }
 }

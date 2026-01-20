@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Redonda Joven - Inmaculada Concepción de Belgrano</title>
-
-    <!-- PWA Meta Tags -->
+    <title>La Redonda - Inmaculada Concepción de Belgrano</title>
     <meta name="theme-color" content="#5cb1e3">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/logo_redonda.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/logo_nav_redonda.png') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -36,10 +32,8 @@
         }
     </script>
 
-    <!-- Fuentes Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
-    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#5cb1e3">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">

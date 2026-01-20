@@ -11,7 +11,6 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        // Debug
         Log::info('AdminMiddleware ejecutándose para: ' . $request->path());
         
         if (!Auth::check()) {

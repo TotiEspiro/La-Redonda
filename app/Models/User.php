@@ -27,9 +27,7 @@ class User extends Authenticatable
         'last_diario_entry' => 'datetime',
     ];
 
-    // ========== MÉTODOS PARA DIARIO ==========
     
-    // Accesor para diario_data
     public function getDiarioDataAttribute($value)
     {
         if (!$value || $value === 'null' || $value === '[]') {
@@ -44,14 +42,12 @@ class User extends Authenticatable
         }
     }
 
-    // Mutator para diario_data
     public function setDiarioDataAttribute($value)
     {
         $dataToStore = is_array($value) ? $value : [];
         $this->attributes['diario_data'] = json_encode($dataToStore);
     }
 
-    // Método para agregar una nueva entrada al diario
     public function addDiarioEntry($data)
     {
         if (!$this->canAccessDiario()) {
@@ -60,13 +56,12 @@ class User extends Authenticatable
 
         $diarioData = $this->diario_data;
         
-        // Generar nuevo ID
         $entryId = count($diarioData) > 0 ? max(array_column($diarioData, 'id')) + 1 : 1;
         
         $entry = [
             'id' => $entryId,
-            'title' => $data['title'] ?? '', // ✅ NO encriptar
-            'content' => $data['content'] ?? '', // ✅ NO encriptar
+            'title' => $data['title'] ?? '', 
+            'content' => $data['content'] ?? '', 
             'type' => $data['type'] ?? 'texto',
             'color' => $data['color'] ?? '#3b82f6',
             'is_favorite' => (bool)($data['is_favorite'] ?? false),
@@ -82,7 +77,6 @@ class User extends Authenticatable
         return $entry;
     }
 
-    // Obtener una entrada específica del diario
     public function getDiarioEntry($entryId)
     {
         if (!$this->canAccessDiario()) {
@@ -112,8 +106,8 @@ class User extends Authenticatable
         
         foreach ($diarioData as &$entry) {
             if ($entry['id'] == $entryId) {
-                $entry['title'] = $data['title'] ?? $entry['title']; // ✅ NO encriptar
-                $entry['content'] = $data['content'] ?? $entry['content']; // ✅ NO encriptar
+                $entry['title'] = $data['title'] ?? $entry['title']; 
+                $entry['content'] = $data['content'] ?? $entry['content']; 
                 $entry['type'] = $data['type'] ?? $entry['type'];
                 $entry['color'] = $data['color'] ?? $entry['color'];
                 $entry['is_favorite'] = (bool)($data['is_favorite'] ?? $entry['is_favorite']);
@@ -170,7 +164,6 @@ class User extends Authenticatable
 
         $entries = $this->diario_data;
         
-        // Ordenar por fecha de creación (más reciente primero)
         usort($entries, function($a, $b) {
             return strtotime($b['created_at']) - strtotime($a['created_at']);
         });

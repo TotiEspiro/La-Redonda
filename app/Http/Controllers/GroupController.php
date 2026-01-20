@@ -10,18 +10,14 @@ use Illuminate\Support\Facades\Storage;
 
 class GroupController extends Controller
 {
-    /**
-     * Display a listing of all categories (NO grupos)
-     */
+    
     public function index()
     {
         // Solo muestra las categorías, no carga grupos
         return view('grupos.index');
     }
 
-    /**
-     * Display groups for catequesis category.
-     */
+    
     public function catequesis()
     {
         $categoria = 'Catequesis';
@@ -31,9 +27,7 @@ class GroupController extends Controller
         return view('grupos.categoria', compact('groups', 'categoria', 'descripcion'));
     }
 
-    /**
-     * Display groups for jovenes category.
-     */
+    
     public function jovenes()
     {
         $categoria = 'Jóvenes';
@@ -43,9 +37,7 @@ class GroupController extends Controller
         return view('grupos.categoria', compact('groups', 'categoria', 'descripcion'));
     }
 
-    /**
-     * Display groups for mayores category.
-     */
+    
     public function mayores()
     {
         $categoria = 'Mayores';
@@ -55,9 +47,7 @@ class GroupController extends Controller
         return view('grupos.categoria', compact('groups', 'categoria', 'descripcion'));
     }
 
-    /**
-     * Display groups for especiales category.
-     */
+   
     public function especiales()
     {
         $categoria = 'Más Grupos';
@@ -67,9 +57,6 @@ class GroupController extends Controller
         return view('grupos.categoria', compact('groups', 'categoria', 'descripcion'));
     }
 
-    /**
-     * Display the specified group.
-     */
     public function show(Group $group)
     {
         // Obtener el nombre de la categoría para mostrar
@@ -85,13 +72,8 @@ class GroupController extends Controller
         return view('grupos.index', compact('group', 'categoryName'));
     }
 
-    // =========================================================================
-    // NUEVAS FUNCIONES PARA GESTIÓN DE MATERIALES DE GRUPOS PARROQUIALES
-    // =========================================================================
-
-    /**
-     * Vista del dashboard del grupo para AdminGrupoParroquial
-     */
+   
+    //Vista del dashboard del grupo para AdminGrupoParroquial
     public function groupDashboard($groupRole)
     {
         $user = Auth::user();
@@ -110,9 +92,8 @@ class GroupController extends Controller
         return view('grupos.dashboard', compact('materials', 'groupRole', 'groupName'));
     }
 
-    /**
-     * Vista para miembros del grupo (solo ver materiales)
-     */
+    // Vista para miembros del grupo (solo ver materiales)
+     
     public function groupMaterials($groupRole)
     {
         $user = Auth::user();
@@ -128,9 +109,8 @@ class GroupController extends Controller
         return view('grupos.materials', compact('materials', 'groupRole', 'groupName'));
     }
 
-    /**
-     * Subir nuevo material
-     */
+    // Subir nuevo material 
+
     public function uploadMaterial(Request $request, $groupRole)
     {
         $user = Auth::user();
@@ -142,7 +122,7 @@ class GroupController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'file' => 'required|file|max:10240' // Máximo 10MB
+            'file' => 'required|file|max:153600' 
         ]);
 
         $file = $request->file('file');
@@ -170,9 +150,59 @@ class GroupController extends Controller
         ]);
     }
 
-    /**
-     * Eliminar material
-     */
+    // Actualizar material existente (Editar) 
+
+    public function updateMaterial(Request $request, $id)
+    {
+        $material = GroupMaterial::findOrFail($id);
+        $user = Auth::user();
+
+        // Verificar permisos
+        if (!$this->userCanManageGroup($user, $material->group_role)) {
+            return response()->json(['error' => 'No tienes permisos para editar este material.'], 403);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'is_active' => 'required|boolean', 
+            'file' => 'nullable|file|max:153600' 
+        ]);
+
+        // Actualizar datos básicos
+        $material->title = $request->title;
+        $material->description = $request->description;
+        $material->is_active = $request->is_active;
+
+        // Si se subió un nuevo archivo, reemplazar el anterior
+        if ($request->hasFile('file')) {
+            // Eliminar archivo viejo
+            if (Storage::disk('public')->exists($material->file_path)) {
+                Storage::disk('public')->delete($material->file_path);
+            }
+
+            // Subir nuevo
+            $file = $request->file('file');
+            $fileType = $this->getFileType($file->getClientOriginalExtension());
+            $filePath = $file->store("group-materials/{$material->group_role}", 'public');
+
+            // Actualizar referencias
+            $material->file_path = $filePath;
+            $material->file_name = $file->getClientOriginalName();
+            $material->file_type = $fileType;
+            $material->file_size = $file->getSize();
+        }
+
+        $material->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Material actualizado correctamente',
+            'material' => $material
+        ]);
+    }
+
+    // Eliminar material
     public function deleteMaterial($id)
     {
         $material = GroupMaterial::findOrFail($id);
@@ -183,7 +213,9 @@ class GroupController extends Controller
         }
 
         // Eliminar archivo físico
-        Storage::disk('public')->delete($material->file_path);
+        if (Storage::disk('public')->exists($material->file_path)) {
+            Storage::disk('public')->delete($material->file_path);
+        }
 
         $material->delete();
 
@@ -193,9 +225,8 @@ class GroupController extends Controller
         ]);
     }
 
-    /**
-     * Descargar material - CORREGIDO
-     */
+    // Descargar material
+    
     public function downloadMaterial($id)
     {
         $material = GroupMaterial::where('is_active', true)->findOrFail($id);
@@ -214,13 +245,30 @@ class GroupController extends Controller
         return Storage::disk('public')->download($material->file_path, $material->file_name);
     }
 
-    // =========================================================================
-    // FUNCIONES HELPER
-    // =========================================================================
+    // Visualizar material (Vista Previa)
+   
+    public function viewMaterial($id)
+    {
+        $material = GroupMaterial::where('is_active', true)->findOrFail($id);
+        $user = Auth::user();
 
-    /**
-     * Helper: Verificar si usuario puede gestionar el grupo
-     */
+        // Verificar que el usuario puede ver este material
+        if (!$user->hasRole($material->group_role) && !$user->isAdmin() && !$user->isSuperAdmin()) {
+            abort(403, 'No tienes permiso para ver este material.');
+        }
+
+        // Verificar que el archivo existe
+        if (!Storage::disk('public')->exists($material->file_path)) {
+            abort(404, 'El archivo no existe.');
+        }
+
+        return response()->file(storage_path('app/public/' . $material->file_path));
+    }
+
+    
+
+    // Verificar si usuario puede gestionar el grupo
+    
     private function userCanManageGroup($user, $groupRole)
     {
         return ($user->hasRole('admin_grupo_parroquial') && $user->hasRole($groupRole)) || 
@@ -228,9 +276,8 @@ class GroupController extends Controller
                $user->isSuperAdmin();
     }
 
-    /**
-     * Helper: Obtener nombre del grupo
-     */
+    // Obtener nombre del grupo
+
     private function getGroupName($groupRole)
     {
         $groupNames = [
@@ -250,23 +297,24 @@ class GroupController extends Controller
         return $groupNames[$groupRole] ?? $groupRole;
     }
 
-    /**
-     * Helper: Determinar tipo de archivo
-     */
+    // Determinar tipo de archivo
+     
     private function getFileType($extension)
     {
-        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
-        $videoExtensions = ['mp4', 'avi', 'mov', 'wmv'];
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'];
+        $videoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'webm'];
         $audioExtensions = ['mp3', 'wav', 'ogg', 'm4a'];
         
-        if (in_array($extension, $imageExtensions)) return 'image';
-        if (in_array($extension, $videoExtensions)) return 'video';
-        if (in_array($extension, $audioExtensions)) return 'audio';
-        if ($extension === 'pdf') return 'pdf';
-        if (in_array($extension, ['doc', 'docx'])) return 'doc';
-        if (in_array($extension, ['xls', 'xlsx'])) return 'xls';
-        if (in_array($extension, ['ppt', 'pptx'])) return 'ppt';
-        if ($extension === 'zip') return 'zip';
+        $ext = strtolower($extension);
+
+        if (in_array($ext, $imageExtensions)) return 'image';
+        if (in_array($ext, $videoExtensions)) return 'video';
+        if (in_array($ext, $audioExtensions)) return 'audio';
+        if ($ext === 'pdf') return 'pdf';
+        if (in_array($ext, ['doc', 'docx'])) return 'doc';
+        if (in_array($ext, ['xls', 'xlsx'])) return 'xls';
+        if (in_array($ext, ['ppt', 'pptx'])) return 'ppt';
+        if ($ext === 'zip') return 'zip';
         
         return 'other';
     }

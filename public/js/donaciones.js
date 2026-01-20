@@ -1,6 +1,4 @@
-// JavaScript actualizado para donaciones que guarda en BD
 document.addEventListener('DOMContentLoaded', function() {
-    // Elementos del DOM
     const amountOptions = document.querySelectorAll('.amount-option');
     const customAmountInput = document.getElementById('customAmount');
     const frequencyOptions = document.querySelectorAll('input[name="frequency"]');
@@ -12,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para manejar selección de montos
     function handleAmountSelection(selectedOption) {
-        // Remover clases de active de todos los botones
         amountOptions.forEach(option => {
             option.classList.remove('bg-button', 'text-white');
             option.classList.add('bg-white', 'text-button', 'border-button');
@@ -38,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Manejar monto personalizado
     customAmountInput.addEventListener('input', function() {
         if (this.value) {
-            // Remover selección de botones cuando se usa input personalizado
             amountOptions.forEach(option => {
                 option.classList.remove('bg-button', 'text-white');
                 option.classList.add('bg-white', 'text-button', 'border-button');
@@ -86,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
     cardForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        // Validaciones básicas
         if (selectedAmount === 0 || selectedAmount < 100) {
             alert('Por favor, seleccione un monto válido (mínimo $100)');
             return;
@@ -109,7 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
 
         try {
-            // Enviar a la base de datos
             const response = await fetch('/donaciones/procesar', {
                 method: 'POST',
                 headers: {
@@ -128,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (result.success) {
-                // Mostrar modal de confirmación
                 showConfirmationModal(cardHolder, cardNumber, email);
             } else {
                 alert('Error: ' + result.message);
@@ -146,7 +139,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Mostrar modal de confirmación
     function showConfirmationModal(cardHolder, cardNumber, email) {
-        // Actualizar información en el modal
         document.getElementById('confirmAmount').textContent = `$${selectedAmount.toLocaleString()}`;
 
         const frequencyText = {
@@ -157,13 +149,11 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         document.getElementById('confirmFrequency').textContent = frequencyText[selectedFrequency];
 
-        // Mostrar últimos 4 dígitos de la tarjeta
         const lastFour = cardNumber.slice(-4);
         document.getElementById('confirmCard').textContent = `**** **** **** ${lastFour}`;
 
         document.getElementById('confirmEmail').textContent = email;
 
-        // Mostrar modal
         confirmationModal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
@@ -174,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = '';
     }
 
-    // Event listeners para el modal
     confirmationModal.querySelector('.modal-close').addEventListener('click', closeModal);
     document.getElementById('cancelDonation').addEventListener('click', closeModal);
 
@@ -184,7 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
         closeModal();
         cardForm.reset();
 
-        // Resetear estado
         amountOptions.forEach(option => {
             option.classList.remove('bg-button', 'text-white');
             option.classList.add('bg-white', 'text-button', 'border-button');

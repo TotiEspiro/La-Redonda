@@ -8,9 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class DiarioController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -43,7 +41,7 @@ class DiarioController extends Controller
             return (object)[
                 'id' => $entry['id'] ?? 0,
                 'title' => $entry['title'] ?? 'Sin título',
-                'content' => $entry['content'] ?? '', // ✅ Usar comillas simples si prefieres
+                'content' => $entry['content'] ?? '', 
                 'type' => $entry['type'] ?? 'texto',
                 'color' => $entry['color'] ?? '#3b82f6',
                 'is_favorite' => $entry['is_favorite'] ?? false,
@@ -59,9 +57,7 @@ class DiarioController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    
     public function store(Request $request)
     {
         $user = Auth::user();
@@ -107,9 +103,7 @@ class DiarioController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    
     public function show($id)
     {
         $user = Auth::user();
@@ -145,9 +139,7 @@ class DiarioController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    
     public function update(Request $request, $id)
     {
         $user = Auth::user();
@@ -182,9 +174,7 @@ class DiarioController extends Controller
         ], 404);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    
     public function destroy($id)
     {
         $user = Auth::user();
@@ -211,9 +201,7 @@ class DiarioController extends Controller
         ], 404);
     }
 
-    /**
-     * Show favorite entries.
-     */
+    
     public function favorites(Request $request)
     {
         $user = Auth::user();
@@ -254,9 +242,7 @@ class DiarioController extends Controller
         });
     }
 
-    /**
-     * Search entries.
-     */
+    
     public function search(Request $request)
     {
         $user = Auth::user();
@@ -295,9 +281,7 @@ class DiarioController extends Controller
         ]);
     }
 
-    /**
-     * Toggle favorite status.
-     */
+    
     public function toggleFavorite($id)
     {
         $user = Auth::user();
@@ -340,9 +324,7 @@ class DiarioController extends Controller
         ], 500);
     }
 
-    /**
-     * Get type display name.
-     */
+    
     private function getTypeDisplay($type)
     {
         $types = [
@@ -355,9 +337,7 @@ class DiarioController extends Controller
         return $types[$type] ?? $type;
     }
 
-    /**
-     * Get excerpt from content.
-     */
+    
     private function getExcerpt($content, $length = 100)
     {
         // Limpiar HTML tags si existe

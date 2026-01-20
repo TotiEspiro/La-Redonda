@@ -5,22 +5,14 @@ class DiarioApp {
     }
 
     initializeApp() {
-        console.log('🚀 Inicializando Diario App...');
-        
         document.addEventListener('DOMContentLoaded', () => {
             this.initializeEventListeners();
-            this.initializeFilters();
             this.initializeDocumentManager();
-            
-            console.log('✅ Diario App inicializada correctamente');
         });
     }
 
     initializeEventListeners() {
-        // Botones de crear documento
         this.setupCreateButtons();
-        
-        // Filtros y búsqueda
         this.setupFilters();
     }
 
@@ -46,7 +38,6 @@ class DiarioApp {
                 const filter = e.currentTarget.dataset.filter;
                 this.applyFilter(filter);
                 
-                // Actualizar estado activo
                 filterButtons.forEach(b => {
                     b.classList.remove('bg-button', 'text-white');
                     b.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
@@ -64,7 +55,6 @@ class DiarioApp {
     }
 
     initializeDocumentManager() {
-        // Los botones de editar/eliminar/favorito se manejan con event delegation
         document.addEventListener('click', (e) => {
             if (e.target.closest('.edit-btn')) {
                 this.handleEdit(e.target.closest('.edit-btn'));
@@ -80,7 +70,6 @@ class DiarioApp {
         });
     }
 
-    // ========== FILTROS Y BÚSQUEDA ==========
     applyFilter(filter = 'all') {
         const documents = document.querySelectorAll('.document-card');
         
@@ -136,7 +125,6 @@ class DiarioApp {
         }
     }
 
-    // ========== GESTIÓN DE DOCUMENTOS ==========
     async handleEdit(button) {
         const entryId = button.dataset.id;
         
@@ -160,11 +148,9 @@ class DiarioApp {
     async handleDelete(button) {
         const entryId = button.dataset.id;
         
-        // Mostrar modal de confirmación personalizado
         if (window.documentManager) {
             window.documentManager.confirmDelete(button);
         } else {
-            // Fallback si no existe documentManager
             if (confirm('¿Estás seguro de que quieres eliminar esta entrada?')) {
                 await this.performDelete(entryId, button);
             }
@@ -189,7 +175,6 @@ class DiarioApp {
             if (result.success) {
                 this.showNotification(result.message, 'success');
                 
-                // Eliminar con animación
                 const card = button.closest('.document-card');
                 if (card) {
                     card.style.opacity = '0';
@@ -224,7 +209,6 @@ class DiarioApp {
             const result = await response.json();
 
             if (result.success) {
-                // Actualizar visualmente
                 if (result.is_favorite) {
                     button.classList.add('text-yellow-500');
                     button.classList.remove('text-gray-400');
@@ -233,7 +217,6 @@ class DiarioApp {
                     button.classList.add('text-gray-400');
                 }
                 
-                // Actualizar atributo del card
                 const card = button.closest('.document-card');
                 if (card) {
                     card.dataset.favorite = result.is_favorite.toString();
@@ -249,7 +232,6 @@ class DiarioApp {
         }
     }
 
-    // ========== EDITOR ==========
     openEditor(entry = null) {
         if (window.editorModal) {
             window.editorModal.open(entry);
@@ -259,13 +241,11 @@ class DiarioApp {
         }
     }
 
-    // ========== UTILIDADES ==========
     checkEmptyState() {
         const documentsGrid = document.getElementById('documentsGrid');
         const documents = documentsGrid.querySelectorAll('.document-card');
         
         if (documents.length === 0) {
-            // Ya debería mostrarse el estado vacío del blade
             console.log('No hay documentos, mostrando estado vacío');
         }
     }
@@ -276,13 +256,11 @@ class DiarioApp {
     }
 
     showNotification(message, type = 'info') {
-        // Usar el sistema de notificaciones del documentManager si existe
         if (window.documentManager && window.documentManager.showNotification) {
             window.documentManager.showNotification(message, type);
             return;
         }
 
-        // Sistema de notificaciones básico
         const container = document.getElementById('notificationContainer') || this.createNotificationContainer();
         const notification = document.createElement('div');
         
@@ -303,7 +281,6 @@ class DiarioApp {
         
         container.appendChild(notification);
         
-        // Auto-eliminar
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.style.transform = 'translateX(100%)';
@@ -319,20 +296,11 @@ class DiarioApp {
         document.body.appendChild(container);
         return container;
     }
-
-    initializeFilters() {
-        console.log('Filters initialized');
-        // Los filtros ya se configuraron en setupFilters()
-    }
 }
 
-// Inicializar la aplicación
 const diarioApp = new DiarioApp();
-
-// Hacer disponible globalmente
 window.diarioApp = diarioApp;
 
-// Funciones globales para compatibilidad
 window.openEditorModal = (entry = null) => {
     diarioApp.openEditor(entry);
 };
@@ -349,4 +317,3 @@ window.deleteEntry = (event) => {
     diarioApp.handleDelete(event.currentTarget || event.target);
 };
 
-console.log('🎯 Diario App cargada y lista');

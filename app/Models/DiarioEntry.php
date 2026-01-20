@@ -45,31 +45,27 @@ class DiarioEntry extends Model
     public function getTypeDisplayAttribute()
     {
         $types = [
-            'texto' => '📝 Texto',
-            'mapa_conceptual' => '🗺️ Mapa Conceptual',
-            'lista' => '📋 Lista',
-            'reflexion' => '💭 Reflexión'
+            'texto' => 'Texto',
+            'mapa_conceptual' => 'Mapa Conceptual',
+            'lista' => 'Lista',
+            'reflexion' => 'Reflexión'
         ];
 
         return $types[$this->type] ?? $this->type;
     }
 
-    // Accesor para contenido truncado (para previews) - CORREGIDO
+    // Accesor para contenido truncado (para previews) 
     public function getExcerptAttribute()
     {
         $content = $this->content;
         
-        // Si es texto normal o reflexión, mostrar excerpt normal
         if ($this->type === 'texto' || $this->type === 'reflexion') {
-            // Limpiar HTML y mostrar texto plano
             $cleanContent = strip_tags($content);
             return Str::limit($cleanContent, 100) ?: 'Sin contenido';
         }
         
-        // Si es lista (tareas), mostrar información de tareas
         if ($this->type === 'lista') {
             try {
-                // Verificar si el contenido es un array JSON
                 if ($this->isJson($content)) {
                     $tasks = json_decode($content, true);
                     if (is_array($tasks) && count($tasks) > 0) {
@@ -77,34 +73,31 @@ class DiarioEntry extends Model
                         $completed = count(array_filter($tasks, function($task) {
                             return ($task['completed'] ?? false) === true;
                         }));
-                        return "📋 {$completed}/{$totalTasks} tareas completadas";
+                        return " {$completed}/{$totalTasks} tareas completadas";
                     }
                 }
             } catch (\Exception $e) {
-                // Si hay error al decodificar JSON
             }
-            return '📋 Lista de tareas';
+            return 'Lista de tareas';
         }
         
         // Si es mapa conceptual, mostrar información de nodos
         if ($this->type === 'mapa_conceptual') {
             try {
-                // Verificar si el contenido es un array JSON
                 if ($this->isJson($content)) {
                     $mapData = json_decode($content, true);
                     if (is_array($mapData) && isset($mapData['nodes']) && count($mapData['nodes']) > 0) {
                         $nodeCount = count($mapData['nodes']);
-                        return "🗺️ Mapa con {$nodeCount} nodos";
+                        return " Mapa con {$nodeCount} nodos";
                     }
                 }
             } catch (\Exception $e) {
-                // Si hay error al decodificar JSON
             }
-            return '🗺️ Mapa conceptual';
+            return ' Mapa conceptual';
         }
         
         // Fallback para tipos desconocidos o contenido inválido
-        return '📄 Contenido';
+        return 'Contenido';
     }
 
     // Método auxiliar para verificar si es JSON válido

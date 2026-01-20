@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Announcement; // Agregar esta línea
+use App\Models\Announcement; 
 
 class HomeController extends Controller
 {
@@ -15,6 +15,6 @@ class HomeController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('home', compact('announcements')); // Pasar anuncios a la vista
+        return view('home', compact('announcements')); 
     }
 }

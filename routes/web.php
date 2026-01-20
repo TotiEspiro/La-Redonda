@@ -84,7 +84,7 @@ Route::prefix('grupos')->group(function () {
     Route::get('/{group}', [GroupController::class, 'show'])->name('grupos.show');
 });
 
-// Clear Loading Session
+// Pantalla de Carga
 Route::post('/clear-loading-session', [AuthController::class, 'clearLoadingSession'])
     ->name('clear.loading.session');
 
@@ -97,14 +97,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/perfil/cambiar-contraseña', [ProfileController::class, 'changePassword'])->name('profile.change-password');
 });
 
-// Ruta para olvidar contraseña (placeholder)
+// Olvidar contraseña 
 Route::get('/olvide-contraseña', function () {
     return view('auth.forgot-password');
 })->name('password.request');
 
-// =============================================
-// DIARIO DE LA REDONDA - Rutas actualizadas
-// =============================================
+
+// Diario de La Redonda 
 Route::prefix('diario')->middleware(['auth'])->group(function () {
     Route::get('/', [DiarioController::class, 'index'])->name('diario.index');
     Route::post('/', [DiarioController::class, 'store'])->name('diario.store');
@@ -113,8 +112,10 @@ Route::prefix('diario')->middleware(['auth'])->group(function () {
     Route::get('/{id}', [DiarioController::class, 'show'])->name('diario.show');
     Route::put('/{id}', [DiarioController::class, 'update'])->name('diario.update');
     Route::delete('/{id}', [DiarioController::class, 'destroy'])->name('diario.destroy');
-    Route::post('/{id}/toggle-favorite', [DiarioController::class, 'toggleFavorite'])->name('diario.toggle-favorite'); // ✅ AGREGADA
+    Route::post('/{id}/toggle-favorite', [DiarioController::class, 'toggleFavorite'])->name('diario.toggle-favorite'); 
 });
+
+// Gestion de Grupos
 
 Route::middleware(['auth'])->prefix('grupos')->group(function () {
     // Dashboard de administración para AdminGrupoParroquial
@@ -126,7 +127,11 @@ Route::middleware(['auth'])->prefix('grupos')->group(function () {
     // Acciones de administración
     Route::post('/{groupRole}/upload', [GroupController::class, 'uploadMaterial'])->name('groups.upload');
     Route::delete('/material/{id}/delete', [GroupController::class, 'deleteMaterial'])->name('groups.delete');
+    
+    // Descarga de material
     Route::get('/material/{id}/download', [GroupController::class, 'downloadMaterial'])->name('groups.download');
+    Route::get('/material/{id}/view', [GroupController::class, 'viewMaterial'])->name('groups.view');
+    Route::post('/material/{id}/update', [GroupController::class, 'updateMaterial'])->name('groups.update');
 });
 
 // Ruta para servir archivos JavaScript del diario

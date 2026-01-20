@@ -24,13 +24,11 @@ class Donation extends Model
         'updated_at' => 'datetime',
     ];
 
-    // Relación con usuario
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // Getter para frecuencia formateada
     public function getFormattedFrequencyAttribute()
     {
         $frequencies = [

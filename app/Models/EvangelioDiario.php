@@ -21,7 +21,6 @@ class EvangelioDiario extends Model
         'fecha' => 'date'
     ];
 
-    // Obtener el evangelio del día actual
     public static function obtenerEvangelioHoy()
     {
         return self::where('fecha', today())->first();

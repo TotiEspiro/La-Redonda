@@ -1,332 +1,191 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-        <div class="bg-button px-6 py-4 text-white">
-            <h1 class="text-2xl font-bold">Crear Nuevo Anuncio</h1>
-            <p class="text-blue-100">Agregar un nuevo aviso parroquial</p>
+<div class="min-h-screen bg-gray-50 md:bg-white md:min-h-0 pb-20 md:pb-0">
+    
+    <div class="bg-button text-white shadow-md md:shadow-none md:rounded-t-xl sticky top-0 z-20 md:static">
+        <div class="container mx-auto px-4 py-4 md:px-6 md:py-5 md:mt-8">
+            <h1 class="text-xl md:text-2xl font-bold">Crear Nuevo Anuncio</h1>
+            <p class="text-blue-100 text-xs md:text-sm hidden md:block">Completa la información para publicar un nuevo aviso</p>
         </div>
+    </div>
 
-        <div class="p-6">
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                    {{ session('success') }}
+    <div class="container mx-auto px-0 md:px-0 md:border md:border-t-0 md:border-gray-100 md:rounded-b-xl md:shadow-lg md:mb-8 bg-white">
+        <form action="{{ route('admin.announcements.store') }}" method="POST" enctype="multipart/form-data" id="announcementForm">
+            @csrf
+            
+            <div class="p-4 md:p-8 space-y-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Título del Anuncio <span class="text-red-500">*</span></label>
+                    <input type="text" name="title" required 
+                           class="block w-full rounded-lg border-gray-300 bg-gray-50 border focus:bg-white focus:border-button focus:ring-button transition-colors p-3" 
+                           placeholder="Ej: Misa de Gallo"
+                           value="{{ old('title') }}">
                 </div>
-            @endif
-
-            @if(session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {{ session('error') }}
-                </div>
-            @endif
-
-            <form action="{{ route('admin.announcements.store') }}" method="POST" enctype="multipart/form-data" id="announcementForm">
-                @csrf
                 
-                <div class="grid grid-cols-1 gap-6">
-                    <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700">Título *</label>
-                        <input type="text" id="title" name="title" required 
-                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-button focus:border-button"
-                               value="{{ old('title') }}">
-                        @error('title')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Descripción Corta <span class="text-red-500">*</span></label>
+                    <textarea name="short_description" required rows="2" 
+                              class="block w-full rounded-lg border-gray-300 bg-gray-50 border focus:bg-white focus:border-button focus:ring-button transition-colors p-3"
+                              placeholder="Resumen breve para la lista...">{{ old('short_description') }}</textarea>
+                    <p class="text-xs text-gray-400 mt-1 text-right">Se muestra en la vista previa</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Descripción Completa <span class="text-red-500">*</span></label>
+                    <textarea name="full_description" required rows="6" 
+                              class="block w-full rounded-lg border-gray-300 bg-gray-50 border focus:bg-white focus:border-button focus:ring-button transition-colors p-3"
+                              placeholder="Detalles completos del anuncio...">{{ old('full_description') }}</textarea>
+                </div>
+                
+                <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                    <label class="block text-sm font-bold text-gray-800 mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-button" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Imagen del Anuncio
+                    </label>
                     
-                    <div>
-                        <label for="short_description" class="block text-sm font-medium text-gray-700">Descripción Corta *</label>
-                        <textarea id="short_description" name="short_description" required rows="3"
-                                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-button focus:border-button"
-                                  placeholder="Descripción breve que aparece en la tarjeta">{{ old('short_description') }}</textarea>
-                        @error('short_description')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    
-                    <div>
-                        <label for="full_description" class="block text-sm font-medium text-gray-700">Descripción Completa *</label>
-                        <textarea id="full_description" name="full_description" required rows="6"
-                                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-button focus:border-button"
-                                  placeholder="Contenido completo que aparece en el modal">{{ old('full_description') }}</textarea>
-                        @error('full_description')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    
-                    <!-- Sección de imagen con recorte -->
-                    <div>
-                        <label for="image" class="block text-sm font-medium text-gray-700">Imagen</label>
-                        <input type="file" id="image" name="image" accept="image/*" 
-                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-                        <p class="mt-1 text-sm text-gray-500">Formatos: JPEG, PNG, JPG, GIF. Máx: 2MB</p>
-                        @error('image')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                        
-                        <!-- Preview y área de recorte -->
-                        <div id="imagePreview" class="mt-4 hidden">
-                            <div class="mb-4">
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Recortar Imagen (Relación 4:3)</h4>
-                                <div class="bg-gray-100 p-4 rounded-lg max-w-2xl mx-auto">
-                                    <div id="cropContainer" class="max-w-full">
-                                        <img id="imageToCrop" class="max-w-full">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="flex gap-4 mb-4">
-                                <button type="button" id="cropImage" class="bg-button text-white px-4 py-2 rounded text-sm hover:bg-blue-500 transition-colors">
-                                    Aplicar Recorte
-                                </button>
-                                <button type="button" id="cancelCrop" class="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600 transition-colors">
-                                    Cancelar
-                                </button>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 hidden" id="cropSuccess">
-                                Imagen recortada correctamente. Puedes continuar con el formulario.
-                            </div>
-                            
-                            <!-- Preview de imagen recortada -->
-                            <div id="croppedPreview" class="hidden mt-4">
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Vista previa de imagen recortada:</h4>
-                                <img id="croppedImagePreview" class="max-w-xs border rounded-lg">
-                            </div>
+                    <div id="uploadContainer" class="border-2 border-dashed border-blue-200 rounded-xl p-6 text-center bg-white hover:bg-blue-50 transition-colors cursor-pointer relative">
+                        <input type="file" id="imageInput" name="image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <div class="text-blue-400 mb-2">
+                            <svg class="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                         </div>
-                        
-                        <input type="hidden" id="croppedImageData" name="cropped_image">
+                        <p class="text-sm font-medium text-gray-700">Toca para seleccionar imagen</p>
+                        <p class="text-xs text-gray-400 mt-1">JPG o PNG. Se recomienda horizontal.</p>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="order" class="block text-sm font-medium text-gray-700">Orden</label>
-                            <input type="number" id="order" name="order" value="{{ old('order', 0) }}"
-                                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-button focus:border-button">
-                            @error('order')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                    <input type="hidden" id="croppedImage" name="cropped_image">
+
+                    <div id="cropArea" class="hidden mt-4 bg-white p-3 rounded-lg shadow-sm border border-gray-200">
+                        <div class="mb-3 text-sm font-bold text-gray-700 text-center">Ajusta el recorte (16:9 Panorámico)</div>
+                        <div class="relative w-full h-64 md:h-96 bg-black rounded-lg overflow-hidden">
+                            <img id="imageToCrop" class="max-w-full block">
                         </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Estado</label>
-                            <div class="mt-2">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="is_active" value="1" checked 
-                                           class="rounded border-gray-300 text-button focus:ring-button">
-                                    <span class="ml-2">Activo</span>
-                                </label>
-                            </div>
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <button type="button" id="cancelBtn" class="bg-gray-100 text-gray-700 px-4 py-2.5 rounded-lg font-bold hover:bg-gray-200 transition text-sm">
+                                Cancelar
+                            </button>
+                            <button type="button" id="cropBtn" class="bg-green-600 text-white px-4 py-2.5 rounded-lg font-bold hover:bg-green-700 transition text-sm shadow-sm">
+                                Confirmar Recorte
+                            </button>
                         </div>
+                    </div>
+
+                    <div id="previewArea" class="hidden mt-4 text-center">
+                        <div class="relative inline-block">
+                            <img id="finalPreview" class="h-48 w-auto rounded-lg border-4 border-white shadow-md">
+                            <button type="button" id="changeImageBtn" class="absolute -bottom-3 -right-3 bg-white text-blue-600 p-2 rounded-full shadow-lg border border-gray-100 hover:bg-blue-50">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            </button>
+                        </div>
+                        <p class="text-xs text-green-600 font-bold mt-2">¡Imagen lista para subir!</p>
                     </div>
                 </div>
                 
-                <div class="mt-6 flex justify-end gap-4">
-                    <a href="{{ route('admin.announcements.index') }}" 
-                       class="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600 transition-colors">
+                <div class="grid grid-cols-2 gap-4 pt-2">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Orden</label>
+                        <input type="number" name="order" value="{{ old('order', 0) }}" class="block w-full rounded-lg border-gray-300 bg-gray-50 p-2.5">
+                    </div>
+                    <div class="flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200 mt-6 md:mt-0 h-[46px] self-end">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" name="is_active" value="1" checked class="w-5 h-5 rounded border-gray-300 text-button focus:ring-button">
+                            <span class="ml-2 text-gray-700 font-medium select-none">Activo</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 md:static md:bg-gray-50 md:p-6 md:flex md:justify-end md:gap-4 z-50">
+                <div class="flex gap-3">
+                    <a href="{{ route('admin.announcements.index') }}" class="flex-1 md:flex-none text-center bg-white border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors">
                         Cancelar
                     </a>
-                    <button type="submit" 
-                            class="bg-button text-white px-4 py-2 rounded text-sm hover:bg-blue-500 transition-colors">
-                        Crear Anuncio
+                    <button type="submit" class="flex-1 md:flex-none bg-button text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-600 shadow-md transition-colors">
+                        Publicar
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
 
-@push('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-@endpush
-
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    let cropper;
-    const imageInput = document.getElementById('image');
-    const imagePreview = document.getElementById('imagePreview');
+    const imageInput = document.getElementById('imageInput');
+    const uploadContainer = document.getElementById('uploadContainer');
+    const cropArea = document.getElementById('cropArea');
     const imageToCrop = document.getElementById('imageToCrop');
-    const cropImageBtn = document.getElementById('cropImage');
-    const cancelCropBtn = document.getElementById('cancelCrop');
-    const cropSuccess = document.getElementById('cropSuccess');
-    const croppedPreview = document.getElementById('croppedPreview');
-    const croppedImagePreview = document.getElementById('croppedImagePreview');
-    const croppedImageData = document.getElementById('croppedImageData');
+    const previewArea = document.getElementById('previewArea');
+    const finalPreview = document.getElementById('finalPreview');
+    const croppedImageInput = document.getElementById('croppedImage');
+    const cropBtn = document.getElementById('cropBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const changeImageBtn = document.getElementById('changeImageBtn');
     
-    // Configuración del cropper
-    const cropperOptions = {
-        aspectRatio: 4/3,
-        viewMode: 1,
-        autoCropArea: 0.8,
-        responsive: true,
-        restore: false,
-        checkCrossOrigin: false,
-        guides: true,
-        center: true,
-        highlight: false,
-        cropBoxMovable: true,
-        cropBoxResizable: true,
-        toggleDragModeOnDblclick: false,
-        ready: function() {
-            console.log('Cropper listo');
-        }
-    };
+    let cropper = null;
 
-    // Cuando se selecciona una imagen
+    if (typeof Cropper === 'undefined') {
+        console.error('ERROR: Cropper.js no cargado.');
+        return;
+    }
+
     imageInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        if (!file) return;
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imageToCrop.src = e.target.result;
+                
+                cropArea.classList.remove('hidden');
+                previewArea.classList.add('hidden');
+                uploadContainer.classList.add('hidden'); 
 
-        // Validar tipo de archivo
-        if (!file.type.match('image.*')) {
-            alert('Por favor, selecciona un archivo de imagen válido.');
-            this.value = '';
-            return;
-        }
-
-        // Validar tamaño (2MB)
-        if (file.size > 2 * 1024 * 1024) {
-            alert('La imagen es demasiado grande. Máximo 2MB permitidos.');
-            this.value = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        
-        reader.onload = function(event) {
-            // Ocultar preview anterior si existe
-            croppedPreview.classList.add('hidden');
-            cropSuccess.classList.add('hidden');
-            
-            // Mostrar imagen para recortar
-            imageToCrop.src = event.target.result;
-            imagePreview.classList.remove('hidden');
-            
-            // Destruir cropper anterior si existe
-            if (cropper) {
-                cropper.destroy();
-            }
-            
-            // Inicializar cropper después de que la imagen se cargue
-            imageToCrop.onload = function() {
-                cropper = new Cropper(imageToCrop, cropperOptions);
+                if (cropper) cropper.destroy();
+                
+                imageToCrop.onload = () => {
+                    cropper = new Cropper(imageToCrop, {
+                        aspectRatio: 16 / 9, 
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        responsive: true,
+                        background: false, 
+                    });
+                };
             };
-        };
-        
-        reader.onerror = function() {
-            alert('Error al leer el archivo de imagen.');
-            imageInput.value = '';
-        };
-        
-        reader.readAsDataURL(file);
-    });
-
-    // Aplicar recorte
-    cropImageBtn.addEventListener('click', function() {
-        if (!cropper) {
-            alert('Primero selecciona una imagen.');
-            return;
-        }
-        
-        try {
-            // Obtener canvas con imagen recortada
-            const canvas = cropper.getCroppedCanvas({
-                width: 800,
-                height: 600,
-                fillColor: '#fff',
-                imageSmoothingEnabled: true,
-                imageSmoothingQuality: 'high'
-            });
-            
-            if (!canvas) {
-                alert('Error al recortar la imagen.');
-                return;
-            }
-            
-            // Convertir canvas a Data URL
-            const croppedDataURL = canvas.toDataURL('image/jpeg', 0.9);
-            
-            // Guardar en el input hidden
-            croppedImageData.value = croppedDataURL;
-            
-            // Mostrar preview de la imagen recortada
-            croppedImagePreview.src = croppedDataURL;
-            croppedPreview.classList.remove('hidden');
-            
-            // Mostrar mensaje de éxito
-            cropSuccess.classList.remove('hidden');
-            
-            // Scroll hacia el mensaje de éxito
-            cropSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-        } catch (error) {
-            console.error('Error al recortar:', error);
-            alert('Error al recortar la imagen: ' + error.message);
+            reader.readAsDataURL(file);
         }
     });
 
-    // Cancelar recorte
-    cancelCropBtn.addEventListener('click', function() {
-        // Limpiar todo
-        imagePreview.classList.add('hidden');
-        croppedPreview.classList.add('hidden');
-        cropSuccess.classList.add('hidden');
+    cropBtn.addEventListener('click', () => {
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({ width: 1280, height: 720 });
+            const base64Image = canvas.toDataURL('image/jpeg', 0.85);
+            
+            croppedImageInput.value = base64Image;
+            finalPreview.src = base64Image;
+            
+            cropArea.classList.add('hidden');
+            previewArea.classList.remove('hidden');
+        }
+    });
+
+    const reset = () => {
         imageInput.value = '';
-        croppedImageData.value = '';
+        croppedImageInput.value = '';
+        cropArea.classList.add('hidden');
+        previewArea.classList.add('hidden');
+        uploadContainer.classList.remove('hidden'); 
         
-        // Destruir cropper
         if (cropper) {
             cropper.destroy();
             cropper = null;
         }
-    });
+    };
 
-    // Manejar envío del formulario
-    document.getElementById('announcementForm').addEventListener('submit', function(e) {
-        // Si hay una imagen recortada, reemplazar el archivo original
-        if (croppedImageData.value) {
-            // Convertir base64 a blob
-            const base64Data = croppedImageData.value.split(',')[1];
-            const blob = base64ToBlob(base64Data, 'image/jpeg');
-            
-            // Crear archivo desde el blob
-            const file = new File([blob], 'announcement_cropped.jpg', { 
-                type: 'image/jpeg',
-                lastModified: new Date().getTime()
-            });
-            
-            // Crear DataTransfer y reemplazar el archivo
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            imageInput.files = dataTransfer.files;
-        }
-        
-        // El formulario se enviará normalmente
-    });
-
-    // Función auxiliar para convertir base64 a blob
-    function base64ToBlob(base64, mimeType) {
-        const byteCharacters = atob(base64);
-        const byteArrays = [];
-        
-        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-            const slice = byteCharacters.slice(offset, offset + 512);
-            const byteNumbers = new Array(slice.length);
-            
-            for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-            
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-        }
-        
-        return new Blob(byteArrays, { type: mimeType });
-    }
+    cancelBtn.addEventListener('click', reset);
+    changeImageBtn.addEventListener('click', reset);
 });
 </script>
 @endpush

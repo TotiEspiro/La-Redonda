@@ -52,10 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
-            // Mostrar pantalla de carga con progreso al enviar el formulario
             showProgressLoading();
         });
     }
-    
-    console.log('Login.js cargado correctamente');
 });

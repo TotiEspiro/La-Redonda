@@ -32,7 +32,7 @@ class DonationController extends Controller
                 'card_holder' => $validated['card_holder'],
                 'card_last_four' => substr($validated['card_number'], -4),
                 'email' => $validated['email'],
-                'user_id' => Auth::id(), // Si el usuario está logueado
+                'user_id' => Auth::id(), 
                 'status' => 'completed',
             ]);
 
