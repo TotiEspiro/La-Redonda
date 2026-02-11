@@ -128,7 +128,7 @@
             </div>
             <h3 class="text-lg font-bold text-gray-900">Tu diario está vacío</h3>
             <p class="text-gray-500 text-sm mt-1 mb-6">Comienza a escribir tu historia hoy.</p>
-            <button id="createFirstDocumentBtn" class="bg-button text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-colors shadow-sm text-sm">
+            <button id="createFirstDocumentBtn" class="bg-button text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition-colors shadow-sm text-sm">
                 + Crear Primer Documento
             </button>
         </div>

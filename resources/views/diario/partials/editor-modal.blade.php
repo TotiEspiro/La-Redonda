@@ -34,7 +34,7 @@
                     <span>Cancelar</span>
                 </button>
                 <button id="saveDocumentBtn" type="button"
-                        class="flex-1 md:flex-none justify-center bg-button text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2 text-sm shadow-md">
+                        class="flex-1 md:flex-none justify-center bg-button text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 text-sm shadow-md">
                     <span>Guardar</span>
                 </button>
             </div>
@@ -109,7 +109,7 @@
                                 <span>Mapa Conceptual</span>
                             </h3>
                             <div class="flex space-x-2 w-full sm:w-auto">
-                                <button id="addMindMapNodeBtn" type="button" class="flex-1 sm:flex-none justify-center bg-button text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-sm hover:bg-blue-600 transition-colors">
+                                <button id="addMindMapNodeBtn" type="button" class="flex-1 sm:flex-none justify-center bg-button text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-sm hover:bg-blue-900 transition-colors">
                                     <span class="text-lg font-bold">+</span> 
                                     <span>Nodo</span>
                                 </button>
@@ -137,7 +137,7 @@
                                 <span class="text-2xl"></span>
                                 <span>Lista de Tareas</span>
                             </h3>
-                            <button id="addTaskBtn" type="button" class="w-full sm:w-auto bg-button hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg flex items-center justify-center space-x-2 font-medium shadow-sm transition-colors">
+                            <button id="addTaskBtn" type="button" class="w-full sm:w-auto bg-button hover:bg-blue-900 text-white px-5 py-2.5 rounded-lg flex items-center justify-center space-x-2 font-medium shadow-sm transition-colors">
                                 <span class="text-xl leading-none">+</span> 
                                 <span>Nueva Tarea</span>
                             </button>

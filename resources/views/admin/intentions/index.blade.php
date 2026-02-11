@@ -2,125 +2,231 @@
 
 @section('content')
 <div class="container mx-auto px-0 md:px-4 py-6 md:py-8">
-    <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100">
-        <div class="bg-button px-6 py-5 text-white">
-            <h1 class="text-2xl font-bold">Gestión de Intenciones</h1>
-            <p class="text-blue-100 text-sm mt-1">Administra las intenciones de oración</p>
+    <div class="bg-white shadow-lg rounded-3xl overflow-hidden border border-gray-100">
+        
+        {{-- Encabezado --}}
+        <div class="bg-button px-8 py-6 text-white">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black">Gestión de Intenciones</h1>
+                    <p class="text-blue-100 text-xs md:text-sm font-medium opacity-80">Administra las peticiones de oración de la comunidad</p>
+                </div>
+                <div class="flex flex-wrap gap-3 w-full md:w-auto">
+                    {{-- Botón Eliminar Todo --}}
+                    @if($intentions->count() > 0)
+                    <button onclick="confirmDeleteAll()" 
+                            class="flex-1 md:flex-none px-6 py-2.5 bg-red-500/20 hover:bg-red-500 text-white border border-white/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all backdrop-blur-sm flex items-center justify-center gap-2">
+                        <img src="{{ asset('img/icono_eliminar.png') }}" class="w-4 h-4 brightness-0 invert">
+                        Vaciar Lista
+                    </button>
+                    @endif
+
+                    <a href="{{ route('admin.intentions.print') }}" target="_blank" 
+                       class="flex-1 md:flex-none px-6 py-2.5 bg-white text-button rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-50 transition-all shadow-lg flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Imprimir Lista
+                    </a>
+                </div>
+            </div>
         </div>
 
-        <div class="p-4 md:p-6">
-            <div class="flex justify-end mb-6">
-                <a href="{{ route('admin.intentions.print') }}" target="_blank" 
-                   class="w-full md:w-auto text-center bg-white text-button border border-button px-4 py-2 rounded-lg text-sm font-semibold hover:bg-button hover:text-white transition-colors shadow-sm flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    Imprimir Lista
-                </a>
-            </div>
-
-            <div class="hidden md:block overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+        <div class="p-4 md:p-8">
+            {{-- Vista Desktop (Tabla) --}}
+            <div class="hidden md:block overflow-x-auto rounded-2xl border border-gray-100">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead class="bg-gray-50/50">
                         <tr>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre / Email</th>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mensaje</th>
-                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                            <th class="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                            <th class="py-4 px-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Nombre / Email</th>
+                            <th class="py-4 px-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo</th>
+                            <th class="py-4 px-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Mensaje</th>
+                            <th class="py-4 px-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha</th>
+                            <th class="py-4 px-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Acción</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white divide-y divide-gray-50">
                         @forelse($intentions as $intention)
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="py-4 px-4">
-                                <div class="text-sm font-medium text-gray-900">{{ $intention->name }}</div>
-                                <div class="text-xs text-gray-500">{{ $intention->email }}</div>
+                        <tr class="hover:bg-blue-50/20 transition-colors">
+                            <td class="py-5 px-6 whitespace-nowrap">
+                                <div class="text-sm font-bold text-text-dark uppercase tracking-tight">{{ $intention->name }}</div>
+                                <div class="text-[11px] text-text-light font-medium">{{ $intention->email }}</div>
                             </td>
-                            <td class="py-4 px-4">
+                            <td class="py-5 px-6">
                                 <span @class([
-                                    'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                                    'bg-green-100 text-green-800' => $intention->type == 'salud',
-                                    'bg-gray-100 text-gray-800' => $intention->type == 'difuntos',
-                                    'bg-yellow-100 text-yellow-800' => $intention->type == 'accion-gracias',
-                                    'bg-blue-100 text-blue-800' => !in_array($intention->type, ['salud', 'difuntos', 'accion-gracias'])
+                                    'inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase border',
+                                    'bg-green-50 text-green-700 border-green-100' => $intention->type == 'salud',
+                                    'bg-gray-50 text-gray-700 border-gray-100' => $intention->type == 'difuntos',
+                                    'bg-yellow-50 text-yellow-700 border-yellow-100' => $intention->type == 'accion-gracias',
+                                    'bg-blue-50 text-blue-700 border-blue-100' => !in_array($intention->type, ['salud', 'difuntos', 'accion-gracias'])
                                 ])>
-                                    {{ $intention->formatted_type }}
+                                    {{ $intention->formatted_type ?? $intention->type }}
                                 </span>
                             </td>
-                            <td class="py-4 px-4">
-                                <div class="text-sm text-gray-500 max-w-xs truncate" title="{{ $intention->message }}">
+                            <td class="py-5 px-6">
+                                <div class="text-xs text-text-light max-w-xs truncate font-medium" title="{{ $intention->message }}">
                                     {{ $intention->message }}
                                 </div>
                             </td>
-                            <td class="py-4 px-4 text-sm text-gray-500 whitespace-nowrap">
+                            <td class="py-5 px-6 text-[11px] text-gray-400 font-bold whitespace-nowrap">
                                 {{ $intention->created_at->format('d/m/Y H:i') }}
                             </td>
-                            <td class="py-4 px-4 text-right">
-                                <form action="{{ route('admin.intentions.delete', $intention->id) }}" method="POST" class="inline" onsubmit="return confirm('¿Eliminar intención?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </form>
+                            <td class="py-5 px-6 text-right">
+                                <button type="button" 
+                                        onclick="confirmSingleDelete({{ $intention->id }}, '{{ $intention->name }}')" 
+                                        class="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-xl transition-all">
+                                    <img src="{{ asset('img/icono_eliminar.png') }}" class="w-5 h-5">
+                                </button>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="py-8 text-center text-gray-500">No hay intenciones registradas</td>
+                            <td colspan="5" class="py-16 text-center bg-gray-50/50">
+                                <p class="text-sm text-gray-400 italic">No hay intenciones registradas para el día de hoy.</p>
+                            </td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
+            {{-- Vista Móvil (Cards) --}}
             <div class="md:hidden space-y-4">
                 @forelse($intentions as $intention)
-                <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                    <div class="flex justify-between items-start mb-3 gap-3">
-                        <div>
-                            <h3 class="text-base font-bold text-gray-900">{{ $intention->name }}</h3>
-                            <p class="text-xs text-gray-500">{{ $intention->email }}</p>
+                <div class="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                    <div class="flex justify-between items-start mb-4 gap-3">
+                        <div class="min-w-0">
+                            <h3 class="text-sm font-bold text-text-dark uppercase tracking-tight truncate">{{ $intention->name }}</h3>
+                            <p class="text-[10px] text-text-light font-medium truncate">{{ $intention->email }}</p>
                         </div>
                         <span @class([
-                            'inline-flex items-center px-2 py-1 rounded-full text-xs font-bold shrink-0',
-                            'bg-green-100 text-green-800' => $intention->type == 'salud',
-                            'bg-gray-100 text-gray-800' => $intention->type == 'difuntos',
-                            'bg-yellow-100 text-yellow-800' => $intention->type == 'accion-gracias',
-                            'bg-blue-100 text-blue-800' => !in_array($intention->type, ['salud', 'difuntos', 'accion-gracias'])
+                            'inline-flex items-center px-2 py-1 rounded-lg text-[8px] font-black uppercase border shrink-0',
+                            'bg-green-50 text-green-700 border-green-100' => $intention->type == 'salud',
+                            'bg-gray-50 text-gray-700 border-gray-100' => $intention->type == 'difuntos',
+                            'bg-yellow-50 text-yellow-700 border-yellow-100' => $intention->type == 'accion-gracias',
+                            'bg-blue-50 text-blue-700 border-blue-100' => !in_array($intention->type, ['salud', 'difuntos', 'accion-gracias'])
                         ])>
-                            {{ $intention->formatted_type }}
+                            {{ $intention->formatted_type ?? $intention->type }}
                         </span>
                     </div>
 
-                    <div class="bg-gray-50 rounded p-3 mb-3">
-                        <p class="text-sm text-gray-700 italic">"{{ $intention->message }}"</p>
+                    <div class="bg-gray-50/50 rounded-2xl p-4 mb-4 border border-gray-100">
+                        <p class="text-xs text-text-light italic leading-relaxed">"{{ $intention->message }}"</p>
                     </div>
 
-                    <div class="flex justify-between items-center border-t border-gray-100 pt-3">
-                        <span class="text-xs text-gray-400 font-medium">
+                    <div class="flex justify-between items-center border-t border-gray-50 pt-4">
+                        <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
                             {{ $intention->created_at->format('d/m/Y H:i') }}
                         </span>
-                        <form action="{{ route('admin.intentions.delete', $intention->id) }}" method="POST" onsubmit="return confirm('¿Eliminar?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="text-red-600 text-sm font-medium flex items-center hover:bg-red-50 px-2 py-1 rounded transition-colors">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                Eliminar
-                            </button>
-                        </form>
+                        <button type="button" 
+                                onclick="confirmSingleDelete({{ $intention->id }}, '{{ $intention->name }}')" 
+                                class="flex items-center gap-2 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors">
+                            <img src="{{ asset('img/icono_eliminar.png') }}" class="w-4 h-4">
+                            Eliminar
+                        </button>
                     </div>
                 </div>
                 @empty
-                <div class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                    No hay intenciones.
+                <div class="text-center py-12 text-gray-400 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">
+                    <p class="text-xs italic">Sin intenciones registradas.</p>
                 </div>
                 @endforelse
             </div>
 
             @if($intentions->hasPages())
-            <div class="mt-6">
+            <div class="mt-8">
                 {{ $intentions->links() }}
             </div>
             @endif
         </div>
     </div>
 </div>
+
+{{-- MODAL ELIMINAR INDIVIDUAL --}}
+<div id="deleteModal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center animate-slide-up">
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-red-50 mb-6">
+            <img src="{{ asset('img/icono_eliminar.png') }}" class="w-8 h-8">
+        </div>
+        <h3 class="text-xl font-black text-text-dark mb-2 uppercase tracking-tight">¿Eliminar Intención?</h3>
+        <p class="text-text-light mb-8 text-sm leading-relaxed">
+            Estás por borrar la intención de <span id="deleteIntentionName" class="font-bold text-red-500"></span>. Esta acción no se puede deshacer.
+        </p>
+        <div class="flex gap-3">
+            <button onclick="closeDeleteModal()" class="flex-1 py-4 border-2 border-gray-100 text-gray-400 font-bold rounded-2xl hover:bg-gray-50 transition-all uppercase text-[10px] tracking-widest">Cancelar</button>
+            <form id="deleteForm" method="POST" class="flex-1">
+                @csrf @method('DELETE')
+                <button type="submit" class="w-full py-4 bg-red-500 text-white font-bold rounded-2xl hover:bg-red-600 transition-all shadow-lg shadow-red-100 uppercase text-[10px] tracking-widest">Eliminar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL ELIMINAR TODAS --}}
+<div id="deleteAllModal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center animate-slide-up">
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-red-600 mb-6 shadow-xl shadow-red-100">
+            <img src="{{ asset('img/icono_eliminar.png') }}" class="w-8 h-8 brightness-0 invert">
+        </div>
+        <h3 class="text-xl font-black text-text-dark mb-2 uppercase tracking-tight">¡VACIAR LISTA!</h3>
+        <p class="text-text-light mb-8 text-sm leading-relaxed">
+            Se eliminarán **TODAS** las intenciones registradas permanentemente. <br><span class="font-bold text-red-500">¿Estás seguro de continuar?</span>
+        </p>
+        <div class="flex flex-col gap-3">
+            <form action="{{ route('admin.intentions.delete-all') }}" method="POST" class="w-full">
+                @csrf @method('DELETE')
+                <button type="submit" class="w-full py-4 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all shadow-lg shadow-red-100 uppercase text-xs tracking-widest">SÍ, ELIMINAR TODO</button>
+            </form>
+            <button onclick="closeDeleteAllModal()" class="w-full py-4 border-2 border-gray-100 text-gray-400 font-bold rounded-2xl hover:bg-gray-50 transition-all uppercase text-[10px] tracking-widest">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- LÓGICA DE MODALES DE ELIMINACIÓN ---
+
+function confirmSingleDelete(id, name) {
+    const modal = document.getElementById('deleteModal');
+    document.getElementById('deleteIntentionName').textContent = name;
+    document.getElementById('deleteForm').action = `/admin/intentions/${id}`;
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = 'auto';
+}
+
+function confirmDeleteAll() {
+    const modal = document.getElementById('deleteAllModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteAllModal() {
+    const modal = document.getElementById('deleteAllModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = 'auto';
+}
+
+// Cerrar con Escape
+document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') {
+        closeDeleteModal();
+        closeDeleteAllModal();
+    }
+});
+</script>
+
+<style>
+    @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-slide-up { animation: slide-up 0.3s ease-out forwards; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
+</style>
 @endsection

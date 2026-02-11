@@ -1,0 +1,26 @@
+{
+"id": "/",
+"name": "La Redonda",
+"short_name": "La Redonda",
+"description": "Plataforma de la Parroquia Inmaculada Concepción de Belgrano",
+"start_url": "/",
+"scope": "/",
+"display": "standalone",
+"background_color": "#ffffff",
+"theme_color": "#0ea5e9",
+"orientation": "portrait",
+"icons": [
+{
+"src": "img/logo_notificacion_redonda.png",
+"sizes": "192x192",
+"type": "image/png",
+"purpose": "any"
+},
+{
+"src": "img/logo_notificacion512_redonda.png",
+"sizes": "512x512",
+"type": "image/png",
+"purpose": "any"
+}
+]
+}

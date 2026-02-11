@@ -112,7 +112,7 @@
         </div>
         <button 
             type="submit" 
-            class="w-full bg-button text-white py-3 px-6 border-none rounded-lg cursor-pointer font-poppins font-semibold text-sm hover:bg-blue-600 hover:-translate-y-0.5 transition-all duration-200 shadow-md"
+            class="w-full bg-button text-white py-3 px-6 border-none rounded-lg cursor-pointer font-poppins font-semibold text-sm hover:bg-blue-900 hover:-translate-y-0.5 transition-all duration-200 shadow-md"
         >
             Enviar Mensaje
         </button>
@@ -159,7 +159,7 @@
                 </div>
 
                 <div class="mt-6">
-                    <button type="button" id="closeContactModal" class="inline-flex w-full justify-center rounded-lg bg-button px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-button focus:ring-offset-2 transition-colors">
+                    <button type="button" id="closeContactModal" class="inline-flex w-full justify-center rounded-lg bg-button px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-button focus:ring-offset-2 transition-colors">
                         Cerrar
                     </button>
                 </div>

@@ -1,277 +1,331 @@
 <style>
+    /* Scrollbar minimalista */
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     
-    .slide-up-fade { animation: slideUpFade 0.2s ease-out forwards; }
+    /* Animación de entrada suave */
+    .slide-up-fade { 
+        animation: slideUpFade 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards; 
+    }
     @keyframes slideUpFade {
-        from { opacity: 0; transform: translateY(10px); }
+        from { opacity: 0; transform: translateY(12px); }
         to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Acordeones */
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        opacity: 0;
+    }
+    .accordion-content.active {
+        max-height: 1000px; 
+        opacity: 1;
+    }
+
+    .nav-main-container { transition: all 0.3s ease; }
+
+    @media (max-width: 767px) {
+        .nav-main-container {
+            background-color: rgba(224, 242, 254, 0.92) !important;
+            backdrop-filter: blur(8px);
+        }
+    }
+
+    @media (min-width: 768px) {
+        .nav-main-container {
+            background-color: #a4e0f3 !important;
+            border-bottom: 2px solid #38bdf8 !important;
+        }
+    }
+
+    .grid-menu-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 48px;
+        padding: 0.5rem;
+    }
+
+    #pcLine1, #pcLine2, #pcLine3 {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+        transform-origin: center;
     }
 </style>
 
-<nav class="bg-nav-footer py-6 md:sticky md:top-0 z-50 border-b-2 border-sky-400">
+@php
+    /**
+     * LISTA MAESTRA DE GRUPOS (Sincronizada con DB)
+     */
+    $allGroupSlugs = [
+        'catequesis_niños', 'catequesis_adolescentes', 'catequesis_adultos', 
+        'acutis', 'juveniles', 'juan_pablo', 'coro', 'misioneros', 
+        'santa_ana', 'san_joaquin', 'ardillas', 'costureras', 
+        'comedor', 'caritas', 'caridad'
+    ];
+
+    $unreadNotifications = collect();
+    if (Auth::check()) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $unreadNotifications = $user->unreadNotifications;
+    }
+
+    $inicioUrl = Auth::check() ? route('dashboard') : url('/');
+@endphp
+
+<nav class="nav-main-container sticky top-0 z-50 py-3 md:py-6 shadow-sm">
     <div class="container max-w-7xl mx-auto px-4">
         <div class="flex justify-between items-center">      
-            <div class="flex-1">
-                <div class="flex items-center justify-center md:justify-start">
-                    
-                    <div class="h-px flex-1 bg-button md:hidden mr-4"></div>
-
-                    <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center">
-                        <img class="block md:hidden h-16 w-auto" src="{{ asset('img/logo_redonda_texto_vertical.png') }}" alt="Logo Móvil">
-                        <img class="hidden md:block h-12 w-auto" src="{{ asset('img/logo_redonda_texto.png') }}" alt="La Redonda Joven">
-                    </a>
-                    <div class="h-px flex-1 bg-button md:hidden ml-4"></div>
-
-                </div>
-            </div>
-            <div class="hidden md:block mr-8">
-                <a href="{{ url('/donaciones') }}" class="bg-button text-white px-6 py-2 rounded-lg font-semibold no-underline hover:bg-blue-500 transition-colors">
-                    Donaciones
+            <div class="flex items-center">
+                <a href="{{ route('home') }}" class="flex-shrink-0 transition-transform active:scale-95">
+                    <img class="h-9 md:h-12 w-auto" src="{{ asset('img/logo_redonda_texto.png') }}" alt="La Redonda">
                 </a>
             </div>
 
-            <button class="hamburger-menu hidden md:flex relative w-8 h-8 flex-col items-center justify-center cursor-pointer z-50 focus:outline-none space-y-1.5" id="hamburgerMenu" type="button">
-                <span class="block w-6 h-0.5 bg-text-dark transition-all duration-300 transform" id="line1"></span>
-                <span class="block w-6 h-0.5 bg-text-dark transition-all duration-300" id="line2"></span>
-                <span class="block w-6 h-0.5 bg-text-dark transition-all duration-300 transform" id="line3"></span>
-            </button>
-
-            <div class="mobile-menu hidden absolute top-full right-0 bg-nav-footer w-72 shadow-2xl rounded-bl-lg z-40 border-2 border-button" id="mobileMenu">
-                
-                <a href="{{ url('/') }}" class="block px-6 py-4 text-text-dark hover:bg-button hover:text-white transition-all font-medium border-b border-gray-100">Inicio</a>
-                
-                <div class="border-b border-gray-100">
-                    <button class="w-full text-left px-6 py-4 text-text-dark font-medium hover:bg-button hover:text-white transition-all flex justify-between items-center" id="pcGruposToggle">
-                        <span>Grupos</span> <span class="transform transition-transform duration-300 text-sm" id="pcGruposArrow">▸</span>
+            <div class="flex items-center space-x-2 md:space-x-6">
+                @auth
+                {{-- CAMPANA --}}
+                <div class="relative">
+                    <button onclick="toggleNotifications(event)" class="relative p-2 text-gray-600 hover:bg-sky-50 rounded-full transition-all focus:outline-none">
+                        <img src="{{ asset('img/icono_campana.png') }}" class="w-6 h-6" alt="Notificaciones">
+                        @if($unreadNotifications->count() > 0)
+                            <span class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-black text-white bg-red-500 rounded-full border-2 border-white">
+                                {{ $unreadNotifications->count() }}
+                            </span>
+                        @endif
                     </button>
-                    <div class="hidden transition-all p-1" id="pcGruposSubmenu">
-                        <a href="{{ url('/grupos') }}" class="block px-8 py-2 text-sm text-gray-700 hover:text-button font-bold">Todos los Grupos</a>
-                        <a href="{{ url('/grupos/catequesis') }}" class="block px-8 py-2 text-sm text-gray-700 hover:text-button">Catequesis</a>
-                        <a href="{{ url('/grupos/jovenes') }}" class="block px-8 py-2 text-sm text-gray-700 hover:text-button">Jóvenes</a>
-                        <a href="{{ url('/grupos/mayores') }}" class="block px-8 py-2 text-sm text-gray-700 hover:text-button">Mayores</a>
-                        <a href="{{ url('/grupos/especiales') }}" class="block px-8 py-2 text-sm text-gray-700 hover:text-button">Más Grupos</a>
+
+                    <div id="notiPanel" class="hidden absolute right-0 mt-4 w-72 md:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[60] overflow-hidden slide-up-fade">
+                        <div class="px-4 py-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Notificaciones</span>
+                            @if($unreadNotifications->count() > 0)
+                                <button onclick="markAllAsRead()" class="text-[10px] font-bold text-button hover:underline">Limpiar todo</button>
+                            @endif
+                        </div>
+                        <div class="max-h-80 overflow-y-auto custom-scrollbar">
+                            @forelse($unreadNotifications as $n)
+                                @php $nData = is_array($n->data) ? $n->data : json_decode($n->data, true); @endphp
+                                <a href="{{ $nData['link'] ?? '#' }}" class="block px-4 py-4 hover:bg-blue-50 border-b border-gray-50 transition-colors">
+                                    <p class="text-xs font-bold text-gray-900 leading-tight mb-1">{{ $nData['title'] ?? 'Aviso' }}</p>
+                                    <p class="text-[11px] text-gray-500 line-clamp-2">{{ $nData['message'] ?? '' }}</p>
+                                    <span class="text-[9px] text-gray-400 mt-2 block font-medium">{{ $n->created_at->diffForHumans() }}</span>
+                                </a>
+                            @empty
+                                <div class="py-12 text-center text-gray-300 font-bold uppercase text-[10px] tracking-tighter">Sin novedades</div>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
+                @endauth
 
-            
-                <a href="{{ url('/intenciones') }}" class="block px-6 py-4 text-text-dark hover:bg-button hover:text-white transition-all font-medium border-b border-gray-100">Intenciones</a>
+                <a href="{{ url('/donaciones') }}" class="hidden md:inline-block bg-button text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-blue-900 transition-all shadow-sm">Donaciones</a>
 
-                <div class="p-4 border-t border-gray-200">
-                    @auth
-                        <div class="bg-button border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                            <button class="w-full flex items-center justify-between p-3 hover:bg-blue-500 transition-colors focus:outline-none" onclick="toggleAccordion('pcUserCard', 'pcUserArrow')">
-                                <div class="flex items-center overflow-hidden">
-                                            <img src="{{ asset('img/icono_perfil.png') }}" alt="Perfil" class="h-6 w-6">
-                                            <p class="text-sm font-bold text-white truncate w-32">{{ Auth::user()->name }}</p>
-                                    
-                                </div>
-                                <span id="pcUserArrow" class="text-white text-xs transform transition-transform duration-300">▼</span>
-                            </button>
+                <div class="hidden md:block relative">
+                    <button class="flex relative w-10 h-10 flex-col items-center justify-center cursor-pointer z-50 focus:outline-none space-y-1.5 bg-white/50 rounded-xl" id="desktopHamburgerBtn" onclick="toggleDesktopMenu(event)">
+                        <span class="block w-6 h-0.5 bg-text-dark" id="pcLine1"></span>
+                        <span class="block w-6 h-0.5 bg-text-dark" id="pcLine2"></span>
+                        <span class="block w-6 h-0.5 bg-text-dark" id="pcLine3"></span>
+                    </button>
 
-                            <div id="pcUserCard" class="hidden border-t border-gray-100 bg-nav-footer">
+                    <div id="desktopMenu" class="hidden absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden slide-up-fade">
+                        <div class="max-h-[85vh] overflow-y-auto custom-scrollbar">
+                            
+                            @if(Auth::check() && Auth::user()->isAdmin())
+                            <div class="p-3 bg-yellow-400">
+                                <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-center w-full py-3 bg-white/20 hover:bg-white/30 border border-white/30 rounded-xl text-black text-[11px] font-black uppercase tracking-widest transition-all">
+                                    <img src="{{ asset('img/icono_admin.png') }}" class="w-4 h-4 mr-2"> Panel de Administrador
+                                </a>
+                            </div>
+                            @endif
+
+                            <div class="py-2 border-b border-gray-50">
+                                <a href="{{ $inicioUrl }}" class="block px-5 py-3 text-xs font-bold text-gray-700 hover:bg-blue-50 transition uppercase">Inicio</a>
                                 
-                                @if(Auth::user()->hasAnyRole(['admin_grupo_parroquial', 'catequesis', 'juveniles', 'acutis', 'juan_pablo', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor']) || Auth::user()->isAdmin() || Auth::user()->isSuperAdmin())
-                                    <a href="{{ route('diario.index') }}" class="flex items-center px-4 py-4 text-xs font-semibold border border-white text-gray-600 hover:bg-button hover:text-white transition">
-                                        <img src="{{ asset('img/icono_biblia.png') }}" class="w-4 h-4 mr-2 object-contain"> Diario La Redonda
-                                    </a>
-                                @endif
-
-                                @if(Auth::user()->hasRole('admin_grupo_parroquial') || Auth::user()->isAdmin() || Auth::user()->isSuperAdmin())
-                                    <div>
-                                        <button class="w-full flex items-center justify-between px-4 py-4 text-xs font-semibold text-gray-600 hover:bg-button hover:text-white transition border border-white" onclick="toggleAccordion('pcGestionSub', 'pcGestionArr')">
-                                            <span class="flex items-center"><img src="{{ asset('img/icono_gestion.png') }}" class="w-4 h-4 mr-2 object-contain"> Gestión</span>
-                                            <span id="pcGestionArr" class="text-[10px]">▸</span>
-                                        </button>
-                                        <div id="pcGestionSub" class="hidden px-2 py-2 bg-nav-footer">
-                                                @php
-                                                    $userGroupsAdmin = [];
-                                                    if (Auth::user()->hasRole('admin_grupo_parroquial')) { $userGroupsAdmin = Auth::user()->roles->filter(fn($role) => in_array($role->name, ['catequesis', 'juveniles', 'acutis', 'juan_pablo', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor'])); }
-                                                    if (Auth::user()->isAdmin() || Auth::user()->isSuperAdmin()) {
-                                                        $userGroupsAdmin = collect([
-                                                            (object)['name' => 'catequesis', 'display_name' => 'Catequesis'], (object)['name' => 'juveniles', 'display_name' => 'Juveniles'],
-                                                            (object)['name' => 'acutis', 'display_name' => 'Acutis'], (object)['name' => 'juan_pablo', 'display_name' => 'Juan Pablo'],
-                                                            (object)['name' => 'coro', 'display_name' => 'Coro'], (object)['name' => 'san_joaquin', 'display_name' => 'San Joaquín'],
-                                                            (object)['name' => 'santa_ana', 'display_name' => 'Santa Ana'], (object)['name' => 'ardillas', 'display_name' => 'Ardillas'],
-                                                            (object)['name' => 'costureras', 'display_name' => 'Costureras'], (object)['name' => 'misioneros', 'display_name' => 'Misioneros'],
-                                                            (object)['name' => 'caridad_comedor', 'display_name' => 'Caridad']
-                                                        ]);
-                                                    }
-                                                @endphp
-                                                <div class="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto custom-scrollbar">
-                                                    @foreach($userGroupsAdmin as $group)
-                                                        <a href="{{ route('grupos.dashboard', $group->name) }}" class="text-[10px] text-center bg-white p-1 border rounded hover:bg-button hover:text-white text-gray-600 truncate">{{ $group->display_name ?? $group->name }}</a>
-                                                    @endforeach
-                                                </div>
-                                        </div>
+                                {{-- EXPLORAR COMUNIDADES --}}
+                                <div class="border-t border-gray-50">
+                                    <button class="w-full flex items-center justify-between px-5 py-3 text-xs font-bold text-gray-700 hover:bg-blue-50 transition uppercase" onclick="toggleAccordionSmooth('pcGruposNav', 'pcGruposNavArr')">
+                                        <span>Explorar Grupos</span>
+                                        <span id="pcGruposNavArr" class="text-[10px]">▸</span>
+                                    </button>
+                                    <div id="pcGruposNav" class="accordion-content bg-gray-50/50 px-3">
+                                        <a href="{{ route('grupos.index') }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 uppercase mb-1">Ver Todos</a>
+                                        <a href="{{ route('grupos.catequesis') }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 uppercase mb-1">Catequesis</a>
+                                        <a href="{{ route('grupos.jovenes') }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 uppercase mb-1">Jóvenes</a>
+                                        <a href="{{ route('grupos.mayores') }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 uppercase mb-1">Mayores</a>
+                                        <a href="{{ route('grupos.especiales') }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 uppercase mb-1">Más Grupos</a>
                                     </div>
-                                @endif
+                                </div>
 
-                                @if(Auth::user()->hasAnyRole(['catequesis', 'juveniles', 'acutis', 'juan_pablo', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor']) || Auth::user()->isAdmin() || Auth::user()->isSuperAdmin())
-                                    <div>
-                                        <button class="w-full flex items-center justify-between px-4 py-4 text-xs font-semibold text-gray-600 hover:bg-button hover:text-white transition border border-white" onclick="toggleAccordion('pcMatSub', 'pcMatArr')">
-                                            <span class="flex items-center"><img src="{{ asset('img/icono_archivo.png') }}" class="w-4 h-4 mr-2 object-contain"> Materiales</span>
-                                            <span id="pcMatArr" class="text-[10px]">▸</span>
-                                        </button>
-                                        <div id="pcMatSub" class="hidden px-2 py-2 bg-nav-footer">
-                                                @php
-                                                    $userMemberGroups = Auth::user()->roles->filter(fn($role) => in_array($role->name, ['catequesis', 'juveniles', 'acutis', 'juan_pablo', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor']));
-                                                    if (Auth::user()->isAdmin() || Auth::user()->isSuperAdmin()) {
-                                                        $userMemberGroups = collect([
-                                                            (object)['name' => 'catequesis', 'display_name' => 'Catequesis'], (object)['name' => 'juveniles', 'display_name' => 'Juveniles'],
-                                                            (object)['name' => 'acutis', 'display_name' => 'Acutis'], (object)['name' => 'juan_pablo', 'display_name' => 'Juan Pablo'],
-                                                            (object)['name' => 'coro', 'display_name' => 'Coro'], (object)['name' => 'san_joaquin', 'display_name' => 'San Joaquín'],
-                                                            (object)['name' => 'santa_ana', 'display_name' => 'Santa Ana'], (object)['name' => 'ardillas', 'display_name' => 'Ardillas'],
-                                                            (object)['name' => 'costureras', 'display_name' => 'Costureras'], (object)['name' => 'misioneros', 'display_name' => 'Misioneros'],
-                                                            (object)['name' => 'caridad_comedor', 'display_name' => 'Caridad']
-                                                        ]);
-                                                    }
-                                                @endphp
-                                                <div class="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto custom-scrollbar">
-                                                    @foreach($userMemberGroups as $group)
-                                                        <a href="{{ route('groups.materials', $group->name) }}" class="text-[10px] text-center p-1 border rounded bg-white hover:bg-button hover:text-white  text-gray-600 truncate">{{ $group->display_name ?? $group->name }}</a>
-                                                    @endforeach
-                                                </div>
-                                        </div>
-                                    </div>
-                                @endif
-                                <div class="flex border-t border-gray-200">
-                                    <a href="{{ url('/perfil') }}" 
-                                        class="flex-1 py-3 flex items-center justify-center text-center text-xs bg-button text-white font-semibold hover:bg-blue-500 transition-colors border-r border-gray-200" 
-                                        title="Mi Perfil">
-                                        Perfil
-                                    </a>
+                                {{-- ACCESO A INTENCIONES --}}
+                                <a href="{{ url('/intenciones') }}" class="block px-5 py-3 text-xs font-bold text-gray-700 hover:bg-blue-50 transition uppercase border-t border-gray-50">
+                                    Intenciones
+                                </a>
+                            </div>
 
-                                    <form method="POST" action="{{ route('logout') }}" class="flex-1 m-0 p-0">
-                                        @csrf
-                                            <button type="submit" 
-                                                class="w-full h-full py-3 flex items-center justify-center text-center text-xs text-white bg-red-500 hover:bg-red-600 font-semibold transition-colors" 
-                                                title="Salir">
-                                                    Cerrar Sesión
+                            @auth
+                                @php
+                                    $user = Auth::user();
+                                    $userRoles = $user->roles;
+
+                                    // Grupos donde el usuario es MIEMBRO
+                                    $memberGroups = $userRoles->filter(fn($r) => in_array($r->name, $allGroupSlugs))
+                                                             ->map(fn($r) => $r->name)->unique();
+                                    
+                                    // Grupos para GESTIÓN
+                                    if($user->isSuperAdmin()) {
+                                        $managedGroups = collect($allGroupSlugs)->map(fn($slug) => (object)[
+                                            'name' => "admin_$slug",
+                                            'display' => str_replace('_', ' ', $slug)
+                                        ]);
+                                    } else {
+                                        $managedGroups = $userRoles->filter(fn($r) => str_starts_with($r->name, 'admin_') && $r->name !== 'admin_grupo_parroquial')
+                                                                  ->map(fn($r) => (object)['name' => $r->name, 'display' => str_replace('admin_', '', $r->name)]);
+                                    }
+
+                                    $hasAccessToDiario = $user->isAdmin() || $memberGroups->isNotEmpty() || $managedGroups->isNotEmpty();
+                                @endphp
+                                <div class="bg-gray-50/30">
+                                    @if($hasAccessToDiario)
+                                        <a href="{{ route('diario.index') }}" class="flex items-center px-5 py-4 text-xs font-bold border-b uppercase border-gray-100 text-gray-700 hover:bg-blue-50 transition">
+                                            <img src="{{ asset('img/icono_biblia.png') }}" class="w-4 h-4 mr-3"> Diario de La Redonda
+                                        </a>
+                                    @endif
+
+                                    {{-- MIS COMUNIDADES (VISIBILIDAD ASEGURADA) --}}
+                                    @if($memberGroups->isNotEmpty())
+                                        <div class="border-b border-gray-50">
+                                            <button class="w-full flex items-center justify-between px-5 py-4 text-xs font-black text-gray-700 hover:bg-blue-50 transition uppercase" onclick="toggleAccordionSmooth('pcComuSub', 'pcComuArr')">
+                                                <span class="flex items-center"><img src="{{ asset('img/icono_grupos.png') }}" class="w-5 h-5 mr-3"> Mis Grupos</span>
+                                                <span id="pcComuArr" class="text-[10px]">▸</span>
                                             </button>
+                                            <div id="pcComuSub" class="accordion-content bg-gray-50/50 px-3">
+                                                @foreach($memberGroups as $slug)
+                                                    <a href="{{ route('grupos.dashboard', $slug) }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 truncate uppercase mb-1">{{ str_replace('_', ' ', $slug) }}</a>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    {{-- GESTIÓN / COORDINACIÓN --}}
+                                    @if($managedGroups->isNotEmpty())
+                                        <div class="border-b border-gray-50">
+                                            <button class="w-full flex items-center justify-between px-5 py-4 text-xs font-bold text-gray-700 hover:bg-blue-50 transition" onclick="toggleAccordionSmooth('pcGestionSub', 'pcGestionArr')">
+                                                <span class="flex items-center uppercase">
+                                                    <img src="{{ asset('img/icono_gestion.png') }}" class="w-5 h-5 mr-3"> 
+                                                    {{ $user->isSuperAdmin() ? 'Coordinación Total' : 'Gestión Parroquial' }}
+                                                </span>
+                                                <span id="pcGestionArr" class="text-[10px]">▸</span>
+                                            </button>
+                                            <div id="pcGestionSub" class="accordion-content bg-gray-50/50 px-3">
+                                                @foreach($managedGroups as $g)
+                                                    <a href="{{ route('grupos.dashboard', str_replace('admin_', '',  $g->name)) }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 truncate uppercase mb-1">{{ $g->display }}</a>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <a href="{{ route('profile.show') }}" class="flex items-center px-5 py-4 text-xs font-bold text-gray-700 hover:bg-blue-50 transition border-b border-gray-50 uppercase">
+                                        <img src="{{ asset('img/icono_perfil.png') }}" class="w-4 h-4 mr-3"> Mi Perfil
+                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf
+                                        <button type="submit" class="w-full text-center px-5 py-4 text-xs font-bold text-red-500 hover:bg-red-200 transition uppercase">Cerrar Sesión</button>
                                     </form>
                                 </div>
-                            </div>
+                            @else
+                                <div class="p-3 space-y-2">
+                                    <a href="{{ route('login') }}" class="block w-full py-3 text-center text-xs font-bold text-black bg-nav-footer hover:text-button hover:bg-white
+                                     rounded-xl border transition">Ingresar</a>
+                                    <a href="{{ route('register') }}" class="block w-full py-3 text-center text-xs font-bold text-white bg-button hover:bg-blue-900 rounded-xl transition">Registrarse</a>
+                                </div>
+                            @endauth
                         </div>
-                        @if(Auth::user()->isAdmin())
-                            <a href="/admin" class="flex items-center w-full px-3 py-3 mt-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-400 transition">
-                            <img src="{{ asset('img/icono_admin.png') }}" alt="Admin" class="w-5 h-5 mr-3 object-contain"> <span class="font-semibold text-sm">Panel de Administración</span>
-                            </a>
-                        @endif
-
-                    @else
-                        <div class="space-y-2">
-                            <a href="/login" class="block w-full text-center py-2 bg-button text-white rounded-lg font-semibold hover:bg-blue-500">Iniciar Sesión</a>
-                            <a href="/register" class="block w-full bg-imprimir text-center py-2  text-white rounded-lg font-semibold hover:bg-blue-300">Registrarse</a>
-                        </div>
-                    @endauth
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </nav>
 
+{{-- NAVEGACIÓN MÓVIL --}}
 <div class="md:hidden">
-    <nav class="fixed bottom-0 left-0 w-full bg-nav-footer border-t-2 border-sky-400 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-        <div class="flex justify-around items-center h-16 px-1">
-            <a href="{{ url('/') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-white hover:bg-button transition-colors">
-                <img src="{{ asset('img/icono_inicio.png') }}" alt="Inicio" class="h-6 w-6 mb-1 object-contain">
-                <span class="text-[10px] font-medium leading-none">Inicio</span>
-            </a>
-            <a href="{{ url('/grupos') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-white hover:bg-button transition-colors">
-                <img src="{{ asset('img/icono_grupos.png') }}" alt="Grupos" class="h-6 w-6 mb-1 object-contain">
-                <span class="text-[10px] font-medium leading-none">Grupos</span>
-            </a>
-            <a href="{{ url('/donaciones') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-white hover:bg-button transition-colors">
-                <img src="{{ asset('img/icono_donaciones.png') }}" alt="Donar" class="h-6 w-6 mb-1 object-contain">
-                <span class="text-[10px] font-medium leading-none">Donación</span>
-            </a>
-            <a href="{{ url('/intenciones') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-white hover:bg-button transition-colors">
-                <img src="{{ asset('img/icono_intenciones.png') }}" alt="Rezar" class="h-6 w-6 mb-1 object-contain">
-                <span class="text-[10px] font-medium leading-none">Intención</span>
-            </a>
+    <nav class="fixed bottom-0 left-0 w-full bg-nav-footer border-t-2 border-sky-400 z-50 h-16 shadow-lg">
+        <div class="flex justify-around items-center h-full">
+            <a href="{{ $inicioUrl }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_inicio.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Inicio</span></a>
+            <a href="{{ route('grupos.index') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_grupos.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Grupos</span></a>
+            
+            {{-- NUEVO ACCESO INTENCIONES MÓVIL --}}
+            <a href="{{ url('/intenciones') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_intenciones.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Intenciones</span></a>
+            
+            <a href="{{ url('/donaciones') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_donaciones.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Donar</span></a>
             @auth
-                <button id="bottomMenuTrigger" class="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-white hover:bg-button  transition-colors focus:outline-none relative">
-                    <div class="relative mb-1">
-                         <img src="{{ asset('img/icono_perfil.png') }}" alt="Perfil" class="h-6 w-6 mb-1 object-contain">                    
-                    </div>
-                    <span class="text-[10px] font-medium leading-none">Cuenta</span>
-                </button>
+                <button id="bottomMenuTrigger" class="flex flex-col items-center justify-center w-full h-full text-gray-600 focus:outline-none"><img src="{{ asset('img/icono_perfil.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Cuenta</span></button>
             @else
-                <a href="/login" class="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:bg-gray-50">
-                    <img src="{{ asset('img/icono_perfil.png') }}" alt="Login" class="h-6 w-6 mb-1 object-contain">
-                    <span class="text-[10px] font-medium leading-none">Ingresar</span>
-                </a>
+                <a href="{{ route('login') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_perfil.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Ingreso</span></a>
             @endauth
         </div>
     </nav>
 
     @auth
-    <div id="bottomMenuCard" class="hidden fixed bottom-20 right-2 left-2 md:left-auto md:w-72 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 slide-up-fade overflow-hidden">
-        
-        <div class="bg-button p-4 border-b border-gray-200 flex items-center justify-between">
-            <a href="{{ url('/perfil') }}" class="flex flex-col no-underline group">
-                 <span class="text-sm font-bold text-white truncate">{{ Auth::user()->name }}</span>
-                 <span class="text-xs text-nav-footer font-semibold group-hover:underline">Ver mi Perfil →</span>
-            </a>
-            <button id="closeBottomMenu" class="text-gray-400 hover:text-gray-600 focus:outline-none p-2">✕</button>
+    <div id="bottomMenuCard" class="hidden fixed bottom-20 right-4 left-4 bg-white rounded-3xl shadow-2xl border border-gray-100 z-50 slide-up-fade overflow-hidden">
+        <div class="bg-button p-4 flex items-center justify-between text-white">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-black mr-3 uppercase">{{ substr(Auth::user()->name, 0, 1) }}</div>
+                <span class="text-sm font-black uppercase">{{ Auth::user()->name }}</span>
+            </div>
+            <button id="closeBottomMenu" class="p-2">✕</button>
         </div>
-
-        <div class="max-h-[60vh] overflow-y-auto custom-scrollbar p-2 space-y-2 bg-nav-footer">
-
-            @if(Auth::user()->hasAnyRole(['admin_grupo_parroquial', 'catequesis', 'juveniles', 'acutis', 'juan_pablo', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor']) || Auth::user()->isAdmin() || Auth::user()->isSuperAdmin())
-                <a href="{{ route('diario.index') }}" class="flex items-center w-full px-3 py-2 hover:bg-button hover:text-white text-gray-700 rounded-lg transition border border-gray-100">
-                    <img src="{{ asset('img/icono_biblia.png') }}" alt="Diario" class="w-5 h-5 mr-3 object-contain"> <span class="font-medium text-sm">Diario La Redonda</span>
-                </a>
-            @endif
-
-            @if(Auth::user()->hasRole('admin_grupo_parroquial') || Auth::user()->isAdmin() || Auth::user()->isSuperAdmin())
-                <div class="border border-gray-200 rounded-lg overflow-hidden">
-                    <button class="w-full flex justify-between items-center px-3 py-2  hover:bg-button hover:text-white text-left text-sm  text-gray-700 focus:outline-none" onclick="toggleAccordion('mobGestionSub', 'mobGestionArr')">
-                        <div class="flex items-center"><img src="{{ asset('img/icono_gestion.png') }}" alt="Gestion" class="w-5 h-5 mr-3 object-contain"> Gestión Grupos</div>
-                        <span id="mobGestionArr" class="transform transition-transform duration-200 text-xs text-gray-400">▼</span>
-                    </button>
-                    <div id="mobGestionSub" class="hidden bg-white border-t border-gray-100">
-                         <div class="grid grid-cols-2 gap-2 p-2 max-h-40 overflow-y-auto">
-                            @foreach($userGroupsAdmin as $group)
-                                <a href="{{ route('grupos.dashboard', $group->name) }}" class="block px-2 py-1.5 text-xs text-center bg-gray-50 rounded hover:bg-indigo-50 border border-gray-100 truncate text-gray-600">{{ $group->display_name ?? ucfirst($group->name) }}</a>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if(Auth::user()->hasAnyRole(['catequesis', 'juveniles', 'acutis', 'juan_pablo', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor']) || Auth::user()->isAdmin() || Auth::user()->isSuperAdmin())
-                <div class="border border-gray-200 rounded-lg overflow-hidden">
-                    <button class="w-full flex justify-between items-center px-3 py-2  hover:bg-button hover:text-white text-left text-sm  text-gray-700 focus:outline-none" onclick="toggleAccordion('mobMatSub', 'mobMatArr')">
-                        <div class="flex items-center"><img src="{{ asset('img/icono_archivo.png') }}" alt="Materiales" class="w-5 h-5 mr-3 object-contain"> Materiales</div>
-                        <span id="mobMatArr" class="transform transition-transform duration-200 text-xs text-gray-400">▼</span>
-                    </button>
-                    <div id="mobMatSub" class="hidden bg-white border-t border-gray-100">
-                         <div class="grid grid-cols-2 gap-2 p-2 max-h-40 overflow-y-auto">
-                            @foreach($userMemberGroups as $group)
-                                <a href="{{ route('groups.materials', $group->name) }}" class="block px-2 py-1.5 text-xs text-center bg-gray-50 rounded hover:bg-blue-50 border border-gray-100 truncate text-gray-600">{{ $group->display_name ?? ucfirst($group->name) }}</a>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endif
-
+        <div class="max-h-[60vh] overflow-y-auto p-4 space-y-4 bg-gray-50/30">
             @if(Auth::user()->isAdmin())
-                <a href="/admin" class="flex items-center w-full px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-400 transition">
-                    <img src="{{ asset('img/icono_admin.png') }}" alt="Admin" class="w-5 h-5 mr-3 object-contain"> <span class="font-semibold text-sm">Panel de Administración</span>
-                </a>
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center w-full px-5 py-4 bg-yellow-400 text-black rounded-2xl shadow-md transition-transform active:scale-95">
+                <img src="{{ asset('img/icono_admin.png') }}" class="w-6 h-6 mr-4"> <span class="text-xs font-black uppercase">Panel de Administrador</span>
+            </a>
             @endif
-        </div>
 
-        <div class="p-2 border-t border-gray-200 bg-nav-footer">
-            <form method="POST" action="{{ route('logout') }}" class="w-full">
-                @csrf
-                <button type="submit" class="w-full flex justify-center items-center px-4 py-2 bg-red-500  border border-red-200 text-white rounded-lg hover:bg-red-600 text-sm font-semibold transition">
-                    Cerrar Sesión
-                </button>
+            {{-- MIS COMUNIDADES MÓVIL (NUEVO) --}}
+            @if($memberGroups->isNotEmpty())
+                <div class="bg-white border border-sky-100 rounded-2xl overflow-hidden">
+                    <button onclick="toggleAccordionSmooth('mobMemberSub', 'mobMemberArr')" class="w-full flex justify-between items-center px-5 py-4 text-xs font-black text-gray-700 uppercase">
+                        <span class="flex items-center"><img src="{{ asset('img/icono_grupos.png') }}" class="w-5 h-5 mr-3"> Mis Grupos</span>
+                        <span id="mobMemberArr">▸</span>
+                    </button>
+                    <div id="mobMemberSub" class="accordion-content bg-white/50">
+                        <div class="grid grid-cols-2 gap-2 p-2">
+                            @foreach($memberGroups as $slug)
+                                <a href="{{ route('grupos.dashboard', $slug) }}" class="grid-menu-item bg-white border border-gray-100 rounded-xl text-[8px] font-bold text-gray-500 uppercase shadow-sm">{{ str_replace('_', ' ', $slug) }}</a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if($managedGroups->isNotEmpty())
+                <div class="bg-white border border-blue-100 rounded-2xl overflow-hidden">
+                    <button onclick="toggleAccordionSmooth('mobSuperSub', 'mobSuperArr')" class="w-full flex justify-between items-center px-5 py-4 text-xs font-black text-gray-700 uppercase">
+                        <span class="flex items-center"><img src="{{ asset('img/icono_gestion.png') }}" class="w-5 h-5 mr-3"> Gestión Parroquial</span> 
+                        <span id="mobSuperArr">▸</span>
+                    </button>
+                    <div id="mobSuperSub" class="accordion-content bg-white/50">
+                        <div class="grid grid-cols-2 gap-2 p-2">
+                            @foreach($managedGroups as $g)
+                                <a href="{{ route('grupos.dashboard', str_replace('admin_', '', $g->name)) }}" class="grid-menu-item bg-white border border-gray-100 rounded-xl text-[8px] font-bold text-gray-500 uppercase shadow-sm">{{ $g->display }}</a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+            
+            @if($hasAccessToDiario)
+                <a href="{{ route('diario.index') }}" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="{{ asset('img/icono_biblia.png') }}" class="w-6 h-6 mr-4"><span class="text-xs font-black uppercase">Diario de La Redonda</span></a>
+            @endif
+            
+            <a href="{{ route('profile.show') }}" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="{{ asset('img/icono_perfil.png') }}" class="h-6 w-6 mr-4"><span class="text-xs font-black uppercase">Mi Perfil</span></a>
+            
+            <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf
+                <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl text-xs font-black uppercase">Cerrar Sesión</button>
             </form>
         </div>
     </div>
@@ -279,72 +333,59 @@
 </div>
 
 <script>
-    function toggleAccordion(contentId, arrowId) {
-        const content = document.getElementById(contentId);
-        const arrow = document.getElementById(arrowId);
-        if(content && arrow) {
-            content.classList.toggle('hidden');
-            arrow.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-            if(arrow.textContent === '▸' || arrow.textContent === '▾') {
-                arrow.textContent = content.classList.contains('hidden') ? '▸' : '▾';
-            }
-        }
+    function toggleAccordionSmooth(id, arr) {
+        const c = document.getElementById(id);
+        const a = document.getElementById(arr);
+        if(!c) return;
+        const active = c.classList.toggle('active');
+        if(a) a.style.transform = active ? 'rotate(90deg)' : 'rotate(0deg)';
     }
 
+    function toggleNotifications(e) {
+        e.stopPropagation();
+        document.getElementById('notiPanel').classList.toggle('hidden');
+        document.getElementById('desktopMenu')?.classList.add('hidden');
+        resetHamburgerIcon();
+    }
+
+    function toggleDesktopMenu(e) {
+        e.stopPropagation();
+        const menu = document.getElementById('desktopMenu');
+        const isHidden = menu.classList.toggle('hidden');
+        document.getElementById('notiPanel')?.classList.add('hidden');
+        const l1 = document.getElementById('pcLine1'), l2 = document.getElementById('pcLine2'), l3 = document.getElementById('pcLine3');
+        if(!isHidden) {
+            l1.style.transform = 'translateY(7px) rotate(45deg)';
+            l2.style.opacity = '0';
+            l3.style.transform = 'translateY(-7px) rotate(-45deg)';
+        } else { resetHamburgerIcon(); }
+    }
+
+    function resetHamburgerIcon() {
+        const l1 = document.getElementById('pcLine1'), l2 = document.getElementById('pcLine2'), l3 = document.getElementById('pcLine3');
+        if(l1) { l1.style.transform = 'none'; l2.style.opacity = '1'; l3.style.transform = 'none'; }
+    }
+
+    async function markAllAsRead() {
+        try {
+            const r = await fetch('{{ route("notifications.read-all") }}', { 
+                method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } 
+            });
+            if(r.ok) location.reload();
+        } catch(e) { console.error(e); }
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
-        const hamburgerMenu = document.getElementById('hamburgerMenu');
-        const mobileMenu = document.getElementById('mobileMenu');
-        
-        if (hamburgerMenu && mobileMenu) {
-            hamburgerMenu.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isHidden = mobileMenu.classList.toggle('hidden');
-                const l1=document.getElementById('line1'), l2=document.getElementById('line2'), l3=document.getElementById('line3');
-                if(!isHidden) { 
-                    l1.classList.add('rotate-45','translate-y-2'); l2.classList.add('opacity-0'); l3.classList.add('-rotate-45','-translate-y-2'); 
-                } else { 
-                    l1.classList.remove('rotate-45','translate-y-2'); l2.classList.remove('opacity-0'); l3.classList.remove('-rotate-45','-translate-y-2'); 
-                }
-            });
+        const bottomTrigger = document.getElementById('bottomMenuTrigger');
+        const bottomCard = document.getElementById('bottomMenuCard');
+        if(bottomTrigger && bottomCard) {
+            bottomTrigger.onclick = (e) => { e.stopPropagation(); bottomCard.classList.toggle('hidden'); };
+            document.getElementById('closeBottomMenu').onclick = () => bottomCard.classList.add('hidden');
         }
-
-        const pcGruposToggle = document.getElementById('pcGruposToggle');
-        if(pcGruposToggle) {
-            pcGruposToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleAccordion('pcGruposSubmenu', 'pcGruposArrow');
-            });
-        }
-
-        const bottomMenuTrigger = document.getElementById('bottomMenuTrigger');
-        const bottomMenuCard = document.getElementById('bottomMenuCard');
-        const closeBottomMenu = document.getElementById('closeBottomMenu');
-
-        if (bottomMenuTrigger && bottomMenuCard) {
-            bottomMenuTrigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                bottomMenuCard.classList.toggle('hidden');
-            });
-            if(closeBottomMenu) {
-                closeBottomMenu.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    bottomMenuCard.classList.add('hidden');
-                });
-            }
-        }
-
-        document.addEventListener('click', (event) => {
-            if (mobileMenu && !mobileMenu.classList.contains('hidden') && !mobileMenu.contains(event.target) && !hamburgerMenu.contains(event.target)) {
-                mobileMenu.classList.add('hidden');
-                document.getElementById('line1').classList.remove('rotate-45','translate-y-2');
-                document.getElementById('line2').classList.remove('opacity-0');
-                document.getElementById('line3').classList.remove('-rotate-45','-translate-y-2');
-            }
-            if (bottomMenuCard && !bottomMenuCard.classList.contains('hidden')) {
-                if (!bottomMenuCard.contains(event.target) && !bottomMenuTrigger.contains(event.target)) {
-                    bottomMenuCard.classList.add('hidden');
-                }
-            }
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#notiPanel') && !e.target.closest('button')) document.getElementById('notiPanel')?.classList.add('hidden');
+            if (!e.target.closest('#desktopMenu') && !e.target.closest('#desktopHamburgerBtn')) { document.getElementById('desktopMenu')?.classList.add('hidden'); resetHamburgerIcon(); }
+            if (!e.target.closest('#bottomMenuCard') && !e.target.closest('#bottomMenuTrigger')) document.getElementById('bottomMenuCard')?.classList.add('hidden');
         });
     });
 </script>

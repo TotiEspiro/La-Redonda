@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Intenciones para Misa - La Redonda Joven</title>
-    
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/logo_nav_redonda.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -150,7 +150,6 @@
                     </div>
                 @empty
                     <div class="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-200 rounded-2xl ">
-                        <p class="text-6xl mb-4 opacity-40">📭</p>
                         <h3 class="text-xl font-bold text-gray-600">No hay intenciones registradas</h3>
                         <p class="text-gray-500 mt-2 text-sm">Aún no se han recibido peticiones para esta misa.</p>
                     </div>

@@ -4,7 +4,7 @@
 <div class="py-8 md:py-12">
     <div class="container max-w-7xl mx-auto px-4">
         <div class="text-center mb-8 md:mb-12">
-            <h1 class="text-3xl md:text-4xl font-semibold text-text-dark mb-4 border-b-2 border-black pb-2 w-full md:w-auto">Grupos Parroquiales</h1>
+            <h1 class="text-3xl md:text-4xl font-black text-text-dark mb-6 md:mb-8 border-b-4 border-button pb-2 text-center md:text-center uppercase tracking-tighter">Grupos Parroquiales</h1>
             <p class="text-text-dark text-base md:text-lg max-w-3xl mx-auto text-center md:text-center mt-4 leading-relaxed">
                 En <strong>La Redonda</strong> contamos con una diversidad de grupos que enriquecen nuestra vida comunitaria y espiritual. 
                 Cada grupo ofrece un espacio de crecimiento espiritual, amistad y servicio comunitario.

@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Redonda - Inmaculada Concepción de Belgrano</title>
-    <meta name="theme-color" content="#5cb1e3">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/logo_nav_redonda.png') }}">
+    <title>La Redonda | Inmaculada Concepción de Belgrano</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <meta name="vapid-pub" content="{{ env('VAPID_PUBLIC_KEY') }}">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="icon" href="{{ asset('img/logo_nav_redonda.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -20,51 +19,60 @@
                         'button': '#5cb1e3',
                         'text-dark': '#333333',
                         'text-light': '#666666',
-                        'background-light': '#f9f9f9',
                         'gospel-bg': '#a4e0f3',
-                        'imprimir': '#8facd6',
                     },
-                    fontFamily: {
-                        'poppins': ['Poppins', 'sans-serif'],
-                    },
+                    fontFamily: { 'poppins': ['Poppins', 'sans-serif'] },
                 }
             }
         }
     </script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-    <meta name="theme-color" content="#5cb1e3">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="La Redonda Joven">
-    <meta name="description" content="Aplicación de la Iglesia La Redonda Joven">
-    <meta name="keywords" content="iglesia, católica, comunidad, fe, jóvenes">
-    <meta name="mobile-web-app-capable" content="yes">
- 
-
-    <style>
-        .fade-out {
-            opacity: 0;
-            transition: opacity 0.5s ease-out;
-        }
-    </style>
 </head>
-<body class="font-poppins font-normal leading-relaxed text-text-dark">
+<body class="font-poppins">
 
-    <!-- Navbar -->
     @include('partials.nav')
-
-    <!-- Contenido Principal -->
-    <main>
-        @yield('content')
-    </main>
-
-    <!-- Footer -->
+    <main>@yield('content')</main>
     @include('partials.footer')
 
-    <!-- Scripts -->
-    <script src="../js/home.js"></script>
+    @auth
+    <script src="{{ asset('js/push-manager.js') }}"></script>
+    <script>
+        // SCRIPT PARA PC (Polling cada 30 seg)
+        async function checkPCNotifications() {
+            if (Notification.permission !== "granted") return;
+            try {
+                const res = await fetch('{{ route("notifications.unread-count") }}');
+                const data = await res.json();
 
+                if (data.count > 0 && data.latest) {
+                    const lastId = localStorage.getItem('last_notif_id');
+                    if (lastId != data.latest.id) {
+                        // Laravel guarda el contenido en el campo 'data' como JSON
+                        const content = typeof data.latest.data === 'string' ? JSON.parse(data.latest.data) : data.latest.data;
+                        
+                        new Notification(content.title || "La Redonda", {
+                            body: content.message,
+                            icon: "{{ asset('img/logo_notificacion_redonda.png') }}"
+                        }).onclick = () => { window.focus(); location.href = content.link || '#'; };
+
+                        localStorage.setItem('last_notif_id', data.latest.id);
+                    }
+                }
+            } catch (e) {}
+        }
+        setInterval(checkPCNotifications, 30000);
+    </script>
+    @endauth
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                    @auth 
+                        setTimeout(() => { if(window.subscribeUserToPush) window.subscribeUserToPush(); }, 2000);
+                    @endauth
+                });
+            });
+        }
+    </script>
 </body>
 </html>

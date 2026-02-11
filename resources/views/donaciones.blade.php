@@ -91,7 +91,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="donate-button w-full bg-button text-white py-3 md:py-4 px-8 border-none rounded-lg cursor-pointer font-poppins font-semibold text-lg hover:bg-blue-500 hover:translate-y-[-2px] transition-all mb-4 shadow-md">Donar Ahora</button>
+                        <button type="submit" class="donate-button w-full bg-button text-white py-3 md:py-4 px-8 border-none rounded-lg cursor-pointer font-poppins font-semibold text-lg hover:bg-blue-900 hover:translate-y-[-2px] transition-all mb-4 shadow-md">Donar Ahora</button>
 
                         <p class="info-text italic text-text-light text-xs md:text-sm leading-relaxed text-center">
                             En el resumen de su tarjeta, el cargo aparecerá como MERPAGO*PQAINMACONCEP.
@@ -105,7 +105,6 @@
     <section class="donation-methods bg-white py-8 md:py-12">
         <div class="container max-w-7xl mx-auto px-4">
             <div class="methods-grid grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 max-w-6xl mx-auto">
-                
                 <div class="method-left">
                     <h2 class="method-title text-2xl font-semibold text-text-dark mb-6 md:mb-8 text-center md:text-left">Transferencia Bancaria</h2>
                     <div class="bank-details bg-background-light p-6 md:p-8 rounded-xl shadow-sm border border-gray-100">
@@ -132,26 +131,18 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="bank-detail flex flex-col md:flex-row md:justify-between md:items-center py-3 border-b border-gray-300">
-                                <strong class="text-text-dark min-w-24 mb-1 md:mb-0">Cta. Cte. N°:</strong>
-                                <span class="text-left md:text-right text-sm md:text-base">15153657</span>
-                            </div>
-                            <div class="bank-detail flex flex-col md:flex-row md:justify-between md:items-center py-3">
-                                <strong class="text-text-dark min-w-24 mb-1 md:mb-0">CUIT:</strong>
-                                <span class="text-left md:text-right text-sm md:text-base">30-51907091-6</span>
-                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="method-right">
                     <h2 class="method-title text-2xl font-semibold text-text-dark mb-6 md:mb-8 text-center md:text-left">Donar QR</h2>
-                    <div class="qr-section text-center bg-background-light p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 h-96">
+                    <div class="qr-section text-center bg-background-light p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 h-full flex flex-col justify-center">
                         <div class="qr-placeholder w-48 h-48 flex items-center justify-center text-text-light mx-auto mb-6 shadow-inner bg-white rounded-lg p-2">
                             <img src="{{ asset('img/qr-mercadopago-inmaculada.jpeg') }}" alt="Codigo QR MercadoPago" class="w-full h-full object-contain">
                         </div>
                         <p class="info-text text-text-light leading-relaxed text-sm md:text-base">
-                            Escanee el código QR o copie el alias para realizar una donación desde su billetera virtual o aplicación bancaria.
+                            Escanee el código QR o copie el alias para realizar una donación desde su billetera virtual.
                         </p>
                     </div>
                 </div>
@@ -160,59 +151,67 @@
     </section>
 </div>
 
-<div id="confirmationModal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-black bg-opacity-70 transition-opacity"></div>
-    <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all w-full max-w-md p-6 md:p-8 mx-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl md:text-2xl font-semibold text-text-dark">Confirmar Donación</h2>
-                    <span class="modal-close cursor-pointer text-2xl text-gray-400 hover:text-button transition-colors">&times;</span>
-                </div>
-                <div class="confirmation-details bg-gray-50 p-4 md:p-6 rounded-lg mb-6 border border-gray-100 space-y-3">
-                    <div class="detail-row flex justify-between items-center pb-3 border-b border-gray-200">
-                        <strong class="text-text-dark text-sm md:text-base">Monto:</strong>
-                        <span id="confirmAmount" class="font-bold text-button text-lg">$0</span>
-                    </div>
-                    <div class="detail-row flex justify-between items-center pb-3 border-b border-gray-200">
-                        <strong class="text-text-dark text-sm md:text-base">Frecuencia:</strong>
-                        <span id="confirmFrequency" class="text-sm md:text-base text-gray-700">Única</span>
-                    </div>
-                    <div class="detail-row flex justify-between items-center pb-3 border-b border-gray-200">
-                        <strong class="text-text-dark text-sm md:text-base">Tarjeta:</strong>
-                        <span id="confirmCard" class="font-mono text-sm md:text-base text-gray-700">**** 1234</span>
-                    </div>
-                    <div class="detail-row flex flex-col md:flex-row md:justify-between md:items-center pt-1">
-                        <strong class="text-text-dark text-sm md:text-base mb-1 md:mb-0">Email:</strong>
-                        <span id="confirmEmail" class="text-sm break-all text-gray-600">usuario@email.com</span>
-                    </div>
-                </div>
-                <div class="modal-actions flex flex-col md:flex-row gap-3 md:gap-4 justify-end">
-                    <button type="button" class="cancel-btn bg-white text-text-dark py-3 px-6 border border-gray-300 rounded-lg cursor-pointer font-semibold hover:bg-gray-50 transition-all w-full md:w-auto text-center" id="cancelDonation">Cancelar</button>
-                    <button type="button" class="confirm-btn bg-button text-white py-3 px-6 border-none rounded-lg cursor-pointer font-semibold hover:bg-blue-500 transition-all w-full md:w-auto text-center shadow-md" id="confirmDonation">Confirmar</button>
-                </div>
+{{-- MODAL DE CONFIRMACIÓN --}}
+<div id="confirmationModal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black bg-opacity-70">
+    <div class="relative transform bg-white rounded-2xl shadow-2xl transition-all w-full max-w-md p-6 md:p-8 overflow-hidden">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl md:text-2xl font-bold text-text-dark">Confirmar Donación</h2>
+            <span class="modal-close cursor-pointer text-2xl text-gray-400 hover:text-red-500">&times;</span>
+        </div>
+        <div class="confirmation-details bg-gray-50 p-6 rounded-2xl mb-6 border border-gray-100 space-y-4">
+            <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                <strong class="text-gray-500 text-xs uppercase tracking-widest">Monto</strong>
+                <span id="confirmAmount" class="font-black text-button text-xl"></span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                <strong class="text-gray-500 text-xs uppercase tracking-widest">Frecuencia</strong>
+                <span id="confirmFrequency" class="font-bold text-text-dark"></span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-gray-200">
+                <strong class="text-gray-500 text-xs uppercase tracking-widest">Tarjeta</strong>
+                <span id="confirmCard" class="font-mono text-sm text-text-dark"></span>
+            </div>
+            <div class="flex flex-col">
+                <strong class="text-gray-500 text-[10px] uppercase tracking-widest mb-1">Email de contacto</strong>
+                <span id="confirmEmail" class="text-sm font-medium text-gray-700 break-all"></span>
             </div>
         </div>
+        <div class="flex flex-col md:flex-row gap-3">
+            <button type="button" id="cancelDonation" class="flex-1 py-4 border-2 border-gray-100 text-gray-400 font-bold rounded-xl hover:bg-gray-50 transition-all uppercase text-xs tracking-widest">Cancelar</button>
+            <button type="button" id="confirmDonation" class="flex-1 py-4 bg-button text-white font-bold rounded-xl hover:bg-blue-900 transition-all shadow-lg shadow-blue-100 uppercase text-xs tracking-widest">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL DE ESTADO (Resultado final) --}}
+<div id="statusModal" class="hidden fixed inset-0 z-[60] items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm">
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center animate-fade-in">
+        <div id="statusModalIcon" class="mb-6">
+            {{-- Icono dinámico vía JS --}}
+        </div>
+        <h3 id="statusModalTitle" class="text-2xl font-black text-text-dark mb-2 uppercase tracking-tighter"></h3>
+        <p id="statusModalMessage" class="text-text-light mb-8 text-sm leading-relaxed"></p>
+        <button id="closeStatusModal" class="w-full bg-button text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-900 transition-all shadow-lg shadow-blue-100">
+            Entendido
+        </button>
     </div>
 </div>
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <script src="js/donaciones.js"></script>
-<script src="https://sdk.mercadopago.com/js/v2"></script>
 
 <script>
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(function() {
-            const feedback = document.getElementById('copyFeedback');
-            if(feedback) {
-                feedback.classList.remove('opacity-0');
-                setTimeout(() => {
-                    feedback.classList.add('opacity-0');
-                }, 2000);
-            }
+            // Podrías añadir un pequeño feedback visual aquí si quisieras
         }, function(err) {
             console.error('Error al copiar: ', err);
         });
     }
 </script>
+
+<style>
+    @keyframes fade-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+</style>
 @endsection

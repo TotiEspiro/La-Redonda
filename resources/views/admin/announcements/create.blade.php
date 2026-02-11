@@ -100,7 +100,7 @@
                     <a href="{{ route('admin.announcements.index') }}" class="flex-1 md:flex-none text-center bg-white border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors">
                         Cancelar
                     </a>
-                    <button type="submit" class="flex-1 md:flex-none bg-button text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-600 shadow-md transition-colors">
+                    <button type="submit" class="flex-1 md:flex-none bg-button text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-900 shadow-md transition-colors">
                         Publicar
                     </button>
                 </div>

@@ -3,319 +3,285 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\User;
 use App\Models\Group;
-use App\Models\GroupMaterial;
+use App\Models\Role;
+use App\Models\Announcement;
+use App\Notifications\AvisoComunidad; 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Carbon\Carbon;
 
 class GroupController extends Controller
 {
-    
-    public function index()
+    /**
+     * Normaliza el identificador del grupo.
+     */
+    private function normalizeSlug($slug)
     {
-        // Solo muestra las categorías, no carga grupos
-        return view('grupos.index');
+        $slug = strtolower($slug);
+        $slug = str_replace('admin_', '', $slug);
+        return str_replace('-', '_', $slug);
     }
 
-    
-    public function catequesis()
+    /**
+     * VERIFICACIÓN DE COORDINACIÓN (MAESTRA)
+     */
+    private function isAuthorizedCoordinator($slug)
     {
-        $categoria = 'Catequesis';
-        $descripcion = 'Grupos de formación en la fe para todas las edades. Desde la primera comunión hasta la catequesis de adultos.';
-        $groups = Group::where('category', 'catequesis')->where('is_active', true)->get();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user) return false;
 
-        return view('grupos.categoria', compact('groups', 'categoria', 'descripcion'));
+        $baseSlug = $this->normalizeSlug($slug);
+
+        if ($user->isAdmin() || $user->isSuperAdmin()) return true;
+        if ($user->hasRole('admin_' . $baseSlug)) return true;
+        if ($user->hasRole('admin_grupo_parroquial')) return true;
+
+        return false;
     }
 
-    
-    public function jovenes()
+    /**
+     * DASHBOARD CENTRAL DE USUARIO (HUB)
+     */
+    public function userDashboard()
     {
-        $categoria = 'Jóvenes';
-        $descripcion = 'Grupos y actividades para jóvenes entre 11 y 35 años. Espacios de encuentro, formación y servicio.';
-        $groups = Group::where('category', 'jovenes')->where('is_active', true)->get();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        $allGroupSlugs = [
+            'catequesis', 'acutis', 'juveniles', 'jovenes_adultos', 'coro', 
+            'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 
+            'caridad_comedor', 'scouts', 'confirmacion', 'monaguillos', 'liturgia'
+        ];
 
-        return view('grupos.categoria', compact('groups', 'categoria', 'descripcion'));
+        $userGroups = $user->roles->filter(function($r) use ($allGroupSlugs) {
+            $slug = str_replace('admin_', '', $r->name);
+            return in_array($slug, $allGroupSlugs);
+        })->unique(fn($r) => str_replace('admin_', '', $r->name));
+
+        $unreadNotifications = $user->unreadNotifications()->take(5)->get();
+        $announcements = Announcement::where('is_active', true)->orderBy('order')->latest()->get();
+
+        return view('dashboard', compact('userGroups', 'unreadNotifications', 'allGroupSlugs', 'announcements'));
     }
 
-    
-    public function mayores()
+    /**
+     * CONSOLA DE COORDINACIÓN
+     */
+    public function groupDashboard($groupRole)
     {
-        $categoria = 'Mayores';
-        $descripcion = 'Grupos para la tercera edad. Espacios de comunidad, oración y actividades recreativas.';
-        $groups = Group::where('category', 'mayores')->where('is_active', true)->get();
+        $slug = $this->normalizeSlug($groupRole);
+        $group = Group::where('category', $slug)->first();
+        if (!$group) abort(404);
 
-        return view('grupos.categoria', compact('groups', 'categoria', 'descripcion'));
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (!$this->isAuthorizedCoordinator($slug)) {
+            if ($user->hasRole($slug)) return redirect()->route('grupos.materials', $groupRole);
+            return redirect()->route('dashboard')->with('error', 'No tienes permisos de gestión.');
+        }
+
+        $groupName = $group->name;
+        $members = User::whereHas('roles', fn($q) => $q->where('name', $slug))
+            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'superadmin'))
+            ->get();
+        
+        $materials = DB::table('group_materials')->where('group_role', $slug)->orderBy('created_at', 'desc')->take(10)->get()
+            ->map(function($m) { $m->created_at = Carbon::parse($m->created_at); return $m; });
+
+        $requests = DB::table('group_requests')
+            ->join('users', 'group_requests.user_id', '=', 'users.id')
+            ->where('group_requests.group_role', $slug)
+            ->where('group_requests.status', 'pending')
+            ->select('group_requests.*', 'users.name', 'users.email')
+            ->get();
+
+        return view('grupos.dashboard-grupos', compact('group', 'groupName', 'groupRole', 'members', 'materials', 'requests'));
     }
 
-   
-    public function especiales()
+    /**
+     * BIBLIOTECA DE MATERIALES
+     */
+    public function groupMaterials($groupRole)
     {
-        $categoria = 'Más Grupos';
-        $descripcion = 'Ministerios y grupos especializados en diferentes áreas de servicio y formación.';
-        $groups = Group::where('category', 'especiales')->where('is_active', true)->get();
+        $slug = $this->normalizeSlug($groupRole);
+        $group = Group::where('category', $slug)->firstOrFail();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        return view('grupos.categoria', compact('groups', 'categoria', 'descripcion'));
+        if (!$user->hasRole($slug) && !$this->isAuthorizedCoordinator($slug)) {
+            return redirect()->route('dashboard')->with('error', 'Acceso exclusivo para miembros.');
+        }
+        
+        $materials = DB::table('group_materials')->where('group_role', $slug)->where('is_active', true)->orderBy('created_at', 'desc')->paginate(12);
+
+        $materials->getCollection()->transform(function($m) {
+            $m->created_at = Carbon::parse($m->created_at);
+            $m->file_type = $m->type;
+            $type = strtolower($m->type);
+            if ($type === 'pdf') $m->file_icon = 'img/icono_pdf.png';
+            elseif (in_array($type, ['jpg', 'png', 'jpeg'])) $m->file_icon = 'img/icono_imagen.png';
+            else $m->file_icon = 'img/icono_docs.png';
+            $m->file_size_formatted = ($m->file_path && Storage::disk('public')->exists($m->file_path)) 
+                ? round(Storage::disk('public')->size($m->file_path) / 1024 / 1024, 2) . ' MB' 
+                : '---';
+            $m->can_preview = in_array($type, ['pdf', 'image', 'jpg', 'png', 'jpeg']);
+            return $m;
+        });
+
+        return view('grupos.materials', [
+            'group' => $group, 'groupName' => $group->name, 'groupRole' => $groupRole, 'materials' => $materials
+        ]);
     }
 
-    public function show(Group $group)
+    /**
+     * ENVIAR SOLICITUD (SEGURIDAD REFORZADA)
+     */
+    public function sendRequest(Request $request, $groupRole)
     {
-        // Obtener el nombre de la categoría para mostrar
-        $categoryNames = [
+        $slug = $this->normalizeSlug($groupRole);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // 1. REGLA: Perfil Obligatorio (Edad)
+        if (!$user->age) {
+            return back()->with('error', 'Debes completar tu edad en tu perfil para poder unirte a grupos.');
+        }
+
+        // 2. REGLA: Límite de solicitudes pendientes (Máximo 2)
+        $pendingCount = DB::table('group_requests')
+            ->where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->count();
+
+        if ($pendingCount >= 2) {
+            return back()->with('error', 'Tienes demasiadas solicitudes pendientes (máximo 2). Espera a ser aceptado para pedir otro grupo.');
+        }
+
+        // 3. REGLA: Validación de Rango de Edad Automática
+        $group = Group::where('category', $slug)->first();
+        if ($group) {
+            if ($user->age < $group->min_age || $user->age > $group->max_age) {
+                return back()->with('error', "Tu edad ({$user->age} años) no coincide con el rango de este grupo ({$group->min_age} a {$group->max_age} años).");
+            }
+        }
+
+        // 4. Evitar duplicados
+        if (DB::table('group_requests')->where('user_id', $user->id)->where('group_role', $slug)->where('status', 'pending')->exists()) {
+            return back()->with('info', 'Ya tienes una solicitud pendiente para este grupo.');
+        }
+
+        DB::table('group_requests')->insert([
+            'user_id' => $user->id,
+            'group_role' => $slug,
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        try {
+            $coordinadores = User::whereHas('roles', function($q) use ($slug) {
+                $q->whereIn('name', ['admin', 'superadmin', 'admin_' . $slug]);
+            })->get();
+            Notification::send($coordinadores, new AvisoComunidad("Nueva Solicitud", "{$user->name} quiere unirse a " . str_replace('_', ' ', $slug)));
+        } catch (\Exception $e) { Log::warning("Error notificación Push."); }
+
+        return back()->with('success', '¡Solicitud enviada! Un coordinador la revisará pronto.');
+    }
+
+    /**
+     * VISTA DE CATEGORÍA
+     */
+    public function category($slug)
+    {
+        $categorySlug = strtolower($slug);
+        
+        $descripciones = [
+            'catequesis' => 'Formación sacramental para niños, adolescentes y adultos.',
+            'jovenes'    => 'Comunidad, formación y oración para jóvenes de 11 a 35 años.',
+            'mayores'    => 'Espacios de oración y fraternidad dedicados a la tercera edad.',
+            'especiales' => 'Servicio, caridad y misiones especiales de nuestra parroquia.'
+        ];
+
+        $titulos = [
             'catequesis' => 'Catequesis',
-            'jovenes' => 'Jóvenes', 
-            'mayores' => 'Mayores',
+            'jovenes'    => 'Jóvenes',
+            'mayores'    => 'Mayores',
             'especiales' => 'Más Grupos'
         ];
 
-        $categoryName = $categoryNames[$group->category] ?? 'Grupo';
+        // Obtenemos grupos de la DB que coincidan con la categoría
+        $groups = Group::where('category', 'like', $categorySlug . '%')->where('is_active', true)->get();
 
-        return view('grupos.index', compact('group', 'categoryName'));
-    }
-
-   
-    //Vista del dashboard del grupo para AdminGrupoParroquial
-    public function groupDashboard($groupRole)
-    {
-        $user = Auth::user();
-        
-        // Verificar que el usuario tiene permisos para este grupo
-        if (!$this->userCanManageGroup($user, $groupRole)) {
-            return redirect()->route('home')->with('error', 'No tienes permisos para gestionar este grupo.');
-        }
-
-        $materials = GroupMaterial::where('group_role', $groupRole)
-                                ->latest()
-                                ->paginate(10);
-
-        $groupName = $this->getGroupName($groupRole);
-
-        return view('grupos.dashboard', compact('materials', 'groupRole', 'groupName'));
-    }
-
-    // Vista para miembros del grupo (solo ver materiales)
-     
-    public function groupMaterials($groupRole)
-    {
-        $user = Auth::user();
-        
-        // Verificar que el usuario pertenece al grupo
-        if (!$user->hasRole($groupRole) && !$user->isAdmin() && !$user->isSuperAdmin()) {
-            return redirect()->route('home')->with('error', 'No perteneces a este grupo.');
-        }
-
-        $materials = GroupMaterial::forGroup($groupRole)->latest()->paginate(12);
-        $groupName = $this->getGroupName($groupRole);
-
-        return view('grupos.materials', compact('materials', 'groupRole', 'groupName'));
-    }
-
-    // Subir nuevo material 
-
-    public function uploadMaterial(Request $request, $groupRole)
-    {
-        $user = Auth::user();
-        
-        if (!$this->userCanManageGroup($user, $groupRole)) {
-            return response()->json(['error' => 'No tienes permisos para subir material a este grupo.'], 403);
-        }
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'file' => 'required|file|max:153600' 
-        ]);
-
-        $file = $request->file('file');
-        $fileType = $this->getFileType($file->getClientOriginalExtension());
-        
-        // Guardar archivo
-        $filePath = $file->store("group-materials/{$groupRole}", 'public');
-
-        // Crear registro en la base de datos
-        $material = GroupMaterial::create([
-            'user_id' => $user->id,
-            'group_role' => $groupRole,
-            'title' => $request->title,
-            'description' => $request->description,
-            'file_path' => $filePath,
-            'file_name' => $file->getClientOriginalName(),
-            'file_type' => $fileType,
-            'file_size' => $file->getSize()
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'material' => $material,
-            'message' => 'Material subido correctamente'
+        return view('grupos.categoria', [
+            'categoria'   => $titulos[$categorySlug] ?? ucfirst($slug),
+            'descripcion' => $descripciones[$categorySlug] ?? 'Explora nuestras comunidades parroquiales.',
+            'groups'      => $groups,
+            'slug'        => $categorySlug
         ]);
     }
 
-    // Actualizar material existente (Editar) 
+    // --- MÉTODOS COMPLEMENTARIOS ---
 
-    public function updateMaterial(Request $request, $id)
-    {
-        $material = GroupMaterial::findOrFail($id);
-        $user = Auth::user();
-
-        // Verificar permisos
-        if (!$this->userCanManageGroup($user, $material->group_role)) {
-            return response()->json(['error' => 'No tienes permisos para editar este material.'], 403);
+    public function handleRequest(Request $request, $requestId) {
+        $sol = DB::table('group_requests')->where('id', $requestId)->first();
+        if (!$sol || !$this->isAuthorizedCoordinator($sol->group_role)) abort(403);
+        $status = ($request->action === 'approve') ? 'approved' : 'rejected';
+        DB::table('group_requests')->where('id', $requestId)->update(['status' => $status, 'updated_at' => now()]);
+        if ($status === 'approved') { 
+            $u = User::find($sol->user_id); $r = Role::where('name', $sol->group_role)->first(); 
+            if ($u && $r) { $u->roles()->syncWithoutDetaching([$r->id]); try { $u->notify(new AvisoComunidad("¡Aceptado!", "Ya eres parte de " . str_replace('_', ' ', $sol->group_role))); } catch (\Exception $e) {} } 
         }
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'required|boolean', 
-            'file' => 'nullable|file|max:153600' 
-        ]);
-
-        // Actualizar datos básicos
-        $material->title = $request->title;
-        $material->description = $request->description;
-        $material->is_active = $request->is_active;
-
-        // Si se subió un nuevo archivo, reemplazar el anterior
-        if ($request->hasFile('file')) {
-            // Eliminar archivo viejo
-            if (Storage::disk('public')->exists($material->file_path)) {
-                Storage::disk('public')->delete($material->file_path);
-            }
-
-            // Subir nuevo
-            $file = $request->file('file');
-            $fileType = $this->getFileType($file->getClientOriginalExtension());
-            $filePath = $file->store("group-materials/{$material->group_role}", 'public');
-
-            // Actualizar referencias
-            $material->file_path = $filePath;
-            $material->file_name = $file->getClientOriginalName();
-            $material->file_type = $fileType;
-            $material->file_size = $file->getSize();
-        }
-
-        $material->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Material actualizado correctamente',
-            'material' => $material
-        ]);
+        return back()->with('success', 'Solicitud procesada.');
     }
 
-    // Eliminar material
-    public function deleteMaterial($id)
-    {
-        $material = GroupMaterial::findOrFail($id);
-        $user = Auth::user();
-
-        if (!$this->userCanManageGroup($user, $material->group_role)) {
-            return response()->json(['error' => 'No tienes permisos para eliminar este material.'], 403);
-        }
-
-        // Eliminar archivo físico
-        if (Storage::disk('public')->exists($material->file_path)) {
-            Storage::disk('public')->delete($material->file_path);
-        }
-
-        $material->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Material eliminado correctamente'
-        ]);
+    public function uploadMaterial(Request $request, $groupRole) {
+        $slug = $this->normalizeSlug($groupRole);
+        if (!$this->isAuthorizedCoordinator($slug)) return response()->json(['success' => false], 403);
+        $request->validate(['title' => 'required|max:255', 'type' => 'required', 'file' => 'required|max:153600']);
+        try {
+            $filePath = $request->file('file')->store('materials/' . $slug, 'public');
+            DB::table('group_materials')->insert(['group_role' => $slug, 'title' => $request->title, 'type' => $request->type, 'file_path' => $filePath, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()]);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) { return response()->json(['success' => false], 500); }
     }
 
-    // Descargar material
-    
-    public function downloadMaterial($id)
-    {
-        $material = GroupMaterial::where('is_active', true)->findOrFail($id);
-        $user = Auth::user();
+    public function viewMaterial($id) {
+        $m = DB::table('group_materials')->where('id', $id)->first();
+        if (!$m || !Storage::disk('public')->exists($m->file_path)) abort(404);
+        return response()->file(Storage::disk('public')->path($m->file_path), ['Content-Disposition' => 'inline']);
+    }
 
-        // Verificar que el usuario puede ver este material
-        if (!$user->hasRole($material->group_role) && !$user->isAdmin() && !$user->isSuperAdmin()) {
-            return redirect()->back()->with('error', 'No tienes acceso a este material.');
+    public function downloadMaterial($id) {
+        $m = DB::table('group_materials')->where('id', $id)->first();
+        return ($m && Storage::disk('public')->exists($m->file_path)) ? Storage::disk('public')->download($m->file_path) : abort(404);
+    }
+
+    public function deleteMaterial($id) {
+        $m = DB::table('group_materials')->where('id', $id)->first(); 
+        if ($m && $this->isAuthorizedCoordinator($m->group_role)) {
+            if ($m->file_path) Storage::disk('public')->delete($m->file_path); 
+            DB::table('group_materials')->where('id', $id)->delete(); 
+            return response()->json(['success' => true]); 
         }
-
-        // Verificar que el archivo existe
-        if (!Storage::disk('public')->exists($material->file_path)) {
-            return redirect()->back()->with('error', 'El archivo no existe.');
-        }
-
-        return Storage::disk('public')->download($material->file_path, $material->file_name);
+        return response()->json(['success' => false], 403);
     }
 
-    // Visualizar material (Vista Previa)
-   
-    public function viewMaterial($id)
-    {
-        $material = GroupMaterial::where('is_active', true)->findOrFail($id);
-        $user = Auth::user();
-
-        // Verificar que el usuario puede ver este material
-        if (!$user->hasRole($material->group_role) && !$user->isAdmin() && !$user->isSuperAdmin()) {
-            abort(403, 'No tienes permiso para ver este material.');
-        }
-
-        // Verificar que el archivo existe
-        if (!Storage::disk('public')->exists($material->file_path)) {
-            abort(404, 'El archivo no existe.');
-        }
-
-        return response()->file(storage_path('app/public/' . $material->file_path));
+    public function removeMember($groupRole, $userId) {
+        $slug = $this->normalizeSlug($groupRole);
+        if (!$this->isAuthorizedCoordinator($slug)) abort(403);
+        $u = User::findOrFail($userId); $r = Role::where('name', $slug)->first(); 
+        if ($r) $u->roles()->detach($r->id);
+        return response()->json(['success' => true]);
     }
 
-    
-
-    // Verificar si usuario puede gestionar el grupo
-    
-    private function userCanManageGroup($user, $groupRole)
-    {
-        return ($user->hasRole('admin_grupo_parroquial') && $user->hasRole($groupRole)) || 
-               $user->isAdmin() || 
-               $user->isSuperAdmin();
-    }
-
-    // Obtener nombre del grupo
-
-    private function getGroupName($groupRole)
-    {
-        $groupNames = [
-            'catequesis' => 'Catequesis',
-            'juveniles' => 'Juveniles',
-            'acutis' => 'Acutis',
-            'juan_pablo' => 'Juan Pablo',
-            'coro' => 'Coro',
-            'san_joaquin' => 'San Joaquín',
-            'santa_ana' => 'Santa Ana',
-            'ardillas' => 'Ardillas',
-            'costureras' => 'Costureras',
-            'misioneros' => 'Misioneros',
-            'caridad_comedor' => 'Caridad y Comedor'
-        ];
-
-        return $groupNames[$groupRole] ?? $groupRole;
-    }
-
-    // Determinar tipo de archivo
-     
-    private function getFileType($extension)
-    {
-        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'];
-        $videoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'webm'];
-        $audioExtensions = ['mp3', 'wav', 'ogg', 'm4a'];
-        
-        $ext = strtolower($extension);
-
-        if (in_array($ext, $imageExtensions)) return 'image';
-        if (in_array($ext, $videoExtensions)) return 'video';
-        if (in_array($ext, $audioExtensions)) return 'audio';
-        if ($ext === 'pdf') return 'pdf';
-        if (in_array($ext, ['doc', 'docx'])) return 'doc';
-        if (in_array($ext, ['xls', 'xlsx'])) return 'xls';
-        if (in_array($ext, ['ppt', 'pptx'])) return 'ppt';
-        if ($ext === 'zip') return 'zip';
-        
-        return 'other';
-    }
+    public function index() { return view('grupos.index', ['groups' => Group::where('is_active', true)->get()]); }
+    public function completeOnboarding(Request $request) { Auth::user()->update(['onboarding_completed' => true, 'age' => $request->age]); return response()->json(['success' => true]); }
+    public function getRecommendedGroups(Request $request) { return response()->json(Group::where('is_active', true)->where('min_age', '<=', $request->age)->where('max_age', '>=', $request->age)->get()); }
 }

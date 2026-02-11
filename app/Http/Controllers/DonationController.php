@@ -3,18 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\Donation;
+use App\Models\User;
+use App\Notifications\NuevaDonacion; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class DonationController extends Controller
 {
-    // Mostrar formulario de donaciones
-    public function create()
-    {
-        return view('donaciones');
+    /**
+     * Muestra la vista de donaciones.
+     */
+    public function create() 
+    { 
+        return view('donaciones'); 
     }
 
-    // Guardar donación en la base de datos
+    /**
+     * Procesa la donación y dispara la notificación Push y de Base de Datos.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -26,6 +33,7 @@ class DonationController extends Controller
         ]);
 
         try {
+            // 1. Guardar el registro en la base de datos
             $donation = Donation::create([
                 'amount' => $validated['amount'],
                 'frequency' => $validated['frequency'],
@@ -36,15 +44,26 @@ class DonationController extends Controller
                 'status' => 'completed',
             ]);
 
+            // 2. Notificar al usuario (Push + Campana)
+            if (Auth::check()) {
+                try {
+                    Auth::user()->notify(new NuevaDonacion($donation));
+                } catch (\Exception $e) {
+                    // Evitamos error 500 si fallan las llaves VAPID o OpenSSL
+                    Log::warning("Donación guardada, pero falló la notificación Push: " . $e->getMessage());
+                }
+            }
+
             return response()->json([
-                'success' => true,
-                'message' => 'Donación procesada exitosamente'
+                'success' => true, 
+                'message' => '¡Muchas gracias! Tu donación ha sido procesada exitosamente.'
             ]);
 
         } catch (\Exception $e) {
+            Log::error("Error crítico en Donación: " . $e->getMessage());
             return response()->json([
-                'success' => false,
-                'message' => 'Error al procesar la donación'
+                'success' => false, 
+                'message' => 'Hubo un problema al procesar la donación.'
             ], 500);
         }
     }

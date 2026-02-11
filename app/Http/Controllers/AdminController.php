@@ -8,11 +8,15 @@ use App\Models\Intention;
 use App\Models\Donation;
 use App\Models\Announcement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
-    // Dashboard principal
+    /**
+     * Dashboard principal con estadísticas y avisos
+     */
     public function dashboard()
     {
         $stats = [
@@ -25,68 +29,128 @@ class AdminController extends Controller
             'recent_announcements' => Announcement::latest()->take(5)->get(),
         ];
 
-        return view('admin.dashboard', compact('stats'));
+        $announcements = Announcement::where('is_active', true)
+            ->orderBy('order')
+            ->latest()
+            ->get();
+
+        return view('admin.dashboard', compact('stats', 'announcements'));
     }
 
-    // Gestión de Usuarios
+    /**
+     * Gestión de Usuarios
+     */
     public function users()
     {
         $users = User::with('roles')->latest()->paginate(10);
-        $allRoles = Role::all();
+        $allRoles = Role::withCount('users')->get();
         return view('admin.users.index', compact('users', 'allRoles'));
     }
 
-    // Actualizar roles múltiples de usuario
+    /**
+     * Actualizar roles con protección para Super Admin
+     * CORRECCIÓN: Se elimina la asignación automática de 'admin_grupo_parroquial'
+     */
     public function updateUserRoles(Request $request, $id)
     {
         $user = User::findOrFail($id);
         
-        // Prevenir que se modifiquen los roles del superadmin (excepto por otro superadmin)
-        if ($user->isSuperAdmin() && !auth()->user()->isSuperAdmin()) {
-            return back()->with('error', 'No puedes modificar los roles de un Super Administrador.');
+        if ($user->isSuperAdmin()) {
+            return back()->with('error', 'Los privilegios del Super Administrador son permanentes.');
         }
 
-        $selectedRoles = $request->input('roles', []);
+        // Roles básicos (admin, user, etc) marcados en los checkboxes de roles generales
+        $rolesToSync = $request->input('basic_roles', []);
         
-        // Sincronizar roles
-        $roleIds = Role::whereIn('name', $selectedRoles)->pluck('id')->toArray();
-        $user->roles()->sync($roleIds);
+        $grupos = [
+            'catequesis', 'acutis', 'juveniles', 'jovenes_adultos', 'coro', 
+            'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 
+            'caridad_comedor', 'scouts', 'confirmacion', 'monaguillos', 'liturgia'
+        ];
 
-        return back()->with('success', 'Roles actualizados correctamente.');
+        foreach ($grupos as $grupo) {
+            // Si se marca como miembro
+            if ($request->has("member_$grupo")) {
+                $rolesToSync[] = $grupo;
+            }
+            // Si se marca como administrador específico
+            if ($request->has("admin_$grupo")) {
+                $rolesToSync[] = "admin_$grupo";
+                $rolesToSync[] = $grupo; // También lo hacemos miembro por lógica
+            }
+        }
+
+        try {
+            // Buscamos los IDs de los roles únicos seleccionados
+            $roleIds = Role::whereIn('name', array_unique($rolesToSync))->pluck('id')->toArray();
+            
+            // Sincronizamos (esto borra los viejos y pone los nuevos)
+            $user->roles()->sync($roleIds);
+            
+            return back()->with('success', 'Roles y permisos de comunidad actualizados.');
+        } catch (\Exception $e) {
+            Log::error("Error actualizando roles de usuario {$id}: " . $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al intentar guardar los cambios.');
+        }
     }
 
-    // Eliminar usuario
+    /**
+     * Eliminar usuario
+     */
     public function deleteUser($id)
     {
         $user = User::findOrFail($id);
-        
-        // Evitar que el usuario se elimine a sí mismo
-        if ($user->id === auth()->id()) {
-            return back()->with('error', 'No puedes eliminar tu propio usuario.');
+        if ($user->isSuperAdmin() || $user->id === Auth::id()) {
+            return back()->with('error', 'No se puede eliminar este usuario por seguridad.');
         }
-
-        // Prevenir eliminar superadmin (excepto por otro superadmin)
-        if ($user->isSuperAdmin() && !auth()->user()->isSuperAdmin()) {
-            return back()->with('error', 'No puedes eliminar un Super Administrador.');
-        }
-
         $user->delete();
-        return back()->with('success', 'Usuario eliminado correctamente.');
+        return back()->with('success', 'Usuario eliminado de la base de datos.');
     }
 
-    // Gestión de Intenciones
+    /**
+     * Gestión de Intenciones
+     */
     public function intentions()
     {
-        $intentions = Intention::latest()->paginate(10);
+        $intentions = Intention::latest()->paginate(15);
         return view('admin.intentions.index', compact('intentions'));
     }
 
-    // Imprimir intenciones
+    public function deleteIntention($id)
+    {
+        try {
+            Intention::findOrFail($id)->delete();
+            return back()->with('success', 'Intención eliminada.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'No se pudo eliminar.');
+        }
+    }
+
+    public function deleteAllIntentions()
+    {
+        try {
+            Intention::query()->delete();
+            return back()->with('success', 'Lista de intenciones vaciada.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al vaciar la lista.');
+        }
+    }
+
+    /**
+     * Listado de Donaciones
+     */
+    public function donations()
+    {
+        $donations = Donation::latest()->paginate(15);
+        return view('admin.donations.index', compact('donations'));
+    }
+
+    /**
+     * Imprimir Intenciones
+     */
     public function printIntentions(Request $request)
     {
-        // Establecer zona horaria de Argentina
         config(['app.timezone' => 'America/Argentina/Buenos_Aires']);
-        
         $intentions = Intention::when($request->type, function($query, $type) {
                 return $query->where('type', $type);
             })->when($request->date, function($query, $date) {
@@ -94,52 +158,5 @@ class AdminController extends Controller
             })->latest()->get();
 
         return view('admin.intentions.print', compact('intentions'));
-    }
-
-    // Eliminar intención
-    public function deleteIntention($id)
-    {
-        $intention = Intention::findOrFail($id);
-        $intention->delete();
-
-        return back()->with('success', 'Intención eliminada correctamente.');
-    }
-
-    // Gestión de Donaciones
-    public function donations()
-    {
-        $donations = Donation::latest()->paginate(10);
-        return view('admin.donations.index', compact('donations'));
-    }
-
-    public function getIntention($id)
-    {
-        $intention = Intention::findOrFail($id);
-        return response()->json([
-            'name' => $intention->name,
-            'email' => $intention->email,
-            'type' => $intention->type,
-            'formatted_type' => $intention->formatted_type,
-            'message' => $intention->message,
-            'created_at' => $intention->created_at,
-        ]);
-    }
-
-    // Gestión de Anuncios (redirige al AnnouncementController)
-    public function announcements()
-    {
-        return redirect()->route('admin.announcements.index');
-    }
-
-    // Vista rápida de anuncios en dashboard
-    public function getAnnouncementsStats()
-    {
-        $stats = [
-            'total' => Announcement::count(),
-            'active' => Announcement::where('is_active', true)->count(),
-            'inactive' => Announcement::where('is_active', false)->count(),
-        ];
-
-        return response()->json($stats);
     }
 }

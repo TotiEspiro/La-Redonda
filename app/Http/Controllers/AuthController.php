@@ -10,19 +10,19 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    // Mostrar formulario de login
     public function showLogin()
     {
         return view('auth.login');
     }
 
-    // Mostrar formulario de registro
     public function showRegister()
     {
         return view('auth.register');
     }
 
-    // Procesar login
+    /**
+     * Maneja el inicio de sesión y redirecciona según el ROL.
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -33,29 +33,33 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             
-            // Guardar en sesión que se debe mostrar el loading con progreso
-            session()->put('show_progress_loading', true);
-            
-            // Redirigir según el rol
-            if (Auth::user()->isAdmin()) {
-                return redirect('/admin');
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+
+            // REDIRECCIÓN INTELIGENTE:
+            // Si es Admin o SuperAdmin, va directo al panel de control
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard');
             }
-            
-            return redirect('/')->with('success', '¡Bienvenido!');
+
+            // Si es un fiel normal, va al Dashboard central
+            return redirect()->intended('dashboard');
         }
 
         return back()->withErrors([
-            'email' => 'Las credenciales no coinciden con nuestros registros.',
+            'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
         ])->onlyInput('email');
     }
 
-    // Procesar registro
+    /**
+     * Maneja el registro de un nuevo usuario.
+     */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         if ($validator->fails()) {
@@ -66,29 +70,39 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user',
         ]);
 
         Auth::login($user);
 
-        // También mostrar loading con progreso en registro
-        session()->put('show_progress_loading', true);
-
-        return redirect('/')->with('success', '¡Cuenta creada exitosamente!');
+        // Tras registrarse, enviamos al onboarding (o dashboard)
+        return redirect()->route('dashboard');
     }
 
-    // Logout
-    public function logout()
+    public function logout(Request $request)
     {
         Auth::logout();
-        return redirect('/')->with('success', 'Sesión cerrada correctamente.');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/');
     }
 
-    public function clearLoadingSession()
+    public function updatePushSubscription(Request $request)
     {
-        session()->forget('show_progress_loading');
+        $this->validate($request, [
+            'endpoint' => 'required',
+            'keys.auth' => 'required',
+            'keys.p256dh' => 'required'
+        ]);
+
+        $user = Auth::user();
+        if (!$user) return response()->json(['success' => false], 401);
+
+        $user->updatePushSubscription(
+            $request->endpoint,
+            $request->keys['p256dh'],
+            $request->keys['auth']
+        );
+
         return response()->json(['success' => true]);
     }
-
-    
 }

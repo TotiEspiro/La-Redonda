@@ -1,154 +1,182 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\IntentionController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserHomeController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\DiarioController;
-use App\Http\Controllers\admin\AnnouncementController;
-use App\Http\Controllers\admin\EvangelioDiarioController;
+use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Admin\EvangelioDiarioController;
 
-// Rutas Públicas
+/*
+|--------------------------------------------------------------------------
+| Redirecciones Globales
+|--------------------------------------------------------------------------
+*/
+Route::get('/home', function () {
+    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('home');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Rutas Públicas (ACCESO SIN LOGUEARSE)
+|--------------------------------------------------------------------------
+*/
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/donaciones', [DonationController::class, 'create']);
-Route::get('/intenciones', [IntentionController::class, 'create']);
+Route::get('/donaciones', [DonationController::class, 'create'])->name('donations.create');
+Route::get('/intenciones', [IntentionController::class, 'create'])->name('intentions.create');
+Route::post('/intenciones/guardar', [IntentionController::class, 'store'])->name('intentions.store');
+Route::post('/donaciones/procesar', [DonationController::class, 'store'])->name('donations.process');
 
-// Rutas para procesar formularios
-Route::post('/intenciones/guardar', [IntentionController::class, 'store']);
-Route::post('/donaciones/procesar', [DonationController::class, 'store']);
+// Información de Grupos (Público)
+Route::prefix('grupos')->group(function () {
+    Route::get('/', [GroupController::class, 'index'])->name('grupos.index');
+    Route::get('/catequesis', [GroupController::class, 'category'])->defaults('slug', 'catequesis')->name('grupos.catequesis');
+    Route::get('/jovenes', [GroupController::class, 'category'])->defaults('slug', 'jovenes')->name('grupos.jovenes');
+    Route::get('/mayores', [GroupController::class, 'category'])->defaults('slug', 'mayores')->name('grupos.mayores');
+    Route::get('/especiales', [GroupController::class, 'category'])->defaults('slug', 'especiales')->name('grupos.especiales');
+});
 
-// Auth Routes
+/*
+|--------------------------------------------------------------------------
+| Autenticación y Recuperación
+|--------------------------------------------------------------------------
+*/
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/logout', [AuthController::class, 'logout']); // Fallback para links directos
 
-// Rutas temporales para otras páginas
-Route::get('/horarios', function () {
-    return view('home');
-});
+Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
 
-Route::get('/contacto', function () {
-    return view('home');
-});
+/*
+|--------------------------------------------------------------------------
+| Rutas Protegidas (REQUIEREN LOGIN)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
 
-// Rutas del Panel de Administración
-Route::prefix('admin')->middleware(['admin'])->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::get('/', [AdminController::class, 'dashboard']);
+    // HUB CENTRAL DEL USUARIO
+    Route::get('/dashboard', [GroupController::class, 'userDashboard'])->name('dashboard');
+
+    // --- Sistema de Notificaciones (Polling y Push) ---
+    Route::post('/notifications/subscribe', [AuthController::class, 'updatePushSubscription'])->name('notifications.subscribe');
     
-    // Gestión de Usuarios
+    Route::get('/notificaciones/unread-count', function() {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return response()->json([
+            'count' => $user->unreadNotifications->count(),
+            'latest' => $user->notifications()->latest()->first()
+        ]);
+    })->name('notifications.unread-count');
+
+    Route::post('/notificaciones/marcar-leida', function() {
+        /** @var \App\Models\User $user */
+        Auth::user()->unreadNotifications->markAsRead();
+        return response()->json(['success' => true]);
+    })->name('notifications.read-all');
+
+    // --- Perfil de Usuario ---
+    Route::prefix('perfil')->group(function () {
+        Route::get('/', [ProfileController::class, 'show'])->name('profile.show');
+        Route::get('/editar', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/actualizar', [ProfileController::class, 'update'])->name('profile.update');
+        Route::get('/password', [ProfileController::class, 'showChangePassword'])->name('profile.change-password');
+        Route::post('/password', [ProfileController::class, 'changePassword'])->name('profile.password');
+    });
+    
+    // --- Diario Espiritual ---
+    Route::prefix('diario')->group(function () {
+        Route::get('/', [DiarioController::class, 'index'])->name('diario.index');
+        Route::post('/', [DiarioController::class, 'store'])->name('diario.store');
+        Route::get('/{id}', [DiarioController::class, 'show'])->name('diario.show');
+        Route::put('/{id}', [DiarioController::class, 'update'])->name('diario.update');
+        Route::delete('/{id}', [DiarioController::class, 'destroy'])->name('diario.destroy');
+    });
+
+    // --- Gestión de Comunidades (Miembros y Coordinadores) ---
+    Route::prefix('grupos')->group(function () {
+        // Dashboard de Grupo (Solo Coordinadores o acceso a materiales)
+        Route::get('/{groupRole}/panel-comunidad', [GroupController::class, 'groupDashboard'])->name('grupos.dashboard');
+        
+        // Materiales
+        Route::get('/{groupRole}/materiales', [GroupController::class, 'groupMaterials'])->name('grupos.materials');
+        Route::post('/{groupRole}/upload', [GroupController::class, 'uploadMaterial'])->name('grupos.upload-material');
+        Route::delete('/material/{id}/delete', [GroupController::class, 'deleteMaterial'])->name('groups.delete');
+        Route::get('/material/{id}/download', [GroupController::class, 'downloadMaterial'])->name('groups.download');
+        Route::get('/material/{id}/view', [GroupController::class, 'viewMaterial'])->name('groups.view');
+
+        // Solicitudes e Integrantes
+        Route::post('/{groupRole}/solicitar', [GroupController::class, 'sendRequest'])->name('grupos.send-request');
+        Route::post('/procesar-solicitud/{requestId}', [GroupController::class, 'handleRequest'])->name('grupos.handle-request');
+        Route::delete('/panel/{groupRole}/members/{userId}', [GroupController::class, 'removeMember'])->name('grupos.remove-member');
+    });
+
+    // Onboarding y Recomendaciones
+    Route::post('/onboarding/complete', [GroupController::class, 'completeOnboarding'])->name('onboarding.complete');
+    Route::get('/onboarding/recommended', [GroupController::class, 'getRecommendedGroups'])->name('onboarding.recommended');
+
+    // Rutas de Prueba (Debug)
+    Route::get('/test-push', function() {
+        return "Para probar Push, usa la ruta /test-vibracion si tienes el celular vinculado.";
+    });
+    
+    Route::get('/test-vibracion', function() {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user) return "Debes estar logueado";
+        $user->notify(new \App\Notifications\AvisoComunidad(
+            "¡Prueba Exitosa!", 
+            "Si estás leyendo esto, tu celular ya recibe avisos de La Redonda.",
+            route('dashboard')
+        ));
+        return "Se ha enviado la señal a tu celular...";
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Panel de Administración General (Sólo SuperAdmins / Admins)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    
+    // Usuarios
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
     Route::post('/users/{id}/update-roles', [AdminController::class, 'updateUserRoles'])->name('admin.users.update-roles');
     Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
     
-    // Gestión de Intenciones
+    // Intenciones
     Route::get('/intentions', [AdminController::class, 'intentions'])->name('admin.intentions');
-    Route::get('/intentions/print', [AdminController::class, 'printIntentions'])->name('admin.intentions.print');
+    Route::get('/intentions/imprimir', [AdminController::class, 'printIntentions'])->name('admin.intentions.print');
+    Route::delete('/intentions/delete-all', [AdminController::class, 'deleteAllIntentions'])->name('admin.intentions.delete-all');
     Route::delete('/intentions/{id}', [AdminController::class, 'deleteIntention'])->name('admin.intentions.delete');
-    Route::get('/intentions/{id}', [AdminController::class, 'getIntention'])->name('admin.intentions.show');
     
-    // Gestión de Donaciones
+    // Donaciones e Informes
     Route::get('/donations', [AdminController::class, 'donations'])->name('admin.donations');
-
-    // Gestión de Anuncios
-    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('admin.announcements.index');
-    Route::get('/announcements/create', [AnnouncementController::class, 'create'])->name('admin.announcements.create');
-    Route::post('/announcements', [AnnouncementController::class, 'store'])->name('admin.announcements.store');
-    Route::get('/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('admin.announcements.edit');
-    Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('admin.announcements.update');
-    Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('admin.announcements.destroy');
-    Route::patch('/announcements/{announcement}/toggle-status', [AnnouncementController::class, 'toggleStatus'])->name('admin.announcements.toggle-status');
-    Route::delete('/announcements/delete-all', [AnnouncementController::class, 'deleteAll'])->name('admin.announcements.delete-all');
-
-    // Evangelio Diario
+    
+    // Contenido (Anuncios y Evangelio)
+    Route::resource('announcements', AnnouncementController::class, ['as' => 'admin']);
     Route::get('/evangelio-diario/editar', [EvangelioDiarioController::class, 'editar'])->name('admin.evangelio-diario.editar');
     Route::put('/evangelio-diario/actualizar', [EvangelioDiarioController::class, 'actualizar'])->name('admin.evangelio-diario.actualizar');
 });
 
-// Gestión de Grupos (Rutas existentes)
-Route::prefix('grupos')->group(function () {
-    Route::get('/', [GroupController::class, 'index'])->name('grupos.index');
-    Route::get('/catequesis', [GroupController::class, 'catequesis'])->name('grupos.catequesis');
-    Route::get('/jovenes', [GroupController::class, 'jovenes'])->name('grupos.jovenes');
-    Route::get('/mayores', [GroupController::class, 'mayores'])->name('grupos.mayores');
-    Route::get('/especiales', [GroupController::class, 'especiales'])->name('grupos.especiales');
-    Route::get('/{group}', [GroupController::class, 'show'])->name('grupos.show');
-});
-
-// Pantalla de Carga
-Route::post('/clear-loading-session', [AuthController::class, 'clearLoadingSession'])
-    ->name('clear.loading.session');
-
-// Rutas de perfil
-Route::middleware(['auth'])->group(function () {
-    Route::get('/perfil', [ProfileController::class, 'show'])->name('profile.show');
-    Route::get('/perfil/editar', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/perfil/actualizar', [ProfileController::class, 'update'])->name('profile.update');
-    Route::get('/perfil/cambiar-contraseña', [ProfileController::class, 'showChangePassword'])->name('profile.change-password');
-    Route::post('/perfil/cambiar-contraseña', [ProfileController::class, 'changePassword'])->name('profile.change-password');
-});
-
-// Olvidar contraseña 
-Route::get('/olvide-contraseña', function () {
-    return view('auth.forgot-password');
-})->name('password.request');
-
-
-// Diario de La Redonda 
-Route::prefix('diario')->middleware(['auth'])->group(function () {
-    Route::get('/', [DiarioController::class, 'index'])->name('diario.index');
-    Route::post('/', [DiarioController::class, 'store'])->name('diario.store');
-    Route::get('/favorites', [DiarioController::class, 'favorites'])->name('diario.favorites');
-    Route::get('/search', [DiarioController::class, 'search'])->name('diario.search');
-    Route::get('/{id}', [DiarioController::class, 'show'])->name('diario.show');
-    Route::put('/{id}', [DiarioController::class, 'update'])->name('diario.update');
-    Route::delete('/{id}', [DiarioController::class, 'destroy'])->name('diario.destroy');
-    Route::post('/{id}/toggle-favorite', [DiarioController::class, 'toggleFavorite'])->name('diario.toggle-favorite'); 
-});
-
-// Gestion de Grupos
-
-Route::middleware(['auth'])->prefix('grupos')->group(function () {
-    // Dashboard de administración para AdminGrupoParroquial
-    Route::get('/{groupRole}/dashboard', [GroupController::class, 'groupDashboard'])->name('grupos.dashboard');
-    
-    // Vista de materiales para miembros del grupo
-    Route::get('/{groupRole}/materiales', [GroupController::class, 'groupMaterials'])->name('groups.materials');
-    
-    // Acciones de administración
-    Route::post('/{groupRole}/upload', [GroupController::class, 'uploadMaterial'])->name('groups.upload');
-    Route::delete('/material/{id}/delete', [GroupController::class, 'deleteMaterial'])->name('groups.delete');
-    
-    // Descarga de material
-    Route::get('/material/{id}/download', [GroupController::class, 'downloadMaterial'])->name('groups.download');
-    Route::get('/material/{id}/view', [GroupController::class, 'viewMaterial'])->name('groups.view');
-    Route::post('/material/{id}/update', [GroupController::class, 'updateMaterial'])->name('groups.update');
-});
-
-// Ruta para servir archivos JavaScript del diario
-Route::get('/js/diario/{file}', function ($file) {
-    $path = resource_path("js/diario/{$file}");
-    
-    if (!file_exists($path)) {
-        abort(404);
-    }
-    
-    $content = file_get_contents($path);
-    $response = response($content, 200);
-    $response->header('Content-Type', 'application/javascript');
-    
-    return $response;
-})->where('file', '.*\.js$')->name('diario.js');
-
-Route::fallback(function () {
-    return response()->view('errors.404', [], 404);
-});
+/*
+|--------------------------------------------------------------------------
+| Fallback y Errores
+|--------------------------------------------------------------------------
+*/
+Route::fallback(fn() => response()->view('errors.404', [], 404));

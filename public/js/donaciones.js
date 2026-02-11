@@ -4,35 +4,71 @@ document.addEventListener('DOMContentLoaded', function() {
     const frequencyOptions = document.querySelectorAll('input[name="frequency"]');
     const cardForm = document.getElementById('cardForm');
     const confirmationModal = document.getElementById('confirmationModal');
+    const statusModal = document.getElementById('statusModal');
 
     let selectedAmount = 0;
     let selectedFrequency = 'once';
 
-    // Función para manejar selección de montos
+    // Función para mostrar el modal de estado (Éxito/Error)
+    function showStatusModal(title, message, isSuccess = true) {
+        const titleEl = document.getElementById('statusModalTitle');
+        const messageEl = document.getElementById('statusModalMessage');
+        const iconContainer = document.getElementById('statusModalIcon');
+        
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        
+        if (isSuccess) {
+            iconContainer.innerHTML = `
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                    <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>`;
+        } else {
+            iconContainer.innerHTML = `
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                    <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>`;
+        }
+
+        statusModal.classList.remove('hidden');
+        statusModal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Función para cerrar todos los modales
+    window.closeDonationModals = function() {
+        confirmationModal.classList.add('hidden');
+        confirmationModal.classList.remove('flex');
+        // También ocultar por inline style si se usó .style.display
+        confirmationModal.style.display = 'none';
+        
+        statusModal.classList.add('hidden');
+        statusModal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+
+    // Manejar selección de montos
     function handleAmountSelection(selectedOption) {
         amountOptions.forEach(option => {
             option.classList.remove('bg-button', 'text-white');
             option.classList.add('bg-white', 'text-button', 'border-button');
         });
-        
-        // Agregar clases de active al botón seleccionado
         selectedOption.classList.remove('bg-white', 'text-button');
         selectedOption.classList.add('bg-button', 'text-white');
-        
-        // Limpiar input personalizado
         customAmountInput.value = '';
-        // Guardar monto seleccionado
         selectedAmount = parseInt(selectedOption.dataset.amount);
     }
 
-    // Manejar selección de monto
     amountOptions.forEach(option => {
         option.addEventListener('click', function() {
             handleAmountSelection(this);
         });
     });
 
-    // Manejar monto personalizado
     customAmountInput.addEventListener('input', function() {
         if (this.value) {
             amountOptions.forEach(option => {
@@ -43,156 +79,131 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Manejar frecuencia
     frequencyOptions.forEach(option => {
         option.addEventListener('change', function() {
             selectedFrequency = this.value;
         });
     });
 
-    // Formatear número de tarjeta
+    // Formateo de Tarjeta
     const cardNumberInput = document.getElementById('cardNumber');
-    cardNumberInput.addEventListener('input', function() {
-        let value = this.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-        let formattedValue = '';
-
-        for (let i = 0; i < value.length; i++) {
-            if (i > 0 && i % 4 === 0) {
-                formattedValue += ' ';
+    if(cardNumberInput) {
+        cardNumberInput.addEventListener('input', function() {
+            let value = this.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formattedValue = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) formattedValue += ' ';
+                formattedValue += value[i];
             }
-            formattedValue += value[i];
-        }
+            this.value = formattedValue;
+        });
+    }
 
-        this.value = formattedValue;
-    });
-
-    // Formatear fecha de vencimiento
+    // Formateo de Vencimiento
     const expiryDateInput = document.getElementById('expiryDate');
-    expiryDateInput.addEventListener('input', function() {
-        let value = this.value.replace(/\D/g, '');
+    if(expiryDateInput) {
+        expiryDateInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                this.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            } else {
+                this.value = value;
+            }
+        });
+    }
 
-        if (value.length >= 2) {
-            this.value = value.substring(0, 2) + '/' + value.substring(2, 4);
-        } else {
-            this.value = value;
-        }
-    });
-
-    // Validar y enviar formulario
-    cardForm.addEventListener('submit', async function(e) {
+    // Envío del Formulario
+    cardForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
         if (selectedAmount === 0 || selectedAmount < 100) {
-            alert('Por favor, seleccione un monto válido (mínimo $100)');
+            showStatusModal('Monto Inválido', 'Por favor, seleccione un monto mínimo de $100.', false);
             return;
         }
 
-        // Obtener datos del formulario
         const cardHolder = document.getElementById('cardHolder').value;
         const cardNumber = document.getElementById('cardNumber').value;
         const email = document.getElementById('email').value;
 
         if (!cardHolder || !cardNumber || !email) {
-            alert('Por favor, complete todos los campos de la tarjeta');
+            showStatusModal('Datos Incompletos', 'Por favor, complete todos los campos de la tarjeta.', false);
             return;
         }
 
-        // Mostrar loading
-        const submitBtn = cardForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Procesando...';
-        submitBtn.disabled = true;
+        // Mostrar Confirmación
+        document.getElementById('confirmAmount').textContent = `$${selectedAmount.toLocaleString()}`;
+        const frequencyText = { 'once': 'Única', 'weekly': 'Semanal', 'biweekly': 'Quincenal', 'monthly': 'Mensual' };
+        document.getElementById('confirmFrequency').textContent = frequencyText[selectedFrequency];
+        const lastFour = cardNumber.replace(/\s/g, '').slice(-4);
+        document.getElementById('confirmCard').textContent = `**** **** **** ${lastFour}`;
+        document.getElementById('confirmEmail').textContent = email;
+
+        confirmationModal.style.display = 'flex';
+        confirmationModal.classList.remove('hidden');
+        confirmationModal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    });
+
+    // Botón Confirmar del Modal
+    document.getElementById('confirmDonation').addEventListener('click', async function() {
+        const btn = this;
+        const originalText = btn.textContent;
+        btn.textContent = 'Procesando...';
+        btn.disabled = true;
 
         try {
             const response = await fetch('/donaciones/procesar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     amount: selectedAmount,
                     frequency: selectedFrequency,
-                    card_holder: cardHolder,
-                    card_number: cardNumber.replace(/\s/g, ''),
-                    email: email
+                    card_holder: document.getElementById('cardHolder').value,
+                    card_number: document.getElementById('cardNumber').value.replace(/\s/g, ''),
+                    email: document.getElementById('email').value
                 })
             });
 
             const result = await response.json();
 
+            closeDonationModals();
+
             if (result.success) {
-                showConfirmationModal(cardHolder, cardNumber, email);
+                showStatusModal('¡Muchas Gracias!', 'Tu donación ha sido procesada exitosamente. Gracias por tu generosidad.');
+                cardForm.reset();
+                selectedAmount = 0;
+                amountOptions.forEach(opt => opt.classList.remove('bg-button', 'text-white'));
             } else {
-                alert('Error: ' + result.message);
+                showStatusModal('Error en el Pago', result.message || 'No se pudo procesar la transacción.', false);
             }
-
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error al procesar la donación. Por favor, intente nuevamente.');
+            closeDonationModals();
+            showStatusModal('Error de Conexión', 'Hubo un problema al conectar con el servidor. Intente nuevamente.', false);
         } finally {
-            // Restaurar botón
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
+            btn.textContent = originalText;
+            btn.disabled = false;
         }
     });
 
-    // Mostrar modal de confirmación
-    function showConfirmationModal(cardHolder, cardNumber, email) {
-        document.getElementById('confirmAmount').textContent = `$${selectedAmount.toLocaleString()}`;
+    // Eventos de cierre
+    const closeElements = [
+        document.getElementById('cancelDonation'),
+        document.getElementById('closeStatusModal'),
+        confirmationModal.querySelector('.modal-close')
+    ];
 
-        const frequencyText = {
-            'once': 'Única',
-            'weekly': 'Semanal',
-            'biweekly': 'Quincenal',
-            'monthly': 'Mensual'
-        };
-        document.getElementById('confirmFrequency').textContent = frequencyText[selectedFrequency];
-
-        const lastFour = cardNumber.slice(-4);
-        document.getElementById('confirmCard').textContent = `**** **** **** ${lastFour}`;
-
-        document.getElementById('confirmEmail').textContent = email;
-
-        confirmationModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-
-    // Cerrar modal
-    function closeModal() {
-        confirmationModal.style.display = 'none';
-        document.body.style.overflow = '';
-    }
-
-    confirmationModal.querySelector('.modal-close').addEventListener('click', closeModal);
-    document.getElementById('cancelDonation').addEventListener('click', closeModal);
-
-    // Confirmar donación
-    document.getElementById('confirmDonation').addEventListener('click', function() {
-        alert('¡Donación procesada exitosamente! Gracias por su contribución.');
-        closeModal();
-        cardForm.reset();
-
-        amountOptions.forEach(option => {
-            option.classList.remove('bg-button', 'text-white');
-            option.classList.add('bg-white', 'text-button', 'border-button');
-        });
-        customAmountInput.value = '';
-        selectedAmount = 0;
-        selectedFrequency = 'once';
+    closeElements.forEach(el => {
+        if(el) el.addEventListener('click', closeDonationModals);
     });
 
-    // Cerrar modal al hacer click fuera
-    confirmationModal.addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeModal();
-        }
-    });
-
-    // Cerrar modal con ESC
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && confirmationModal.style.display === 'flex') {
-            closeModal();
-        }
+    confirmationModal.addEventListener('click', (e) => { if (e.target === confirmationModal) closeDonationModals(); });
+    statusModal.addEventListener('click', (e) => { if (e.target === statusModal) closeDonationModals(); });
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDonationModals();
     });
 });

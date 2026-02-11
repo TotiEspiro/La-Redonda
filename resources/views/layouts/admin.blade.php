@@ -39,7 +39,7 @@
                     <a href="{{ route('admin.evangelio-diario.editar') }}" class="block px-6 py-4 text-text-dark font-medium hover:bg-button hover:text-white rounded transition-colors">Evangelio del Día</a>
                     
                     <div class="border-t border-gray-300 pt-4 mt-4 space-y-2">      
-                        <a href="/" class="block text-center bg-button text-white py-2 px-4 rounded hover:bg-blue-500 transition-colors">Ver Sitio Web</a>
+                        <a href="{{ route('profile.show') }}" class="block text-center bg-button text-white py-2 px-4 rounded hover:bg-blue-500 transition-colors">Ver Sitio Web</a>
                         <form action="{{ route('logout') }}" method="POST" class="block">
                             @csrf
                             <button type="submit" class="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors">Cerrar Sesión</button>
