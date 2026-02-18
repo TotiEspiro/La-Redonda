@@ -1,700 +1,461 @@
+/**
+ * EditorModal - Lógica de edición avanzada y persistencia RESTful
+ */
 class EditorModal {
     constructor() {
         this.currentEntry = null;
         this.currentType = 'texto';
-        this.nodeCounter = 0;
+        this.isFullscreen = false;
+        
+        // Estado del Mapa Conceptual
+        this.nodes = [];
         this.connections = []; 
-        this.isConnecting = false; 
-        this.sourceNodeId = null; 
+        this.isConnecting = false;
+        this.sourceNodeId = null;
+        this.draggedNode = null;
+        this.dragOffset = { x: 0, y: 0 };
+
         this.initializeEventListeners();
     }
 
     initializeEventListeners() {
-        // Botones principales
-        document.getElementById('createDocumentBtn')?.addEventListener('click', () => this.open());
-        document.getElementById('createFirstDocumentBtn')?.addEventListener('click', () => this.open());
+        // Botones de control del modal
         document.getElementById('cancelEditorBtn')?.addEventListener('click', () => this.close());
         document.getElementById('saveDocumentBtn')?.addEventListener('click', () => this.save());
+        
+        // Tipo de documento y Pantalla Completa
         document.getElementById('docType')?.addEventListener('change', (e) => this.changeType(e.target.value));
+        document.getElementById('fullscreenBtn')?.addEventListener('click', () => this.toggleFullscreen());
 
         // Formato de texto
         this.initializeFormatButtons();
 
-        // Botones específicos
+        // Tareas
         document.getElementById('addTaskBtn')?.addEventListener('click', () => this.addTask());
+
+        // Mapa Conceptual: Controles
         document.getElementById('addMindMapNodeBtn')?.addEventListener('click', () => this.addMindMapNode());
-        document.getElementById('clearMindMapBtn')?.addEventListener('click', () => this.clearMindMap());
-        document.getElementById('centerMapBtn')?.addEventListener('click', () => this.centerMindMap());
+        document.getElementById('clearMindMapBtn')?.addEventListener('click', () => {
+            this.showCustomConfirm('¿Estás seguro de que quieres limpiar todo el mapa conceptual?', () => this.clearMindMap());
+        });
 
-        // Listener global para cancelar conexión con escape
+        // Eventos de Mouse Globales (Drag & Drop)
+        document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        document.addEventListener('mouseup', () => this.handleMouseUp());
+
+        // Manejo de Escape
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.isConnecting) {
-                this.cancelConnectionMode();
+            if (e.key === 'Escape' && !document.getElementById('documentEditor').classList.contains('hidden')) {
+                if (this.isConnecting) this.cancelConnection();
+                else this.close();
             }
         });
     }
 
-    open(entry = null) {
-        this.currentEntry = entry;
-        const modal = document.getElementById('documentEditor');
+    /**
+     * Maximiza o restaura el tamaño de la modal
+     */
+    toggleFullscreen() {
+        const container = document.getElementById('editorModalContainer');
+        const icon = document.getElementById('fullscreenIcon');
+        this.isFullscreen = !this.isFullscreen;
         
-        if (!modal) {
-            console.error('Modal no encontrado');
-            return;
-        }
-        
-        if (entry) {
-            this.loadEntry(entry);
+        if (this.isFullscreen) {
+            container.classList.add('modal-fullscreen');
+            if(icon) {
+                icon.classList.remove('fa-expand');
+                icon.classList.add('fa-compress');
+            }
         } else {
-            this.resetForm();
-        }
-        
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-        
-        setTimeout(() => {
-            const titleInput = document.getElementById('docTitle');
-            if (titleInput) titleInput.focus();
-        }, 100);
-    }
-
-    close() {
-        const modal = document.getElementById('documentEditor');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
-        document.body.style.overflow = 'auto';
-        this.currentEntry = null;
-        this.cancelConnectionMode();
-    }
-
-    resetForm() {
-        const titleInput = document.getElementById('docTitle');
-        const colorInput = document.getElementById('docColor');
-        const favoriteInput = document.getElementById('docFavorite');
-        const typeSelect = document.getElementById('docType');
-        
-        if (titleInput) titleInput.value = '';
-        if (colorInput) colorInput.value = '#3b82f6';
-        if (favoriteInput) favoriteInput.checked = false;
-        if (typeSelect) typeSelect.value = 'texto';
-        
-        this.changeType('texto');
-        
-        const textEditor = document.getElementById('textEditor');
-        if (textEditor) {
-            textEditor.innerHTML = '<p>Comienza a escribir aquí...</p>';
-        }
-        
-        this.clearMindMap();
-        this.clearTasks();
-        this.connections = [];
-    }
-
-    loadEntry(entry) {
-        console.log('Cargando entrada:', entry);
-        
-        const titleInput = document.getElementById('docTitle');
-        const colorInput = document.getElementById('docColor');
-        const favoriteInput = document.getElementById('docFavorite');
-        const typeSelect = document.getElementById('docType');
-        
-        if (titleInput) titleInput.value = entry.title || '';
-        if (colorInput) colorInput.value = entry.color || '#3b82f6';
-        if (favoriteInput) favoriteInput.checked = entry.is_favorite || false;
-        if (typeSelect) typeSelect.value = entry.type || 'texto';
-        
-        this.changeType(entry.type || 'texto');
-        
-        switch(entry.type) {
-            case 'texto':
-                const textEditor = document.getElementById('textEditor');
-                if (textEditor) {
-                    textEditor.innerHTML = entry.content || '<p>Comienza a escribir aquí...</p>';
-                }
-                break;
-            case 'lista':
-                this.loadTasks(entry.content);
-                break;
-            case 'mapa_conceptual':
-                this.loadMindMap(entry.content);
-                break;
-            default:
-                const defaultEditor = document.getElementById('textEditor');
-                if (defaultEditor) {
-                    defaultEditor.innerHTML = entry.content || '<p>Comienza a escribir aquí...</p>';
-                }
-        }
-    }
-
-    changeType(newType) {
-        this.currentType = newType;
-        
-        document.querySelectorAll('.editor-panel').forEach(panel => {
-            if (panel) panel.classList.add('hidden');
-        });
-        
-        const textToolbar = document.getElementById('textToolbar');
-        if (textToolbar) {
-            if (newType === 'texto') {
-                textToolbar.classList.remove('hidden');
-            } else {
-                textToolbar.classList.add('hidden');
+            container.classList.remove('modal-fullscreen');
+            if(icon) {
+                icon.classList.remove('fa-compress');
+                icon.classList.add('fa-expand');
             }
         }
-        
-        let panelToShow = null;
-        switch(newType) {
-            case 'texto':
-                panelToShow = document.getElementById('textEditor');
-                break;
-            case 'mapa_conceptual':
-                panelToShow = document.getElementById('mindMapEditor');
-                break;
-            case 'lista':
-                panelToShow = document.getElementById('listEditor');
-                break;
-        }
-        
-        if (panelToShow) {
-            panelToShow.classList.remove('hidden');
-        }
+        // Actualizar líneas del mapa
+        setTimeout(() => this.updateConnections(), 300);
     }
 
-    async save() {
-        const titleInput = document.getElementById('docTitle');
-        const colorInput = document.getElementById('docColor');
-        const favoriteInput = document.getElementById('docFavorite');
-        const typeSelect = document.getElementById('docType');
-        
-        if (!titleInput || !colorInput || !favoriteInput || !typeSelect) return;
+    /** --- GESTIÓN DE TAREAS (SIN BUCLES VACÍOS) --- **/
 
-        const title = titleInput.value.trim();
-        const color = colorInput.value;
-        const isFavorite = favoriteInput.checked;
-        const type = typeSelect.value;
+    addTask(taskData = null) {
+        const container = document.getElementById('tasksContainer');
+        const template = document.getElementById('taskTemplate');
+        if (!container || !template) return;
 
-        if (!title) {
-            this.showNotification('Por favor, ingresa un título', 'error');
-            return;
-        }
-
-        let content = '';
-        
-        switch(type) {
-            case 'texto':
-                const textEditor = document.getElementById('textEditor');
-                content = textEditor ? textEditor.innerHTML : '';
-                break;
-            case 'lista':
-                content = this.getTasksContent();
-                break;
-            case 'mapa_conceptual':
-                content = this.getMindMapContent();
-                break;
-        }
-
-        // Validaciones básicas
-        if (!content || content === '<p><br></p>' || content === '<p>Comienza a escribir aquí...</p>') {
-            if (type === 'texto') {
-                this.showNotification('Por favor, escribe algún contenido', 'error');
-                return;
-            } else if (type === 'lista' && content === '[]') {
-                this.showNotification('Por favor, agrega al menos una tarea', 'error');
-                return;
-            } else if (type === 'mapa_conceptual') {
-                const mapData = JSON.parse(content);
-                if (mapData.nodes.length === 0) {
-                    this.showNotification('Por favor, agrega al menos un nodo', 'error');
+        // Validación: No crear tarea si la última ya está vacía
+        if (!taskData) {
+            const lastTask = container.querySelector('.task-item:last-child');
+            if (lastTask) {
+                const lastInput = lastTask.querySelector('.task-text');
+                if (lastInput && lastInput.value.trim() === "") {
+                    lastInput.focus();
                     return;
                 }
             }
         }
 
-        const data = { title, content, type, color, is_favorite: isFavorite };
+        const clone = template.content.cloneNode(true);
+        const item = clone.querySelector('.task-item');
+        const input = item.querySelector('.task-text');
+        const checkbox = item.querySelector('.task-checkbox');
+        
+        if (taskData) {
+            input.value = taskData.text;
+            checkbox.checked = taskData.completed;
+        }
+
+        // LIMPIEZA AUTOMÁTICA AL PERDER FOCO (BLUR)
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                if (input.value.trim() === "" && item.parentNode) {
+                    item.remove();
+                }
+            }, 150);
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (input.value.trim() !== "") this.addTask();
+            }
+        });
+
+        item.querySelector('.delete-task').addEventListener('click', () => item.remove());
+        container.appendChild(item);
+        if (!taskData) input.focus();
+    }
+
+    /** --- MAPA CONCEPTUAL (FUNCIONALIDAD DE UNIÓN) --- **/
+
+    addMindMapNode(data = null) {
+        const container = document.querySelector('.mind-map-container');
+        const template = document.getElementById('mindMapNodeTemplate');
+        if (!container || !template) return;
+
+        const clone = template.content.cloneNode(true);
+        const node = clone.querySelector('.mind-map-node');
+        const id = data ? data.id : `node_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+        
+        node.dataset.id = id;
+        node.style.left = data ? `${data.x}px` : '100px';
+        node.style.top = data ? `${data.y}px` : '100px';
+
+        const input = node.querySelector('.node-text');
+        input.value = data ? data.text : '';
+
+        node.addEventListener('mousedown', (e) => this.startDragging(e, node));
+        
+        // Botón Unir (🔗)
+        node.querySelector('.connect-node')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handleConnectionClick(id);
+        });
+
+        // Botón Eliminar
+        node.querySelector('.delete-node')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.deleteNode(id);
+        });
+
+        container.appendChild(node);
+        if (!data) input.focus();
+        this.updateConnections();
+    }
+
+    handleConnectionClick(id) {
+        if (!this.isConnecting) {
+            this.isConnecting = true;
+            this.sourceNodeId = id;
+            this.showNotification('Toca otro nodo para crear la unión', 'info');
+            document.querySelector(`[data-id="${id}"]`)?.classList.add('ring-4', 'ring-blue-500');
+        } else {
+            if (this.sourceNodeId !== id) {
+                // Evitar conexiones duplicadas
+                const alreadyExists = this.connections.some(c => 
+                    (c.from === this.sourceNodeId && c.to === id) || (c.from === id && c.to === this.sourceNodeId)
+                );
+                if (!alreadyExists) {
+                    this.connections.push({ from: this.sourceNodeId, to: id });
+                    this.updateConnections();
+                }
+            }
+            this.cancelConnection();
+        }
+    }
+
+    cancelConnection() {
+        this.isConnecting = false;
+        document.querySelectorAll('.mind-map-node').forEach(n => n.classList.remove('ring-4', 'ring-blue-500'));
+        this.sourceNodeId = null;
+    }
+
+    deleteNode(id) {
+        document.querySelector(`[data-id="${id}"]`)?.remove();
+        this.connections = this.connections.filter(c => c.from !== id && c.to !== id);
+        this.updateConnections();
+    }
+
+    updateConnections() {
+        const svg = document.getElementById('connectionsLayer');
+        if (!svg) return;
+        svg.innerHTML = '';
+
+        this.connections.forEach(conn => {
+            const fromEl = document.querySelector(`[data-id="${conn.from}"]`);
+            const toEl = document.querySelector(`[data-id="${conn.to}"]`);
+            if (!fromEl || !toEl) return;
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', fromEl.offsetLeft + (fromEl.offsetWidth / 2));
+            line.setAttribute('y1', fromEl.offsetTop + (fromEl.offsetHeight / 2));
+            line.setAttribute('x2', toEl.offsetLeft + (toEl.offsetWidth / 2));
+            line.setAttribute('y2', toEl.offsetTop + (toEl.offsetHeight / 2));
+            line.setAttribute('stroke', '#3b82f6');
+            line.setAttribute('stroke-width', '2');
+            svg.appendChild(line);
+        });
+    }
+
+    startDragging(e, node) {
+        if (this.isConnecting) {
+            e.stopPropagation();
+            this.handleConnectionClick(node.dataset.id);
+            return;
+        }
+        if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+        this.draggedNode = node;
+        const rect = node.getBoundingClientRect();
+        this.dragOffset.x = e.clientX - rect.left;
+        this.dragOffset.y = e.clientY - rect.top;
+        e.preventDefault();
+    }
+
+    handleMouseMove(e) {
+        if (this.draggedNode) {
+            const canvas = document.getElementById('mindMapCanvas');
+            const rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left - this.dragOffset.x;
+            let y = e.clientY - rect.top - this.dragOffset.y;
+            
+            x = Math.max(0, Math.min(x, rect.width - this.draggedNode.offsetWidth));
+            y = Math.max(0, Math.min(y, rect.height - this.draggedNode.offsetHeight));
+
+            this.draggedNode.style.left = `${x}px`;
+            this.draggedNode.style.top = `${y}px`;
+            this.updateConnections();
+        }
+    }
+
+    handleMouseUp() {
+        this.draggedNode = null;
+    }
+
+    clearMindMap() {
+        const container = document.querySelector('.mind-map-container');
+        if (container) container.innerHTML = '';
+        this.connections = [];
+        this.updateConnections();
+    }
+
+    /** --- GUARDADO REAL (RUTAS LARAVEL) --- **/
+
+    async save() {
+        const titleInput = document.getElementById('docTitle');
+        const title = titleInput ? titleInput.value : '';
+        const type = document.getElementById('docType').value;
+        const color = document.getElementById('docColor').value;
+        const isFavorite = document.getElementById('docFavorite').checked;
+        
+        if (!title.trim()) {
+            this.showNotification('Por favor, ingresa un título para tu entrada', 'error');
+            titleInput?.focus();
+            return;
+        }
+
+        let content = '';
+        if (type === 'texto') {
+            content = document.getElementById('textSection').innerHTML;
+        } else if (type === 'lista') {
+            const tasks = Array.from(document.querySelectorAll('#tasksContainer .task-item')).map(item => ({
+                text: item.querySelector('.task-text').value,
+                completed: item.querySelector('.task-checkbox').checked
+            })).filter(t => t.text.trim() !== "");
+            content = JSON.stringify(tasks);
+        } else if (type === 'mapa_conceptual') {
+            const nodes = Array.from(document.querySelectorAll('.mind-map-node')).map(n => ({
+                id: n.dataset.id,
+                text: n.querySelector('.node-text').value,
+                x: parseInt(n.style.left),
+                y: parseInt(n.style.top)
+            }));
+            content = JSON.stringify({ nodes, connections: this.connections });
+        }
+
+        // RUTAS BASADAS EN TU WEB.PHP
+        const url = this.currentEntry ? `/diario/${this.currentEntry.id}` : '/diario';
+        const method = this.currentEntry ? 'PUT' : 'POST';
 
         try {
-            let url = '/diario';
-            let method = 'POST';
-            
-            if (this.currentEntry) {
-                url = `/diario/${this.currentEntry.id}`;
-                method = 'PUT';
-            }
-
-            const csrfToken = this.getCsrfToken();
-            if (!csrfToken) return;
-
+            this.showNotification('Guardando cambios...', 'info');
             const response = await fetch(url, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
+                    'X-CSRF-TOKEN': this.getCsrfToken(),
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ title, type, content, color, is_favorite: isFavorite })
             });
 
             const result = await response.json();
 
             if (result.success) {
-                this.showNotification(result.message, 'success');
+                this.showNotification('¡Entrada guardada con éxito!', 'success');
                 this.close();
-                setTimeout(() => window.location.reload(), 1500);
+                // RECARGAR PARA ACTUALIZAR INDEX.BLADE
+                setTimeout(() => location.reload(), 600);
             } else {
                 this.showNotification(result.message || 'Error al guardar', 'error');
             }
         } catch (error) {
             console.error('Error:', error);
-            this.showNotification('Error de conexión al guardar', 'error');
+            this.showNotification('Error de conexión al servidor', 'error');
         }
     }
 
-    
-    addTask() {
-        const container = document.getElementById('tasksContainer');
-        if (!container) return;
+    /** --- CICLO DE VIDA DEL MODAL --- **/
+
+    open(entry = null) {
+        this.currentEntry = entry;
+        const modal = document.getElementById('documentEditor');
+        if (!modal) return;
+
+        this.isFullscreen = false;
+        document.getElementById('editorModalContainer')?.classList.remove('modal-fullscreen');
         
-        if (container.children.length === 1 && container.querySelector('.text-center')) {
-            container.innerHTML = '';
-        }
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
 
-        const template = document.getElementById('taskTemplate');
-        const clone = template.content.cloneNode(true);
-        
-        const taskItem = clone.querySelector('.task-item');
-        container.appendChild(taskItem);
-        
-        const deleteBtn = taskItem.querySelector('.delete-task');
-        deleteBtn.addEventListener('click', () => {
-            taskItem.remove();
-            if (container.children.length === 0) {
-                container.innerHTML = '<div class="text-center text-gray-500 py-8"><p>No hay tareas aún. ¡Agrega tu primera tarea!</p></div>';
-            }
-        });
-        
-        const textInput = taskItem.querySelector('.task-text');
-        if (textInput) textInput.focus();
-    }
-
-    clearTasks() {
-        const container = document.getElementById('tasksContainer');
-        if (container) {
-            container.innerHTML = '<div class="text-center text-gray-500 py-8"><p>No hay tareas aún. ¡Agrega tu primera tarea!</p></div>';
-        }
-    }
-
-    loadTasks(content) {
-        this.clearTasks();
-        if (!content || content === '[]') return;
-        
-        try {
-            const tasks = JSON.parse(content);
-            const container = document.getElementById('tasksContainer');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            tasks.forEach(task => {
-                const template = document.getElementById('taskTemplate');
-                const clone = template.content.cloneNode(true);
-                const taskItem = clone.querySelector('.task-item');
-                
-                const checkbox = taskItem.querySelector('.task-checkbox');
-                const input = taskItem.querySelector('.task-text');
-                
-                if (checkbox) checkbox.checked = task.completed;
-                if (input) input.value = task.text || '';
-                
-                const deleteBtn = taskItem.querySelector('.delete-task');
-                deleteBtn.addEventListener('click', () => {
-                    taskItem.remove();
-                    if (container.children.length === 0) {
-                        container.innerHTML = '<div class="text-center text-gray-500 py-8"><p>No hay tareas aún.</p></div>';
-                    }
-                });
-                
-                container.appendChild(taskItem);
-            });
-        } catch (e) {
-            console.error('Error tareas:', e);
-            this.clearTasks();
-        }
-    }
-
-    getTasksContent() {
-        const tasks = [];
-        document.querySelectorAll('.task-item').forEach(item => {
-            const textInput = item.querySelector('.task-text');
-            const checkbox = item.querySelector('.task-checkbox');
-            if (textInput && textInput.value.trim()) {
-                tasks.push({
-                    text: textInput.value.trim(),
-                    completed: checkbox ? checkbox.checked : false
-                });
-            }
-        });
-        return JSON.stringify(tasks);
-    }
-
-    
-
-    addMindMapNode() {
-        const container = document.querySelector('.mind-map-container');
-        if (!container) return null;
-        
-        const emptyMsg = document.getElementById('emptyMapMsg');
-        if (emptyMsg) emptyMsg.style.display = 'none';
-
-        this.nodeCounter++;
-        const nodeId = `node-${this.nodeCounter}`;
-        
-        const template = document.getElementById('mindMapNodeTemplate');
-        const clone = template.content.cloneNode(true);
-        const nodeEl = clone.querySelector('.mind-map-node');
-        
-        nodeEl.id = nodeId;
-        const offset = (this.nodeCounter * 20) % 200;
-        nodeEl.style.top = `${50 + offset}px`;
-        nodeEl.style.left = `${50 + offset}px`;
-        
-        const input = nodeEl.querySelector('.node-text');
-        input.addEventListener('input', (e) => {
-            e.target.setAttribute('value', e.target.value);
-        });
-        input.addEventListener('mousedown', (e) => e.stopPropagation());
-
-        const deleteBtn = nodeEl.querySelector('.delete-node');
-        deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.deleteNode(nodeId);
-        });
-        deleteBtn.addEventListener('mousedown', (e) => e.stopPropagation());
-
-        const connectBtn = nodeEl.querySelector('.connect-node');
-        connectBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.handleConnectionClick(nodeId);
-        });
-        connectBtn.addEventListener('mousedown', (e) => e.stopPropagation());
-
-        this.makeDraggable(nodeEl);
-        container.appendChild(nodeEl);
-        setTimeout(() => input.focus(), 50);
-
-        return nodeEl;
-    }
-
-    handleConnectionClick(nodeId) {
-        const node = document.getElementById(nodeId);
-        const btn = node.querySelector('.connect-node');
-
-        if (this.isConnecting) {
-            if (this.sourceNodeId === nodeId) {
-                this.cancelConnectionMode();
-            } else {
-                this.createConnection(this.sourceNodeId, nodeId);
-                this.cancelConnectionMode();
-            }
+        if (entry) {
+            document.getElementById('docTitle').value = entry.title || '';
+            document.getElementById('docType').value = entry.type || 'texto';
+            document.getElementById('docColor').value = entry.color || '#3b82f6';
+            document.getElementById('docFavorite').checked = !!entry.is_favorite;
+            this.changeType(entry.type || 'texto');
+            this.loadContent(entry);
         } else {
-            this.isConnecting = true;
-            this.sourceNodeId = nodeId;
-            
-            node.classList.add('ring-2', 'ring-yellow-400');
-            btn.innerHTML = '❌';
-            btn.classList.add('text-red-500');
-            
-            document.querySelector('.mind-map-container').style.cursor = 'crosshair';
+            this.resetForm();
         }
     }
 
-    cancelConnectionMode() {
-        if (this.sourceNodeId) {
-            const node = document.getElementById(this.sourceNodeId);
-            if (node) {
-                node.classList.remove('ring-2', 'ring-yellow-400');
-                const btn = node.querySelector('.connect-node');
-                if (btn) {
-                    btn.innerHTML = '🔗';
-                    btn.classList.remove('text-red-500');
-                }
-            }
-        }
-        this.isConnecting = false;
-        this.sourceNodeId = null;
-        const container = document.querySelector('.mind-map-container');
-        if (container) container.style.cursor = 'default';
-    }
-
-    createConnection(fromId, toId) {
-        const exists = this.connections.some(c => 
-            (c.from === fromId && c.to === toId) || 
-            (c.from === toId && c.to === fromId)
-        );
-
-        if (!exists && fromId !== toId) {
-            this.connections.push({ from: fromId, to: toId });
-            this.drawConnections();
-        }
-    }
-
-    deleteNode(nodeId) {
-        const node = document.getElementById(nodeId);
-        if (node) node.remove();
-
-        this.connections = this.connections.filter(c => c.from !== nodeId && c.to !== nodeId);
-        this.drawConnections();
-
-        const container = document.querySelector('.mind-map-container');
-        if (container && container.querySelectorAll('.mind-map-node').length === 0) {
-            const emptyMsg = document.getElementById('emptyMapMsg');
-            if (emptyMsg) emptyMsg.style.display = 'flex';
-        }
-    }
-
-    drawConnections() {
-        const svg = document.getElementById('connectionsLayer');
-        if (!svg) return;
-        
-        svg.innerHTML = '';
-
-        this.connections.forEach(conn => {
-            const nodeA = document.getElementById(conn.from);
-            const nodeB = document.getElementById(conn.to);
-
-            if (nodeA && nodeB) {
-                const rectA = this.getNodeCenter(nodeA);
-                const rectB = this.getNodeCenter(nodeB);
-
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', rectA.x);
-                line.setAttribute('y1', rectA.y);
-                line.setAttribute('x2', rectB.x);
-                line.setAttribute('y2', rectB.y);
-                line.setAttribute('stroke', '#9CA3AF');
-                line.setAttribute('stroke-width', '2');
-                
-                svg.appendChild(line);
-            }
-        });
-    }
-
-    getNodeCenter(element) {
-        return {
-            x: element.offsetLeft + (element.offsetWidth / 2),
-            y: element.offsetTop + (element.offsetHeight / 2)
-        };
-    }
-
-    makeDraggable(element) {
-        const self = this; 
-        let isDragging = false;
-        let startX, startY, initialX, initialY;
-
-        function drag(e) {
-            if (!isDragging) return;
-            e.preventDefault();
-
-            const clientX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
-            const clientY = e.type === 'mousemove' ? e.clientY : e.touches[0].clientY;
-
-            const dx = clientX - startX;
-            const dy = clientY - startY;
-
-            element.style.left = `${initialX + dx}px`;
-            element.style.top = `${initialY + dy}px`;
-
-            self.drawConnections();
-        }
-
-        function stopDrag() {
-            isDragging = false;
-            element.style.zIndex = ''; 
-            document.removeEventListener('mousemove', drag);
-            document.removeEventListener('touchmove', drag);
-            document.removeEventListener('mouseup', stopDrag);
-            document.removeEventListener('touchend', stopDrag);
-        }
-
-        function startDrag(e) {
-            if (e.target.closest('input') || e.target.closest('button') || 
-                e.target.closest('.delete-node') || e.target.closest('.connect-node')) {
-                return;
-            }
-
-            e.preventDefault();
-            isDragging = true;
-            
-            const clientX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
-            const clientY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
-            
-            startX = clientX;
-            startY = clientY;
-            initialX = element.offsetLeft;
-            initialY = element.offsetTop;
-
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('touchmove', drag, { passive: false });
-            document.addEventListener('mouseup', stopDrag);
-            document.addEventListener('touchend', stopDrag);
-            
-            element.style.zIndex = '50';
-        }
-
-        element.addEventListener('mousedown', startDrag);
-        element.addEventListener('touchstart', startDrag, { passive: false });
-    }
-
-    clearMindMap() {
-        const container = document.querySelector('.mind-map-container');
-        if (container) {
-            const nodes = container.querySelectorAll('.mind-map-node');
-            nodes.forEach(n => n.remove());
-            
-            const emptyMsg = document.getElementById('emptyMapMsg');
-            if (emptyMsg) emptyMsg.style.display = 'flex';
-        }
-        
-        const svg = document.getElementById('connectionsLayer');
-        if (svg) svg.innerHTML = '';
-
-        this.nodeCounter = 0;
-        this.connections = [];
-        this.cancelConnectionMode();
-    }
-
-    centerMindMap() {
-        const nodes = document.querySelectorAll('.mind-map-node');
-        if (nodes.length === 0) return;
-        
-        const container = document.querySelector('.mind-map-container');
-        const rect = container.getBoundingClientRect();
-        
-        nodes.forEach((node, index) => {
-            const left = (rect.width - 150) / 2 + ((index % 3) - 1) * 180;
-            const top = (rect.height - 100) / 2 + (Math.floor(index / 3) * 120);
-            
-            node.style.left = `${left}px`;
-            node.style.top = `${top}px`;
-        });
-        
-        this.drawConnections();
-    }
-
-    getMindMapContent() {
-        const nodes = [];
-        document.querySelectorAll('.mind-map-node').forEach(node => {
-            const textInput = node.querySelector('.node-text');
-            nodes.push({
-                id: node.id,
-                text: textInput ? textInput.value : '',
-                position: {
-                    x: parseInt(node.style.left) || 0,
-                    y: parseInt(node.style.top) || 0
-                }
-            });
-        });
-        
-        return JSON.stringify({ nodes, connections: this.connections });
-    }
-
-    loadMindMap(content) {
+    resetForm() {
+        document.getElementById('docTitle').value = '';
+        document.getElementById('docType').value = 'texto';
+        document.getElementById('docColor').value = '#3b82f6';
+        document.getElementById('docFavorite').checked = false;
+        this.changeType('texto');
+        const textSec = document.getElementById('textSection');
+        if(textSec) textSec.innerHTML = '<p>Escribe tu reflexión aquí...</p>';
+        document.getElementById('tasksContainer').innerHTML = '';
         this.clearMindMap();
-        if (!content || content === '{"nodes":[]}') return;
-        
-        try {
-            const mapData = JSON.parse(content);
-            let maxId = 0;
-            
-            if (mapData.nodes) {
-                mapData.nodes.forEach(nodeData => {
-                    const newNode = this.addMindMapNode();
-                    if (newNode) {
-                        newNode.id = nodeData.id;
-                        const input = newNode.querySelector('.node-text');
-                        if (input) {
-                            input.value = nodeData.text || '';
-                            input.setAttribute('value', nodeData.text || '');
-                        }
-                        if (nodeData.position) {
-                            newNode.style.left = nodeData.position.x + 'px';
-                            newNode.style.top = nodeData.position.y + 'px';
-                        }
-                        
-                        const numId = parseInt(nodeData.id.replace('node-', ''));
-                        if (!isNaN(numId) && numId > maxId) maxId = numId;
-                    }
-                });
-            }
-            this.nodeCounter = maxId;
+    }
 
-            if (mapData.connections) {
-                this.connections = mapData.connections;
-                setTimeout(() => this.drawConnections(), 0);
-            }
-        } catch (e) {
-            console.error('Error carga mapa:', e);
+    close() {
+        document.getElementById('documentEditor').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        this.currentEntry = null;
+    }
+
+    changeType(type) {
+        this.currentType = type;
+        const panels = ['textSection', 'listSection', 'mapSection', 'textToolbar'];
+        panels.forEach(p => document.getElementById(p)?.classList.add('hidden'));
+
+        if (type === 'texto') {
+            document.getElementById('textSection')?.classList.remove('hidden');
+            document.getElementById('textToolbar')?.classList.remove('hidden');
+        } else if (type === 'lista') {
+            document.getElementById('listSection')?.classList.remove('hidden');
+        } else if (type === 'mapa_conceptual') {
+            document.getElementById('mapSection')?.classList.remove('hidden');
+            setTimeout(() => this.updateConnections(), 100);
         }
     }
 
-    
+    loadContent(entry) {
+        if (entry.type === 'texto') {
+            document.getElementById('textSection').innerHTML = entry.content || '';
+        } else if (entry.type === 'lista') {
+            document.getElementById('tasksContainer').innerHTML = '';
+            try {
+                const tasks = JSON.parse(entry.content);
+                tasks.forEach(t => this.addTask(t));
+            } catch(e) {}
+        } else if (entry.type === 'mapa_conceptual') {
+            this.clearMindMap();
+            try {
+                const data = JSON.parse(entry.content);
+                data.nodes.forEach(n => this.addMindMapNode(n));
+                this.connections = data.connections || [];
+                setTimeout(() => this.updateConnections(), 200);
+            } catch(e) {}
+        }
+    }
 
     initializeFormatButtons() {
         document.querySelectorAll('.format-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.preventDefault(); 
-                e.stopPropagation();
-                
+                e.preventDefault();
                 const command = btn.dataset.command;
-                const value = btn.dataset.value || null;
-                
-                document.execCommand(command, false, value);
-                
-                const editor = document.getElementById('textEditor');
-                if (editor) editor.focus();
+                if (command) {
+                    document.execCommand(command, false, null);
+                    document.getElementById('textSection')?.focus();
+                }
             });
         });
-
-        const fontFamily = document.getElementById('fontFamily');
-        if (fontFamily) {
-            fontFamily.addEventListener('change', (e) => {
-                document.execCommand('fontName', false, e.target.value);
-                document.getElementById('textEditor')?.focus();
-            });
-        }
-        
-        const fontSize = document.getElementById('fontSize');
-        if (fontSize) {
-            fontSize.addEventListener('change', (e) => {
-                document.execCommand('fontSize', false, e.target.value);
-                document.getElementById('textEditor')?.focus();
-            });
-        }
+        document.getElementById('fontFamily')?.addEventListener('change', (e) => document.execCommand('fontName', false, e.target.value));
+        document.getElementById('fontSize')?.addEventListener('change', (e) => document.execCommand('fontSize', false, e.target.value));
     }
 
     getCsrfToken() {
-        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-               document.querySelector('input[name="_token"]')?.value;
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     }
 
     showNotification(message, type = 'info') {
-        document.querySelectorAll('.custom-notification').forEach(n => n.remove());
-        
-        const notification = document.createElement('div');
-        notification.className = `custom-notification fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 transition-transform duration-300 ${
-            type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-        }`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        
+        const n = document.createElement('div');
+        const bg = type === 'success' ? 'bg-green-600' : (type === 'error' ? 'bg-red-600' : 'bg-blue-600');
+        n.className = `fixed top-4 right-4 p-4 rounded-lg shadow-2xl text-white z-[100] transition-all duration-300 transform translate-x-full ${bg}`;
+        n.textContent = message;
+        document.body.appendChild(n);
+        setTimeout(() => n.classList.remove('translate-x-full'), 100);
         setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => notification.remove(), 300);
-        }, 4000);
+            n.classList.add('translate-x-full');
+            setTimeout(() => n.remove(), 300);
+        }, 3500);
+    }
+
+    showCustomConfirm(message, onConfirm) {
+        const overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-[200] flex items-center justify-center p-4 backdrop-blur-sm';
+        overlay.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full">
+                <div class="text-red-500 mb-4 flex justify-center"><i class="fas fa-exclamation-triangle text-4xl"></i></div>
+                <h3 class="text-xl font-bold text-gray-800 text-center mb-2">Confirmar Acción</h3>
+                <p class="text-gray-600 text-center mb-8">${message}</p>
+                <div class="flex gap-4">
+                    <button id="confirmCancel" class="flex-1 px-4 py-2 border rounded-xl hover:bg-gray-50">Cancelar</button>
+                    <button id="confirmOk" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg transition-all">Sí, Eliminar</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#confirmCancel').onclick = () => overlay.remove();
+        overlay.querySelector('#confirmOk').onclick = () => { onConfirm(); overlay.remove(); };
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     window.editorModal = new EditorModal();
-    window.openEditorModal = (entry) => window.editorModal.open(entry);
 });

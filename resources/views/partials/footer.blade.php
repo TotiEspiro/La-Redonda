@@ -1,4 +1,4 @@
-<footer class="bg-nav-footer pt-12 pb-4 mt-8">
+<footer class="bg-nav-footer pt-12 pb-24 md:pb-12">
     <div class="container max-w-7xl mx-auto px-4">
         <div class="footer-logo text-center mb-8 pb-8">
             <div class="footer-logo-img flex justify-center">
@@ -69,66 +69,66 @@
             </div>
 
             <div class="footer-section px-4">
-    <h3 class="text-xl font-semibold text-text-dark mb-4 md:mb-6 text-center md:text-left">
-        Envíanos un Mensaje
-    </h3>
+                <h3 class="text-xl font-semibold text-text-dark mb-4 md:mb-6 text-center md:text-left">
+                    Envíanos un Mensaje
+                </h3>
 
-    <form id="contactForm" class="contact-form space-y-4"> 
-        <div class="contact-form-grid grid grid-cols-1 gap-4">
-            <div class="flex flex-col">
-                <label for="name" class="block text-sm font-bold text-gray-700 mb-1 ml-1">
-                    Nombre Completo
-                </label>
-                <input 
-                    id="name" 
-                    type="text" 
-                    placeholder="Ingresá tu nombre completo" 
-                    required 
-                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg font-poppins text-sm focus:outline-none focus:border-button focus:ring-2 focus:ring-button focus:ring-opacity-20 transition-colors">
+                <form id="contactForm" class="contact-form space-y-4"> 
+                    <div class="contact-form-grid grid grid-cols-1 gap-4">
+                        <div class="flex flex-col">
+                            <label for="name" class="block text-sm font-bold text-gray-700 mb-1 ml-1">
+                                Nombre Completo
+                            </label>
+                            <input 
+                                id="name" 
+                                type="text" 
+                                placeholder="Ingresá tu nombre completo" 
+                                required 
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg font-poppins text-sm focus:outline-none focus:border-button focus:ring-2 focus:ring-button focus:ring-opacity-20 transition-colors">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="email" class="block text-sm font-bold text-gray-700 mb-1 ml-1">
+                                Email
+                            </label>
+                            <input 
+                                id="email" 
+                                type="email" 
+                                placeholder="Ingresá tu email" 
+                                required 
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg font-poppins text-sm focus:outline-none focus:border-button focus:ring-2 focus:ring-button focus:ring-opacity-20 transition-colors">
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="consulta" class="block text-sm font-bold text-gray-700 mb-1 ml-1">
+                            Consulta
+                        </label>
+                        <textarea 
+                            id="consulta" 
+                            placeholder="Escribí tu consulta acá..." 
+                            rows="5" 
+                            required 
+                            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg font-poppins text-sm focus:outline-none focus:border-button focus:ring-2 focus:ring-button focus:ring-opacity-20 resize-y min-h-[128px] transition-colors"
+                        ></textarea>
+                    </div>
+                    <button 
+                        type="submit" 
+                        class="w-full bg-button text-white py-3 px-6 border-none rounded-lg cursor-pointer font-poppins font-semibold text-sm hover:bg-blue-900 hover:-translate-y-0.5 transition-all duration-200 shadow-md"
+                    >
+                        Enviar Mensaje
+                    </button>
+                </form>
             </div>
-            <div class="flex flex-col">
-                <label for="email" class="block text-sm font-bold text-gray-700 mb-1 ml-1">
-                    Email
-                </label>
-                <input 
-                    id="email" 
-                    type="email" 
-                    placeholder="Ingresá tu email" 
-                    required 
-                    class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg font-poppins text-sm focus:outline-none focus:border-button focus:ring-2 focus:ring-button focus:ring-opacity-20 transition-colors">
-            </div>
-        </div>
-        <div class="flex flex-col">
-            <label for="consulta" class="block text-sm font-bold text-gray-700 mb-1 ml-1">
-                Consulta
-            </label>
-            <textarea 
-                id="consulta" 
-                placeholder="Escribí tu consulta acá..." 
-                rows="5" 
-                required 
-                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg font-poppins text-sm focus:outline-none focus:border-button focus:ring-2 focus:ring-button focus:ring-opacity-20 resize-y min-h-[128px] transition-colors"
-            ></textarea>
-        </div>
-        <button 
-            type="submit" 
-            class="w-full bg-button text-white py-3 px-6 border-none rounded-lg cursor-pointer font-poppins font-semibold text-sm hover:bg-blue-900 hover:-translate-y-0.5 transition-all duration-200 shadow-md"
-        >
-            Enviar Mensaje
-        </button>
-    </form>
-</div>
         </div>
 
         <div class="border-t-2 my-6 border-black"></div>
 
         <div class="footer-bottom flex flex-col md:flex-row justify-between items-center pt-4 gap-4 text-center md:text-left">
             <div class="copyright text-sm text-text-light">
-                &copy; 2025 La Redonda - Inmaculada Concepción de Belgrano
+                &copy; 2025 La Redonda - Inmaculada Concepción de Belgrano (Sitio Web realizado por Tomas Espiro)
             </div>
             <div class="legal-links flex flex-col md:flex-row gap-4 md:gap-6">
-                <a href="/terminos-condiciones" class="text-sm text-text-light no-underline hover:text-button hover:underline transition-colors">Términos y Condiciones</a>
-                <a href="/politica-privacidad" class="text-sm text-text-light no-underline hover:text-button hover:underline transition-colors">Política de Privacidad</a>
+                <a href="{{ route('legal.terminos') }}" class="text-sm text-text-light no-underline hover:text-button hover:underline transition-colors">Términos y Condiciones</a>
+                <a href="{{ route('legal.privacidad') }}" class="text-sm text-text-light no-underline hover:text-button hover:underline transition-colors">Política de Privacidad</a>
             </div>
         </div>
     </div>
@@ -148,7 +148,6 @@
                 
                 <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
                     <img src="{{ asset('img/icono_activo.png') }}" alt="Activo" class="h-12 w-12">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </div>
 
                 <div class="text-center">

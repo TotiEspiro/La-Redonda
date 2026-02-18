@@ -19,8 +19,8 @@ class ProfileController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Obtenemos las últimas 15 notificaciones para la columna derecha de la vista
-        $notifications = $user->notifications()->latest()->take(15)->get();
+        // Obtenemos las notificaciones con paginación para el historial de la derecha
+        $notifications = $user->notifications()->latest()->paginate(10);
         
         return view('profile.show', compact('user', 'notifications'));
     }
@@ -69,6 +69,45 @@ class ProfileController extends Controller
         ]);
 
         return redirect()->route('profile.show')->with('success', 'Perfil actualizado correctamente. Ya puedes inscribirte en tus comunidades.');
+    }
+
+    /**
+     * Actualiza la preferencia global de notificaciones vía AJAX.
+     * Esto controla si se envían o no avisos Push al celular y PC.
+     */
+    public function updatePreference(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        // El valor viene como 0 o 1
+        $user->update([
+            'notify_announcements' => (bool)$request->notify
+        ]);
+
+        return response()->json([
+            'success' => true, 
+            'status' => $user->notify_announcements,
+            'message' => $user->notify_announcements ? 'Notificaciones activadas' : 'Notificaciones desactivadas'
+        ]);
+    }
+
+    /**
+     * Elimina físicamente todas las notificaciones del usuario.
+     * Este es el método que realmente "limpia" la barra y el historial.
+     */
+    public function destroyAllNotifications()
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        
+        // Borramos los registros de la tabla 'notifications' vinculados al usuario
+        $user->notifications()->delete();
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'El historial de notificaciones ha sido vaciado.'
+        ]);
     }
 
     /**

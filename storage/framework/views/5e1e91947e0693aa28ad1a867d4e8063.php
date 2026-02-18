@@ -21,7 +21,7 @@
                 </div>
 
                 <button id="createDocumentBtn" 
-                        class="bg-button text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-500 transition-all shadow-sm flex items-center space-x-1 text-sm">
+                        class="bg-button text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-900 transition-all shadow-sm flex items-center space-x-1 text-sm">
                     <span class="text-xl leading-none">+</span>
                     <span class="hidden sm:inline">Nuevo Documento</span>
                 </button>

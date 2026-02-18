@@ -29,4 +29,15 @@ class HomeController extends Controller
     $announcements = Announcement::where('is_active', true)->orderBy('order')->latest()->get();
     return view('home', compact('announcements'));
 }
+
+public function terminos()
+    {
+        return view('legal.terminos');
+    }
+
+    public function privacidad()
+    {
+        return view('legal.privacidad');
+    }
+
 }

@@ -1,93 +1,93 @@
 @extends('layouts.app')
 
+{{-- Script de Google Captcha --}}
+@section('head')
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+@endsection
+
 @section('content')
-<div class="min-h-[calc(100vh-180px)] flex items-center justify-center bg-background-light py-4 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-6 md:space-y-8 bg-white p-6 md:p-8 rounded-xl shadow-lg">
-        <div>
-            <h2 class="mt-2 text-center text-2xl md:text-3xl font-extrabold text-text-dark ">
-                Crear Cuenta
-            </h2>
-            <p class="mt-2 text-center text-sm text-text-light font-medium">
-                Registrate para acceder a todas las funciones
-            </p>
+<div class="min-h-[calc(100vh-180px)] flex items-center justify-center bg-background-light py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-gray-100">
+        <div class="text-center">
+            <h2 class="text-3xl font-black text-text-dark uppercase tracking-tighter">Crear Cuenta</h2>
+            <p class="mt-2 text-sm text-text-light font-medium">Únete a la comunidad de La Redonda</p>
         </div>
 
-        @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl text-sm font-bold">
-                {{ session('success') }}
-            </div>
-        @endif
+        {{-- BOTONES SOCIALES --}}
+        <div class="grid grid-cols-2 gap-4">
+            <a href="{{ route('social.redirect', 'google') }}" class="flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                <span class="text-[10px] font-black uppercase text-gray-600">Google</span>
+            </a>
+            <a href="{{ route('social.redirect', 'facebook') }}" class="flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95">
+                <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5" alt="Facebook">
+                <span class="text-[10px] font-black uppercase text-gray-600">Facebook</span>
+            </a>
+        </div>
 
-        <form id="registerForm" class="mt-6 space-y-6" action="{{ route('register') }}" method="POST">
+        <div class="relative flex items-center justify-center py-2">
+            <div class="flex-grow border-t border-gray-100"></div>
+            <span class="flex-shrink mx-4 text-gray-400 text-[9px] font-black uppercase tracking-widest">O con tu email</span>
+            <div class="flex-grow border-t border-gray-100"></div>
+        </div>
+
+        <form id="registerForm" class="space-y-6" action="{{ route('register') }}" method="POST">
             @csrf
             <div class="space-y-4">
                 <div>
-                    <label for="name" class="block text-xs font-black text-text-dark">Nombre Completo</label>
+                    <label for="name" class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Nombre Completo</label>
                     <input id="name" name="name" type="text" required 
-                           class="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-base transition-all bg-gray-50/50"
-                           value="{{ old('name') }}" placeholder="Ingresá tu nombre completo">
+                           class="mt-1 block w-full px-5 py-4 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50"
+                           value="{{ old('name') }}" placeholder="Tu nombre y apellido">
                     @error('name')
-                        <p class="text-red-500 text-xs font-bold mt-2 ">{{ $message }}</p>
+                        <p class="text-red-500 text-[10px] font-black mt-2 uppercase ml-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label for="email" class="block text-xs font-black text-text-dark mb-1">Email</label>
+                    <label for="email" class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Email</label>
                     <input id="email" name="email" type="email" required 
-                           class="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-base transition-all bg-gray-50/50"
-                           value="{{ old('email') }}" placeholder="Ingresá tu email">
+                           class="mt-1 block w-full px-5 py-4 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50"
+                           value="{{ old('email') }}" placeholder="ejemplo@correo.com">
                     @error('email')
-                        <p class="text-red-500 text-xs font-bold mt-2 ">{{ $message }}</p>
+                        <p class="text-red-500 text-[10px] font-black mt-2 uppercase ml-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- CONTRASEÑA --}}
-                <div>
-                    <label for="password" class="block text-xs font-black text-text-dark mb-1">Contraseña</label>
-                    <div class="relative group">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="password" class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Contraseña</label>
                         <input id="password" name="password" type="password" required 
-                               class="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-base transition-all bg-gray-50/50 pr-12" 
-                               placeholder="Mínimo 8 caracteres">
-                        
-                        <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-button transition-colors focus:outline-none">
-                            <svg id="eyeIcon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </button>
+                               class="mt-1 block w-full px-5 py-4 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" 
+                               placeholder="Mín. 8 caracteres">
                     </div>
-                    @error('password')
-                        <p class="text-red-500 text-xs font-bold mt-2">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- CONFIRMAR CONTRASEÑA --}}
-                <div>
-                    <label for="password_confirmation" class="block text-xs font-black text-text-dark mb-1">Confirmar Contraseña</label>
-                    <div class="relative group">
+                    <div>
+                        <label for="password_confirmation" class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Confirmar</label>
                         <input id="password_confirmation" name="password_confirmation" type="password" required 
-                               class="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-base transition-all bg-gray-50/50 pr-12" 
-                               placeholder="Confirma tu contraseña">
-                        
-                        <button type="button" id="toggleConfirmPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-button transition-colors focus:outline-none">
-                            <svg id="eyeIconConfirm" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </button>
+                               class="mt-1 block w-full px-5 py-4 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" 
+                               placeholder="Repite clave">
                     </div>
                 </div>
+                @error('password')
+                    <p class="text-red-500 text-[10px] font-black mt-1 uppercase ml-1">{{ $message }}</p>
+                @enderror
             </div>
 
-            <div>
-                <button type="submit" 
-                        class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100">
-                    Registrarse
-                </button>
+            {{-- GOOGLE reCAPTCHA --}}
+            <div class="flex justify-center py-2">
+                <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
             </div>
+            @error('captcha')
+                <p class="text-red-500 text-[10px] font-black text-center uppercase">{{ $message }}</p>
+            @enderror
+
+            <button type="submit" 
+                    class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-xs font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100 uppercase tracking-widest">
+                Crear Mi Cuenta
+            </button>
 
             <div class="text-center mt-6">
-                <p class="text-xs text-gray-400 font-bold">
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
                     ¿Ya tenés cuenta? 
                     <a href="{{ route('login') }}" class="text-button hover:underline ml-1">Inicia sesión acá</a>
                 </p>
@@ -103,7 +103,7 @@
         <div class="w-64 bg-gray-200 rounded-full h-1.5 mb-6 mx-auto overflow-hidden">
             <div id="loadingProgress" class="bg-button h-full rounded-full transition-all duration-300 shadow-sm" style="width: 0%"></div>
         </div>
-        <p class="text-xs font-black text-text-dark ">Procesando <span id="loadingPercent">0</span>%</p>
+        <p class="text-[10px] font-black text-text-dark uppercase tracking-[0.2em]">Procesando Registro <span id="loadingPercent">0</span>%</p>
     </div>
 </div>
 

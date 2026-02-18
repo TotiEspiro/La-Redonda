@@ -89,7 +89,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="donate-button w-full bg-button text-white py-3 md:py-4 px-8 border-none rounded-lg cursor-pointer font-poppins font-semibold text-lg hover:bg-blue-600 hover:translate-y-[-2px] transition-all mb-4 shadow-md">Donar Ahora</button>
+                        <button type="submit" class="donate-button w-full bg-button text-white py-3 md:py-4 px-8 border-none rounded-lg cursor-pointer font-poppins font-semibold text-lg hover:bg-blue-900 hover:translate-y-[-2px] transition-all mb-4 shadow-md">Donar Ahora</button>
 
                         <p class="info-text italic text-text-light text-xs md:text-sm leading-relaxed text-center">
                             En el resumen de su tarjeta, el cargo aparecerá como MERPAGO*PQAINMACONCEP.
@@ -115,7 +115,7 @@
                                 <strong class="text-text-dark min-w-24 mb-1 md:mb-0">CBU:</strong>
                                 <div class="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto">
                                     <span class="font-mono text-sm md:text-base bg-gray-100 px-2 py-1 rounded select-all">0070365720000000151573</span>
-                                    <button type="button" onclick="copyToClipboard('0070365720000000151573')" class="text-button hover:text-blue-600 transition-colors p-1" title="Copiar CBU">
+                                    <button type="button" onclick="copyToClipboard('0070365720000000151573')" class="text-button hover:text-blue-900 transition-colors p-1" title="Copiar CBU">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                                     </button>
                                 </div>
@@ -124,7 +124,7 @@
                                 <strong class="text-text-dark min-w-24 mb-1 md:mb-0">Alias:</strong>
                                 <div class="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto">
                                     <span class="font-bold text-button text-sm md:text-base select-all">laredondadebelgrano</span>
-                                    <button type="button" onclick="copyToClipboard('laredondadebelgrano')" class="text-button hover:text-blue-600 transition-colors p-1" title="Copiar Alias">
+                                    <button type="button" onclick="copyToClipboard('laredondadebelgrano')" class="text-button hover:text-blue-900 transition-colors p-1" title="Copiar Alias">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                                     </button>
                                 </div>
@@ -133,7 +133,7 @@
                     </div>
                 </div>
 
-                <div class="method-right">
+                <div class="method-right pb-12">
                     <h2 class="method-title text-2xl font-semibold text-text-dark mb-6 md:mb-8 text-center md:text-left">Donar QR</h2>
                     <div class="qr-section text-center bg-background-light p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 h-full flex flex-col justify-center">
                         <div class="qr-placeholder w-48 h-48 flex items-center justify-center text-text-light mx-auto mb-6 shadow-inner bg-white rounded-lg p-2">
@@ -176,7 +176,7 @@
         </div>
         <div class="flex flex-col md:flex-row gap-3">
             <button type="button" id="cancelDonation" class="flex-1 py-4 border-2 border-gray-100 text-gray-400 font-bold rounded-xl hover:bg-gray-50 transition-all uppercase text-xs tracking-widest">Cancelar</button>
-            <button type="button" id="confirmDonation" class="flex-1 py-4 bg-button text-white font-bold rounded-xl hover:bg-blue-600 transition-all shadow-lg shadow-blue-100 uppercase text-xs tracking-widest">Confirmar</button>
+            <button type="button" id="confirmDonation" class="flex-1 py-4 bg-button text-white font-bold rounded-xl hover:bg-blue-900 transition-all shadow-lg shadow-blue-100 uppercase text-xs tracking-widest">Confirmar</button>
         </div>
     </div>
 </div>
@@ -189,7 +189,7 @@
         </div>
         <h3 id="statusModalTitle" class="text-2xl font-black text-text-dark mb-2 uppercase tracking-tighter"></h3>
         <p id="statusModalMessage" class="text-text-light mb-8 text-sm leading-relaxed"></p>
-        <button id="closeStatusModal" class="w-full bg-button text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-blue-100">
+        <button id="closeStatusModal" class="w-full bg-button text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-900 transition-all shadow-lg shadow-blue-100">
             Entendido
         </button>
     </div>

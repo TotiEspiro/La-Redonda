@@ -1,69 +1,51 @@
 
 
 <?php $__env->startSection('content'); ?>
-<div class="min-h-[calc(100vh-180px)] flex items-center justify-center bg-background-light py-4 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-6 md:space-y-8 bg-white p-6 md:p-8 rounded-xl shadow-lg border border-gray-100">
-        <div>
-            <h2 class="mt-2 text-center text-2xl md:text-3xl font-extrabold text-text-dark">
-                Recuperar Contraseña
-            </h2>
-            <p class="mt-2 text-center text-sm md:text-base text-text-light">
-                Ingresá tu email y te enviaremos las instrucciones.
-            </p>
+<div class="min-h-[calc(100vh-180px)] flex items-center justify-center bg-background-light py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-gray-100">
+        <div class="text-center">
+            <h2 class="text-3xl font-black text-text-dark uppercase tracking-tighter">Recuperar</h2>
+            <p class="mt-2 text-sm text-text-light font-medium">Ingresá tu email para recibir instrucciones</p>
         </div>
 
         <form id="forgotPasswordForm" class="mt-8 space-y-6">
             <?php echo csrf_field(); ?>
             <div>
-                <label for="email" class="block text-sm font-medium text-text-dark">Email</label>
+                <label for="email" class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Email de la cuenta</label>
                 <input id="email" name="email" type="email" required 
-                       class="mt-1 block w-full px-4 py-3 md:py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-button focus:border-button text-base"
-                       placeholder="Ingresá tu email">
+                       class="mt-1 block w-full px-5 py-4 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50"
+                       placeholder="ejemplo@correo.com">
             </div>
 
-            <div>
-                <button type="submit" 
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-button hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-button transition-colors">
-                    Enviar enlace de recuperación
-                </button>
-            </div>
+            <button type="submit" 
+                    class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-xs font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100 uppercase tracking-widest">
+                Enviar Enlace
+            </button>
         </form>
 
         <div class="text-center pt-2">
-            <a href="<?php echo e(route('login')); ?>" class="inline-flex items-center text-button hover:text-blue-700 font-medium transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Volver al inicio de sesión
+            <a href="<?php echo e(route('login')); ?>" class="inline-flex items-center text-[10px] font-black text-button hover:text-blue-700 transition-colors uppercase tracking-widest">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Volver al inicio
             </a>
         </div>
     </div>
 </div>
 
-<div id="successModal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
+<div id="successModal" class="relative z-[250] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
     <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-            
-            <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6 mx-auto">
-                <div>
-                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-nav-footer">
-                        <img src="<?php echo e(asset('img/icono_activo.png')); ?>" alt="Activo" class="h-12 w-12">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                    </div>
-                    <div class="mt-3 text-center sm:mt-5">
-                        <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">¡Enlace enviado!</h3>
-                        <div class="mt-2">
-                            <p class="text-sm text-gray-500">Si existe una cuenta asociada a este correo, recibirás un enlace para restablecer tu contraseña en unos instantes.</p>
-                        </div>
-                    </div>
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
+            <div class="relative transform overflow-hidden rounded-[2.5rem] bg-white p-8 text-center shadow-2xl transition-all w-full max-w-sm animate-fade-in">
+                <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-50 mb-6 shadow-inner">
+                    <img src="<?php echo e(asset('img/icono_activo.png')); ?>" alt="Activo" class="h-12 w-12">
                 </div>
-                <div class="mt-5 sm:mt-6">
-                    <button type="button" id="closeModalBtn" class="inline-flex w-full justify-center rounded-md bg-button px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                        Entendido
-                    </button>
-                </div>
+                <h3 class="text-2xl font-black text-gray-900 uppercase tracking-tighter mb-2" id="modal-title">¡Enlace enviado!</h3>
+                <p class="text-xs text-gray-500 font-medium leading-relaxed mb-8">Si el correo está registrado, recibirás un enlace de recuperación en unos instantes.</p>
+                <button type="button" id="closeModalBtn" class="w-full py-4 rounded-2xl bg-button text-xs font-black text-white shadow-lg hover:bg-blue-900 transition-all uppercase tracking-widest active:scale-95">
+                    Entendido
+                </button>
             </div>
         </div>
     </div>
@@ -75,15 +57,19 @@
         const modal = document.getElementById('successModal');
         const closeBtn = document.getElementById('closeModalBtn');
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault(); 
-            modal.classList.remove('hidden');
-        });
+        if(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); 
+                modal.classList.remove('hidden');
+            });
+        }
 
-        closeBtn.addEventListener('click', function() {
-            modal.classList.add('hidden');
-            form.reset(); 
-        });
+        if(closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                modal.classList.add('hidden');
+                form.reset(); 
+            });
+        }
     });
 </script>
 <?php $__env->stopSection(); ?>

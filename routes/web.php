@@ -40,7 +40,7 @@ Route::prefix('grupos')->group(function () {
     Route::get('/catequesis', [GroupController::class, 'category'])->defaults('slug', 'catequesis')->name('grupos.catequesis');
     Route::get('/jovenes', [GroupController::class, 'category'])->defaults('slug', 'jovenes')->name('grupos.jovenes');
     Route::get('/mayores', [GroupController::class, 'category'])->defaults('slug', 'mayores')->name('grupos.mayores');
-    Route::get('/especiales', [GroupController::class, 'category'])->defaults('slug', 'especiales')->name('grupos.especiales');
+    Route::get('/mas_grupos', [GroupController::class, 'category'])->defaults('slug', 'mas_grupos')->name('grupos.especiales');
 });
 
 /*
@@ -53,7 +53,11 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/logout', [AuthController::class, 'logout']); // Fallback para links directos
+Route::get('/logout', [AuthController::class, 'logout']); 
+
+// --- Login Social (Google y Facebook) ---
+Route::get('/auth/{provider}/redirect', [AuthController::class, 'redirectToProvider'])->name('social.redirect');
+Route::get('/auth/{provider}/callback', [AuthController::class, 'handleProviderCallback'])->name('social.callback');
 
 Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('password.request');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -95,6 +99,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/actualizar', [ProfileController::class, 'update'])->name('profile.update');
         Route::get('/password', [ProfileController::class, 'showChangePassword'])->name('profile.change-password');
         Route::post('/password', [ProfileController::class, 'changePassword'])->name('profile.password');
+        
+        // NUEVAS RUTAS DE GESTIÓN DE ALERTAS Y LIMPIEZA
+        Route::post('/preferencias', [ProfileController::class, 'updatePreference'])->name('profile.update-preference');
+        Route::delete('/notificaciones/limpiar', [ProfileController::class, 'destroyAllNotifications'])->name('profile.notifications.clear');
     });
     
     // --- Diario Espiritual ---
@@ -144,6 +152,12 @@ Route::middleware(['auth'])->group(function () {
         ));
         return "Se ha enviado la señal a tu celular...";
     });
+
+
+// --- Secciones Legales ---
+Route::get('/terminos-y-condiciones', [HomeController::class, 'terminos'])->name('legal.terminos');
+Route::get('/politica-de-privacidad', [HomeController::class, 'privacidad'])->name('legal.privacidad');
+
 });
 
 /*

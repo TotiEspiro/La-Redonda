@@ -77,8 +77,8 @@
                 </div>
                 <div class="schedule-content hidden md:block px-6 pb-8 pt-0 md:pt-2 bg-white border-t md:border-t-0 border-gray-50">
                     <div class="space-y-5 text-text-dark text-center">
-                        <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-1">Lunes a Sábado</span><p class="text-gray-800 font-bold text-sm">10:00 | 17:30 | 19:30</p></div>
-                        <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-1">Domingo</span><p class="text-gray-800 font-bold text-[13px]">08:00 | 09:30 | 11:00<br>12:30 | 18:00 | 19:00<br>20:00</p></div>
+                        <div><span class="block font-black text-gray-400 text-[10px] uppercase tracking-widest mb-1">Lunes a Sábado</span><p class="text-gray-800 font-bold text-sm">10:00 | 17:30 | 19:30</p></div>
+                        <div><span class="block font-black text-gray-400 text-[10px] uppercase tracking-widest mb-1">Domingo</span><p class="text-gray-800 font-bold text-[13px]">08:00 | 09:30 | 11:00<br>12:30 | 18:00 | 19:00<br>20:00</p></div>
                     </div>
                 </div>
             </div>
@@ -92,8 +92,10 @@
                     <div class="schedule-chevron md:hidden text-gray-400 transition-transform duration-300"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div>
                 </div>
                 <div class="schedule-content hidden md:block px-6 pb-8 pt-0 md:pt-2 text-center">
-                    <span class="block font-black text-gray-400 text-[10px] uppercase mb-2">Lunes a Sábado</span>
+                    <span class="block font-black text-gray-400 text-[10px] uppercase tracking-widest mb-2">Lunes a Sábado</span>
                     <div class="bg-gray-50 rounded-2xl p-3 border border-gray-100"><p class="text-gray-800 font-bold text-sm">10:30 a 12:00<br>18:00 a 19:00</p></div>
+                    <span class="block font-black text-gray-400 text-[10px] uppercase tracking-widest mb-2 mt-3">Domingo</span>
+                    <div class="bg-gray-50 rounded-2xl p-3 border border-gray-100"><p class="text-gray-800 font-bold text-sm">Durante las misas</p></div>
                 </div>
             </div>
             
@@ -106,9 +108,9 @@
                     <div class="schedule-chevron md:hidden text-gray-400 transition-transform duration-300"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div>
                 </div>
                 <div class="schedule-content hidden md:block px-6 pb-8 pt-0 md:pt-2 text-center">
-                    <span class="block font-black text-gray-400 text-[10px] uppercase mb-1">Lunes a Viernes</span>
+                    <span class="block font-black text-gray-400 text-[10px]  uppercase mb-1">Lunes a Viernes</span>
                     <p class="text-gray-800 font-bold text-sm mb-3">16:00 a 19:00</p>
-                    <a href="mailto:secretaria@inmaculada.org.ar" class="text-button font-bold text-[9px] uppercase hover:underline">secretaria@inmaculada.org.ar</a>
+                    <p class="text-button font-bold text-[12px] hover:underline">secretaria@inmaculada.org.ar</p>
                 </div>
             </div>
             
@@ -121,8 +123,11 @@
                     <div class="schedule-chevron md:hidden text-gray-400 transition-transform duration-300"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div>
                 </div>
                 <div class="schedule-content hidden md:block px-6 pb-8 pt-0 md:pt-2 text-center">
-                    <p class="text-[9px] text-gray-400 font-black uppercase mb-3 bg-gray-50 py-1 rounded-full">Recogida de ropa/alimentos</p>
-                    <p class="text-gray-800 font-bold text-sm">L-S: 09:00 a 21:00<br>D: 07:30 a 21:30</p>
+                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3 bg-gray-50 py-1 rounded-full">La Ropa y los alimentos traerlas por el templo</p>
+                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3 bg-gray-50 py-1 rounded-full">Lunes a Sábado</p>
+                    <p class="text-gray-800 font-bold text-sm">09:00 a 21:00</p>
+                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-3 bg-gray-50 py-1 rounded-full mt-3">Domingo</p>
+                    <p class="text-gray-800 font-bold text-sm">07:30 a 21:30</p>
                 </div>
             </div>
         </div>

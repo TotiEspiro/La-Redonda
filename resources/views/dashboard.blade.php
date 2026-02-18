@@ -60,13 +60,13 @@
                     @endif
 
                     <a href="{{ url('/intenciones') }}" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
-                        <div class="p-3 bg-yellow-50 rounded-2xl"><img src="{{ asset('img/icono_intenciones.png') }}" class="w-8 h-8"></div>
+                        <div class="p-3 bg-blue-50 rounded-2xl"><img src="{{ asset('img/icono_intenciones.png') }}" class="w-8 h-8"></div>
                         <div><span class="block font-black text-gray-800 text-xs uppercase tracking-tight">Intenciones</span><span class="text-[10px] text-gray-400 font-medium">Sube tus peticiones</span></div>
                     </a>
 
                     {{-- BOTÓN DE DONACIONES --}}
                     <a href="{{ route('donations.create') }}" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
-                        <div class="p-3 bg-green-50 rounded-2xl"><img src="{{ asset('img/icono_donaciones.png') }}" class="w-8 h-8"></div>
+                        <div class="p-3 bg-blue-50 rounded-2xl"><img src="{{ asset('img/icono_donaciones.png') }}" class="w-8 h-8"></div>
                         <div><span class="block font-black text-gray-800 text-xs uppercase tracking-tight">Donaciones</span><span class="text-[10px] text-gray-400 font-medium">Apoya a la iglesia</span></div>
                     </a>
                 </div>
@@ -76,7 +76,7 @@
             <div class="lg:col-span-1 space-y-8 text-left">
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 text-center relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-1 bg-button"></div>
-                    <div class="w-20 h-20 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-3xl font-black mx-auto mb-4 uppercase shadow-lg">{{ substr(Auth::user()->name, 0, 1) }}</div>
+                    <div class="w-20 h-20 bg-blue-900 text-white rounded-2xl flex items-center justify-center text-3xl font-black mx-auto mb-4 uppercase shadow-lg">{{ substr(Auth::user()->name, 0, 1) }}</div>
                     <h4 class="font-black text-gray-800 uppercase tracking-tighter">{{ Auth::user()->name }}</h4>
                     <p class="text-[10px] text-gray-400 font-black uppercase mt-1">Edad: {{ Auth::user()->age ?? 'N/A' }} años</p>
                     <a href="{{ route('profile.show') }}" class="block w-full py-3 bg-gray-50 border border-gray-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-100 transition-colors mt-4">Ver Perfil</a>
@@ -101,7 +101,7 @@
                                 <div class="p-6 flex flex-col flex-1">
                                     <h3 class="text-sm font-black text-text-dark mb-2 uppercase line-clamp-2">{{ $announcement->title }}</h3>
                                     <p class="text-xs text-text-light mb-6 flex-1 line-clamp-3 font-medium leading-relaxed">{{ $announcement->short_description }}</p>
-                                    <button class="read-more-btn w-full bg-button text-white py-3 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-900 transition-colors" data-modal="modal-{{ $announcement->id }}">Leer Más</button>
+                                    <button class="read-more-btn w-full bg-button text-white py-3 rounded-2xl font-black text-sm hover:bg-blue-900 transition-colors" data-modal="modal-{{ $announcement->id }}">Leer Más</button>
                                 </div>
                             </div>
                         </div>
@@ -133,7 +133,7 @@
                     </div>
                     <div class="schedule-content hidden md:block p-8 text-center flex-1">
                         <div class="space-y-6 text-text-dark">
-                            <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Lunes a Sábado</span><p class="text-gray-800 font-bold text-base">10:00 | 17:30 | 19:30</p></div>
+                            <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Lunes a Sábado</span><p class="text-gray-800 font-bold text-sm">10:00 | 17:30 | 19:30</p></div>
                             <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Domingo</span><p class="text-gray-800 font-bold text-sm leading-relaxed">08:00 | 09:30 | 11:00<br>12:30 | 18:00 | 19:00<br>20:00</p></div>
                         </div>
                     </div>
@@ -150,6 +150,7 @@
                     <div class="schedule-content hidden md:block p-8 text-center flex-1">
                         <span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Lunes a Sábado</span>
                         <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100"><p class="text-gray-800 font-bold text-sm">10:30 a 12:00<br>18:00 a 19:00</p></div>
+                        <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Domingo</span><p class="text-gray-800 font-bold text-sm leading-relaxed">Durante las misas</p></div>
                     </div>
                 </div>
                 {{-- Secretaría --}}
@@ -163,8 +164,8 @@
                     </div>
                     <div class="schedule-content hidden md:block p-8 text-center flex-1">
                         <span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Lunes a Viernes</span>
-                        <p class="text-gray-800 font-bold text-base mb-4">16:00 a 19:00</p>
-                        <a href="mailto:secretaria@inmaculada.org.ar" class="text-button font-bold text-[9px] uppercase hover:underline">E-mail Secretaría</a>
+                        <p class="text-gray-800 font-bold text-sm mb-4">16:00 a 19:00</p>
+                        <p class="text-button font-bold text-[12px] hover:underline">secretaria@inmaculada.org.ar</p>
                     </div>
                 </div>
                 {{-- Cáritas --}}
@@ -177,8 +178,11 @@
                         <div class="schedule-chevron md:hidden text-gray-400 transition-transform duration-300"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div>
                     </div>
                     <div class="schedule-content hidden md:block p-8 text-center flex-1">
-                        <p class="text-[9px] text-gray-400 font-black uppercase mb-3 bg-gray-50 py-1 rounded-full">Recepción ropa/alimentos</p>
-                        <p class="text-gray-800 font-bold text-sm">L-S: 09:00 a 21:00<br>D: 07:30 a 21:30</p>
+                        <div class="space-y-6 text-text-dark">
+                            <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">La Ropa y los alimentos traerlas por el templo</span></div>
+                            <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Lunes a Sábado</span><p class="text-gray-800 font-bold text-sm">09:00 a 21:00</p></div>
+                            <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Domingo</span><p class="text-gray-800 font-bold text-sm leading-relaxed">07:30 a 21:30</p></div>
+                        </div>
                     </div>
                 </div>
             </div>

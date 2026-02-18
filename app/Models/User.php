@@ -13,7 +13,9 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'password', 'diario_data', 'last_diario_entry', 
-        'age', 'onboarding_completed', 'notify_announcements'
+        'age', 'onboarding_completed', 'notify_announcements',
+        // Campos para Social Login (Google/Facebook)
+        'provider_id', 'provider_name', 'avatar'
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -29,9 +31,13 @@ class User extends Authenticatable
     // LÓGICA DE ROLES Y PERMISOS (Optimizado para Nav y Rendimiento)
     // =========================================================================
 
+    /**
+     * RELACIÓN DE ROLES MEJORADA
+     * Se agrega withTimestamps() para rastrear cuándo se asignó un rol (unión al grupo).
+     */
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class, 'user_roles');
+        return $this->belongsToMany(Role::class, 'user_roles')->withTimestamps();
     }
 
     /**
@@ -93,8 +99,7 @@ class User extends Authenticatable
 
     public function canAccessDiario(): bool
     {
-        // Los admins y miembros de grupos específicos pueden acceder
-        $allowed = ['superadmin', 'admin', 'catequesis', 'juveniles', 'acutis', 'coro', 'misioneros'];
+        $allowed = ['superadmin', 'admin', 'catequesis_niños', 'catequesis_adolescentes', 'catequesis_adultos', 'acutis', 'juveniles', 'juan_pablo', 'coro', 'misioneros'];
         return $this->hasAnyRole($allowed);
     }
 

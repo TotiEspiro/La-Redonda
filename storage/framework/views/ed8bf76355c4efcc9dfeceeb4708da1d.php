@@ -123,7 +123,7 @@
                 </div>
                 <?php endif; ?>
 
-                <a href="<?php echo e(url('/donaciones')); ?>" class="hidden md:inline-block bg-button text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-blue-900 transition-all shadow-sm">Donaciones</a>
+                <a href="<?php echo e(url('/donaciones')); ?>" class="hidden md:inline-block bg-button text-white px-6 py-2 rounded-lg font-bold text-base hover:bg-blue-900 transition-all shadow-sm">Donaciones</a>
 
                 <div class="hidden md:block relative">
                     <button class="flex relative w-10 h-10 flex-col items-center justify-center cursor-pointer z-50 focus:outline-none space-y-1.5 bg-white/50 rounded-xl" id="desktopHamburgerBtn" onclick="toggleDesktopMenu(event)">
@@ -234,7 +234,7 @@
                                         <img src="<?php echo e(asset('img/icono_perfil.png')); ?>" class="w-4 h-4 mr-3"> Mi Perfil
                                     </a>
                                     <form method="POST" action="<?php echo e(route('logout')); ?>" class="m-0"><?php echo csrf_field(); ?>
-                                        <button type="submit" class="w-full text-center px-5 py-4 text-xs font-bold text-red-500 hover:bg-red-200 transition uppercase">Cerrar Sesión</button>
+                                        <button type="submit" class="w-full text-center px-5 py-4 text-xs font-bold text-white bg-red-500 hover:bg-red-600 transition uppercase">Cerrar Sesión</button>
                                     </form>
                                 </div>
                             <?php else: ?>

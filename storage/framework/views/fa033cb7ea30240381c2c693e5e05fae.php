@@ -3,6 +3,12 @@
 <?php $__env->startSection('content'); ?>
 <div class="w-full">
     
+    <div class="text-center mt-12 mb-18 md:mb-12">
+            <h1 class="text-3xl md:text-4xl font-black text-text-dark mb-4 border-b-4 border-button pb-2 inline-block px-4 uppercase tracking-tighter">Más Grupos</h1>
+            <p class="text-text-dark text-base md:text-lg max-w-3xl mx-auto mt-4 leading-relaxed px-2 pb-6">
+                Servicio, caridad y misiones especiales de nuestra parroquia.
+            </p>
+        </div>
     <div class="flex items-center justify-between mb-10 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 max-w-6xl mx-auto">
         <a href="<?php echo e(route('grupos.mayores')); ?>" class="flex items-center gap-2 text-button font-black uppercase text-[10px] tracking-widest hover:translate-x-[-4px] transition-transform group">
             <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-button group-hover:text-white transition-colors">

@@ -1,3 +1,6 @@
+/**
+ * DiarioApp - Manejo de la lista de documentos y filtros
+ */
 class DiarioApp {
     constructor() {
         this.currentEntry = null;
@@ -56,55 +59,31 @@ class DiarioApp {
 
     initializeDocumentManager() {
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.edit-btn')) {
-                this.handleEdit(e.target.closest('.edit-btn'));
-            }
-            
-            if (e.target.closest('.delete-btn')) {
-                this.handleDelete(e.target.closest('.delete-btn'));
-            }
-            
-            if (e.target.closest('.favorite-btn')) {
-                this.handleFavorite(e.target.closest('.favorite-btn'));
-            }
+            const editBtn = e.target.closest('.edit-btn');
+            const deleteBtn = e.target.closest('.delete-btn');
+            const favoriteBtn = e.target.closest('.favorite-btn');
+
+            if (editBtn) this.handleEdit(editBtn);
+            if (deleteBtn) this.handleDelete(deleteBtn);
+            if (favoriteBtn) this.handleFavorite(favoriteBtn);
         });
     }
 
     applyFilter(filter = 'all') {
         const documents = document.querySelectorAll('.document-card');
-        
         documents.forEach(doc => {
             const type = doc.dataset.type;
             const favorite = doc.dataset.favorite;
-            
-            let show = true;
-            
-            if (filter !== 'all') {
-                if (filter === 'favorite') {
-                    show = favorite === 'true';
-                } else {
-                    show = type === filter;
-                }
-            }
-            
+            let show = filter === 'all' || (filter === 'favorite' ? favorite === 'true' : type === filter);
             this.toggleDocumentVisibility(doc, show);
         });
     }
 
     applySearch(searchTerm = '') {
         const documents = document.querySelectorAll('.document-card');
-        
         documents.forEach(doc => {
-            const title = doc.dataset.title;
-            const type = doc.dataset.type;
-            const favorite = doc.dataset.favorite;
-            
-            let show = true;
-            
-            if (searchTerm) {
-                show = title.includes(searchTerm);
-            }
-            
+            const title = (doc.dataset.title || '').toLowerCase();
+            let show = searchTerm === '' || title.includes(searchTerm);
             this.toggleDocumentVisibility(doc, show);
         });
     }
@@ -126,41 +105,40 @@ class DiarioApp {
     }
 
     async handleEdit(button) {
-        const entryId = button.dataset.id;
-        
+        const entryId = button.dataset.id || button.closest('.document-card').dataset.id;
         try {
             this.showNotification('Cargando entrada...', 'info');
-            
+            // Ruta RESTful GET /diario/{id}
             const response = await fetch(`/diario/${entryId}`);
             const result = await response.json();
-
-            if (result.success) {
-                this.openEditor(result.entry);
-            } else {
-                this.showNotification(result.message || 'Error al cargar la entrada', 'error');
+            
+            if (result) {
+                // Ajuste dependiendo de si tu controlador devuelve el objeto directo o envuelto en success
+                const entry = result.entry || result;
+                this.openEditor(entry);
             }
         } catch (error) {
-            console.error('Error:', error);
-            this.showNotification('Error de conexión al cargar la entrada', 'error');
+            this.showNotification('Error al cargar la entrada', 'error');
         }
     }
 
     async handleDelete(button) {
-        const entryId = button.dataset.id;
+        const entryId = button.dataset.id || button.closest('.document-card').dataset.id;
         
-        if (window.documentManager) {
-            window.documentManager.confirmDelete(button);
-        } else {
-            if (confirm('¿Estás seguro de que quieres eliminar esta entrada?')) {
-                await this.performDelete(entryId, button);
-            }
+        if (window.editorModal) {
+            window.editorModal.showCustomConfirm(
+                '¿Estás seguro de que deseas eliminar este archivo? Esta acción no se puede deshacer.',
+                async () => {
+                    await this.performDelete(entryId, button);
+                }
+            );
         }
     }
 
     async performDelete(entryId, button) {
         try {
-            this.showNotification('Eliminando entrada...', 'info');
-            
+            this.showNotification('Eliminando...', 'info');
+            // Ruta RESTful DELETE /diario/{id}
             const response = await fetch(`/diario/${entryId}`, {
                 method: 'DELETE',
                 headers: {
@@ -173,30 +151,25 @@ class DiarioApp {
             const result = await response.json();
 
             if (result.success) {
-                this.showNotification(result.message, 'success');
-                
+                this.showNotification('Entrada eliminada correctamente', 'success');
                 const card = button.closest('.document-card');
                 if (card) {
                     card.style.opacity = '0';
                     card.style.transform = 'scale(0.8)';
-                    setTimeout(() => {
-                        card.remove();
-                        this.checkEmptyState();
-                    }, 300);
+                    setTimeout(() => card.remove(), 300);
                 }
             } else {
                 this.showNotification(result.message || 'Error al eliminar', 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
             this.showNotification('Error de conexión al eliminar', 'error');
         }
     }
 
     async handleFavorite(button) {
-        const entryId = button.dataset.id;
-        
+        const entryId = button.dataset.id || button.closest('.document-card').dataset.id;
         try {
+            // Nota: Verifica que tengas esta ruta en tu web.php o cámbiala por la correspondiente
             const response = await fetch(`/diario/${entryId}/toggle-favorite`, {
                 method: 'POST',
                 headers: {
@@ -209,111 +182,44 @@ class DiarioApp {
             const result = await response.json();
 
             if (result.success) {
+                const icon = button.querySelector('i') || button.querySelector('img');
+                const card = button.closest('.document-card');
+                
                 if (result.is_favorite) {
                     button.classList.add('text-yellow-500');
-                    button.classList.remove('text-gray-400');
+                    if(card) card.dataset.favorite = "true";
                 } else {
                     button.classList.remove('text-yellow-500');
-                    button.classList.add('text-gray-400');
+                    if(card) card.dataset.favorite = "false";
                 }
-                
-                const card = button.closest('.document-card');
-                if (card) {
-                    card.dataset.favorite = result.is_favorite.toString();
-                }
-                
                 this.showNotification(result.message, 'success');
-            } else {
-                this.showNotification(result.message || 'Error al actualizar favorito', 'error');
             }
         } catch (error) {
             console.error('Error:', error);
-            this.showNotification('Error de conexión al actualizar favorito', 'error');
         }
     }
 
     openEditor(entry = null) {
         if (window.editorModal) {
             window.editorModal.open(entry);
-        } else {
-            console.error('Editor modal no está disponible');
-            this.showNotification('Error: Editor no disponible', 'error');
-        }
-    }
-
-    checkEmptyState() {
-        const documentsGrid = document.getElementById('documentsGrid');
-        const documents = documentsGrid.querySelectorAll('.document-card');
-        
-        if (documents.length === 0) {
-            console.log('No hay documentos, mostrando estado vacío');
         }
     }
 
     getCsrfToken() {
-        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
-               document.querySelector('input[name="_token"]')?.value;
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     }
 
     showNotification(message, type = 'info') {
-        if (window.documentManager && window.documentManager.showNotification) {
-            window.documentManager.showNotification(message, type);
-            return;
+        if (window.editorModal) {
+            window.editorModal.showNotification(message, type);
         }
-
-        const container = document.getElementById('notificationContainer') || this.createNotificationContainer();
-        const notification = document.createElement('div');
-        
-        const bgColor = type === 'success' ? 'bg-green-500' : 
-                       type === 'error' ? 'bg-red-500' : 
-                       type === 'warning' ? 'bg-yellow-500' : 
-                       'bg-button';
-        
-        notification.className = `${bgColor} text-white p-4 rounded-lg shadow-lg transform transition-transform duration-300 translate-x-0 mb-2`;
-        notification.innerHTML = `
-            <div class="flex items-center justify-between">
-                <span>${message}</span>
-                <button class="ml-4 text-white hover:text-gray-200 transition-colors" onclick="this.parentElement.parentElement.remove()">
-                    ×
-                </button>
-            </div>
-        `;
-        
-        container.appendChild(notification);
-        
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, 4000);
-    }
-
-    createNotificationContainer() {
-        const container = document.createElement('div');
-        container.id = 'notificationContainer';
-        container.className = 'fixed top-4 right-4 z-50 space-y-2';
-        document.body.appendChild(container);
-        return container;
     }
 }
 
 const diarioApp = new DiarioApp();
 window.diarioApp = diarioApp;
 
-window.openEditorModal = (entry = null) => {
-    diarioApp.openEditor(entry);
-};
-
-window.toggleFavorite = (event) => {
-    diarioApp.handleFavorite(event.currentTarget || event.target);
-};
-
-window.editEntry = (event) => {
-    diarioApp.handleEdit(event.currentTarget || event.target);
-};
-
-window.deleteEntry = (event) => {
-    diarioApp.handleDelete(event.currentTarget || event.target);
-};
-
+// Funciones globales para botones dinámicos
+window.editEntry = (event) => diarioApp.handleEdit(event.currentTarget);
+window.deleteEntry = (event) => diarioApp.handleDelete(event.currentTarget);
+window.toggleFavorite = (event) => diarioApp.handleFavorite(event.currentTarget);
