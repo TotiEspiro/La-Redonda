@@ -1,8 +1,14 @@
-@import 'tailwindcss/base';
-@import "tailwindcss";
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+/* |--------------------------------------------------------------------------
+| Directivas de Tailwind (CORREGIDAS para Laravel Cloud)
+|--------------------------------------------------------------------------
+| No usamos @import 'tailwindcss/...' ya que Vite intenta leer los archivos JS
+| del motor de Tailwind como si fueran CSS, causando el error "use strict".
+*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Importación de Fuentes (Sin duplicados) */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
 :root {
@@ -16,31 +22,30 @@
     --imprimir-color: #8facd6;
 }
 
-
+/* --- ANIMACIONES --- */
 @keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modal-content {
-    animation: modalAppear 0.3s ease;
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes modalAppear {
-    from {
-        opacity: 0;
-        transform: scale(0.9) translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+    from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* --- COMPONENTES --- */
+.modal-content {
+    animation: modalAppear 0.3s ease;
 }
 
 .frequency-option input:checked + .checkmark {
@@ -56,163 +61,75 @@
     background-color: #7a9bc7; 
 }
 
-
-@media (max-width: 768px) {
-    .announcement-card {
-        min-width: 100%;
-        flex: 0 0 100%;
-    }
-
-    .carousel-track {
-        gap: 1rem;
-        padding: 0 0.5rem;
-    }
+/* --- MENÚ HAMBURGUESA --- */
+.hamburger-line {
+    width: 25px;
+    height: 3px;
+    background-color: #333;
+    margin: 5px 0;
+    transition: all 0.3s ease;
 }
 
-@media (max-width: 480px) {
-    .social-link-item {
-        gap: 0.8rem;
-    }
-
-    .social-icon-wrapper {
-        width: 35px;
-        height: 35px;
-    }
+.hamburger-menu.active .hamburger-line:nth-child(1) {
+    transform: rotate(-45deg) translate(-5px, 6px);
 }
 
-        .hamburger-line {
-            width: 25px;
-            height: 3px;
-            background-color: #333;
-            margin: 5px 0;
-            transition: all 0.3s ease;
-        }
+.hamburger-menu.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
 
-        .hamburger-menu.active .hamburger-line:nth-child(1) {
-            transform: rotate(-45deg) translate(-5px, 6px);
-        }
+.hamburger-menu.active .hamburger-line:nth-child(3) {
+    transform: rotate(45deg) translate(-5px, -6px);
+}
 
-        .hamburger-menu.active .hamburger-line:nth-child(2) {
-            opacity: 0;
-        }
+.mobile-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #a4e0f3;
+    width: 250px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border-radius: 0 0 0 10px;
+    z-index: 1000;
+    border: 2px solid #5cb1e3;
+}
 
-        .hamburger-menu.active .hamburger-line:nth-child(3) {
-            transform: rotate(45deg) translate(-5px, -6px);
-        }
+.mobile-menu.active {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
 
-        .mobile-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: #a4e0f3;
-            width: 250px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            border-radius: 0 0 0 10px;
-            z-index: 1000;
-            border: 2px solid #5cb1e3;
-        }
-
-        .mobile-menu.active {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-content {
-            animation: modalAppear 0.3s ease;
-        }
-
-        @keyframes modalAppear {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-       
-
+/* --- CARRUSEL DE ANUNCIOS --- */
 .carousel-container {
-  overflow: hidden;
+    overflow: hidden;
 }
 
 .carousel-track {
-  display: flex;
-  transition: transform 0.3s ease;
+    display: flex;
+    transition: transform 0.3s ease;
 }
 
 .announcement-card {
-  flex: 0 0 calc(50% - 1rem); 
-  box-sizing: border-box;
-}
-
-.announcement-card {
-  min-height: 400px; 
-  display: flex;
-  flex-direction: column;
+    flex: 0 0 calc(50% - 1rem); 
+    box-sizing: border-box;
+    min-height: 400px; 
+    display: flex;
+    flex-direction: column;
 }
 
 .announcement-image {
-  flex-shrink: 0;
+    flex-shrink: 0;
 }
 
 .announcement-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-
-
-
-@media (max-width: 768px) {
-    .carousel-track {
-        gap: 1rem;
-        padding: 0 0.5rem;
-    }
-    
-    .announcement-card {
-        min-width: calc(100% - 0.5rem); 
-        flex: 0 0 calc(100% - 0.5rem);
-    }
-    
-    .carousel-arrow {
-        width: 2.5rem;
-        height: 2.5rem;
-        font-size: 1rem;
-    }
-}
-
-@media (max-width: 1024px) and (min-width: 769px) {
-    .carousel-container {
-        max-width: 90%;
-    }
-}
-
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
+/* --- UTILERÍAS --- */
 .animate-bounce {
     animation: bounce 2s infinite;
 }
@@ -232,21 +149,12 @@
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
 .fade-out {
     opacity: 0;
     pointer-events: none;
 }
 
-
+/* --- CROPPER (RECORTE DE IMAGEN) --- */
 .cropper-container {
     direction: ltr;
     font-size: 0;
@@ -275,5 +183,38 @@
     position: absolute;
 }
 
+/* --- MEDIA QUERIES --- */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .carousel-container {
+        max-width: 90%;
+    }
+}
 
+@media (max-width: 768px) {
+    .announcement-card {
+        min-width: calc(100% - 0.5rem); 
+        flex: 0 0 calc(100% - 0.5rem);
+    }
+
+    .carousel-track {
+        gap: 1rem;
+        padding: 0 0.5rem;
+    }
     
+    .carousel-arrow {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .social-link-item {
+        gap: 0.8rem;
+    }
+
+    .social-icon-wrapper {
+        width: 35px;
+        height: 35px;
+    }
+}
