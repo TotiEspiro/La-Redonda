@@ -27,8 +27,9 @@ return new class extends Migration
         $roles = [
             ['name' => 'superadmin', 'display_name' => 'Super Administrador', 'description' => 'Acceso completo al sistema', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'admin', 'display_name' => 'Administrador', 'description' => 'Administración del sistema', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'admin_grupo_parroquial', 'display_name' => 'Admin Grupo Parroquial', 'description' => 'Administración de grupos parroquiales', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'catequesis', 'display_name' => 'Catequesis', 'description' => 'Responsable de catequesis', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'catequesis_niños', 'display_name' => 'Catequesis', 'description' => 'Responsable de catequesis para niños', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'catequesis_adolescentes', 'display_name' => 'Catequesis', 'description' => 'Responsable de catequesis para adolescentes', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'catequesis_adultos', 'display_name' => 'Catequesis', 'description' => 'Responsable de catequesis para adultos', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'juveniles', 'display_name' => 'Juveniles', 'description' => 'Responsable de grupo juvenil', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'acutis', 'display_name' => 'Acutis', 'description' => 'Responsable de grupo Acutis', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'juan_pablo', 'display_name' => 'Juan Pablo', 'description' => 'Responsable de grupo Juan Pablo', 'created_at' => now(), 'updated_at' => now()],
@@ -37,8 +38,9 @@ return new class extends Migration
             ['name' => 'santa_ana', 'display_name' => 'Santa Ana', 'description' => 'Responsable de grupo Santa Ana', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'ardillas', 'display_name' => 'Ardillas', 'description' => 'Responsable de grupo Ardillas', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'costureras', 'display_name' => 'Costureras', 'description' => 'Responsable de grupo Costureras', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'misioneros', 'display_name' => 'Misioneros', 'description' => 'Responsable de grupo Misioneros', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'caridad_comedor', 'display_name' => 'Caridad y Comedor', 'description' => 'Responsable de caridad y comedor', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'misioneros', 'display_name' => 'Misioneros', 'description' => 'Responsable de grupo Misionero', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'caridad', 'display_name' => 'Caridad', 'description' => 'Responsable de lcomedor', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'comedor', 'display_name' => ' Comedor', 'description' => 'Responsable de noche de caridad', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'user', 'display_name' => 'Usuario', 'description' => 'Usuario básico', 'created_at' => now(), 'updated_at' => now()],
         ];
 

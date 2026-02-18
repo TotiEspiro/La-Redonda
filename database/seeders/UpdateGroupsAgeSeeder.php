@@ -36,26 +36,26 @@ class UpdateGroupsAgeSeeder extends Seeder
 
             // --- JÓVENES ---
             'juveniles' => [
-                'nombre' => 'Inmaculada Joven (Juveniles)',
+                'nombre' => 'Juveniles',
                 'min' => 13,
                 'max' => 17,
                 'descripcion' => 'Grupo de pertenencia y amistad para adolescentes.'
             ],
             'acutis' => [
-                'nombre' => 'Grupo Carlo Acutis',
+                'nombre' => 'Acutis',
                 'min' => 18,
                 'max' => 24,
                 'descripcion' => 'Jóvenes universitarios y trabajadores.'
             ],
             'juan_pablo' => [
-                'nombre' => 'Grupo Juan Pablo II',
+                'nombre' => 'Juan Pablo II',
                 'min' => 25,
                 'max' => 35,
                 'descripcion' => 'Jóvenes adultos en camino de fe.'
             ],
             'coro' => [
                 'nombre' => 'Coro Parroquial',
-                'min' => 15,
+                'min' => 18,
                 'max' => 99,
                 'descripcion' => 'Ministerio de música para las celebraciones.'
             ],
@@ -80,27 +80,27 @@ class UpdateGroupsAgeSeeder extends Seeder
                 'descripcion' => 'Espacio de encuentro para hombres mayores.'
             ],
             'costureras' => [
-                'nombre' => 'Taller de Costureras',
-                'min' => 18,
+                'nombre' => 'Costureras',
+                'min' => 60,
                 'max' => 99,
                 'descripcion' => 'Servicio de costura y caridad.'
             ],
             'ardillas' => [
-                'nombre' => 'Las Ardillas',
-                'min' => 45,
-                'max' => 65,
+                'nombre' => 'Ardillas',
+                'min' => 50,
+                'max' => 99,
                 'descripcion' => 'Grupo de oración y recreación para adultos.'
             ],
 
             // --- ESPECIALES / MÁS GRUPOS ---
             'caridad' => [
-                'nombre' => 'Pastoral de la Caridad',
+                'nombre' => 'Noche de Caridad',
                 'min' => 18,
                 'max' => 99,
                 'descripcion' => 'Visita a enfermos y necesitados.'
             ],
             'comedor' => [
-                'nombre' => 'Comedor Comunitario',
+                'nombre' => 'Comedor',
                 'min' => 18,
                 'max' => 99,
                 'descripcion' => 'Servicio de alimentación a la comunidad.'
