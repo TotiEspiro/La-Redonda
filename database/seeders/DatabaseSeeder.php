@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,11 +11,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // El orden es vital: primero grupos, luego roles (que dependen de los grupos creados)
+        $this->call([
+            UpdateGroupsAgeSeeder::class,
+            RoleSystemSeeder::class,
+            // Aquí puedes llamar a tus otros seeders como AdminUserSeeder si los tienes
+        ]);
     }
 }
