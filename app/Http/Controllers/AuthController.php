@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str; // Importante para generar la contraseña aleatoria
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -78,12 +79,12 @@ class AuthController extends Controller
     }
 
     /**
-     * MANEJO DEL CALLBACK (Optimizado para evitar rebotes al login)
+     * MANEJO DEL CALLBACK (Corregido para evitar errores de integridad en la BD)
      */
     public function handleProviderCallback($provider)
     {
         try {
-            // Usamos stateless() siempre para evitar errores de sesión cruzada en local/ngrok
+            // Usamos stateless() para evitar problemas de sesión en entornos cloud
             $socialUser = Socialite::driver($provider)->stateless()->user();
         } catch (\Exception $e) {
             return redirect()->route('login')->with('error', 'Error de conexión con ' . ucfirst($provider) . '. Inténtalo de nuevo.');
@@ -93,17 +94,13 @@ class AuthController extends Controller
         $user = User::where('email', $socialUser->getEmail())->first();
 
         if ($user) {
-            // CASO 1: Ya existe y se registró con OTRA red social diferente a la de ahora
+            // CASO 1: El usuario ya existe. Vinculamos o actualizamos datos.
             if ($user->provider_name !== null && $user->provider_name !== $provider) {
                 return redirect()->route('login')->with('error', "Este email ya está registrado con {$user->provider_name}. Ingresa con ese botón.");
             }
 
-            // CASO 2: Ya existe pero se registró MANUALMENTE (sin red social)
             if ($user->provider_name === null) {
-                // OPCIÓN A: Bloquearlo (Más seguro)
-                // return redirect()->route('login')->with('error', "Ya tienes una cuenta manual con este correo. Ingresa tu contraseña arriba.");
-                
-                // OPCIÓN B: Vincularlo automáticamente (Más cómodo para el usuario)
+                // Vinculamos cuenta manual con la red social para mayor comodidad
                 $user->update([
                     'provider_id'   => $socialUser->getId(),
                     'provider_name' => $provider,
@@ -111,21 +108,22 @@ class AuthController extends Controller
                 ]);
             }
         } else {
-            // CASO 3: Es un usuario totalmente nuevo
+            // CASO 3: Usuario totalmente nuevo (Aquí estaba el error)
+            // Generamos una contraseña aleatoria de 24 caracteres para cumplir con la BD
             $user = User::create([
                 'name' => $socialUser->getName(),
                 'email' => $socialUser->getEmail(),
                 'provider_id' => $socialUser->getId(),
                 'provider_name' => $provider,
                 'avatar' => $socialUser->getAvatar(),
-                'password' => null,
+                'password' => Hash::make(Str::random(24)), // <--- SOLUCIÓN: Nunca enviamos NULL
                 'onboarding_completed' => false,
             ]);
         }
 
         Auth::login($user);
 
-        // Requisito: Si no tiene edad, al perfil
+        // Si es la primera vez o no tiene edad, lo mandamos a completar su perfil
         if (!$user->age) {
             return redirect()->route('profile.edit')->with('info', 'Por favor, registra tu edad para poder inscribirte en grupos.');
         }
