@@ -10,6 +10,7 @@
     <link rel="icon" href="<?php echo e(asset('img/logo_nav_redonda.png')); ?>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <?php echo $__env->yieldContent('head'); ?>
     <script>
         tailwind.config = {
             theme: {

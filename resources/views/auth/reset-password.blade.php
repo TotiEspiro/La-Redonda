@@ -24,13 +24,13 @@
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Nueva Contraseña</label>
                 <input name="password" type="password" required autofocus 
-                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm bg-gray-50/50">
+                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm bg-gray-50/50" placeholder="Ingresá tu nueva contraseña">
             </div>
 
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Repetir Contraseña</label>
                 <input name="password_confirmation" type="password" required 
-                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm bg-gray-50/50">
+                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm bg-gray-50/50"placeholder="Confirmá tu nueva contraseña">
             </div>
 
             <button type="submit" class="w-full py-4 bg-button text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-900 transition-all">

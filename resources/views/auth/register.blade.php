@@ -9,8 +9,8 @@
 <div class="min-h-[calc(100vh-180px)] flex items-center justify-center bg-background-light py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-gray-100">
         <div class="text-center">
-            <h2 class="text-3xl font-black text-text-dark uppercase tracking-tighter">Crear Cuenta</h2>
-            <p class="mt-2 text-sm text-text-light font-medium">Únete a la comunidad de La Redonda</p>
+            <h2 class="text-3xl font-black text-text-dark uppercase">Crear Cuenta</h2>
+            <p class="mt-2 text-sm text-text-light font-medium">Unite a la comunidad de La Redonda</p>
         </div>
 
         {{-- BOTONES SOCIALES --}}
@@ -48,29 +48,28 @@
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Nombre Completo</label>
                 <input name="name" type="text" value="{{ old('name') }}" required 
-                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50 @error('name') border-red-500 @enderror">
+                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50 @error('name') border-red-500 @enderror" placeholder="Ingresá tu nombre completo">
             </div>
 
             {{-- Email --}}
             <div>
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Correo Electrónico</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Email</label>
                 <input name="email" type="email" value="{{ old('email') }}" required 
-                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50 @error('email') border-red-500 @enderror">
+                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50 @error('email') border-red-500 @enderror" placeholder="Ingresá tu email">
             </div>
 
             {{-- Password --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Contraseña</label>
                     <input name="password" type="password" required 
-                           class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50">
+                           class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Ingresá tu contraseña">
                 </div>
+            
                 <div>
-                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Confirmar</label>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Confirmar Contraseña</label>
                     <input name="password_confirmation" type="password" required 
-                           class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50">
+                           class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Confirmá tu contraseña">
                 </div>
-            </div>
 
             
             {{-- Widget de Google reCAPTCHA --}}
@@ -78,12 +77,12 @@
                 <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
             </div>
 
-            <button type="submit" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-xs font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100 uppercase tracking-widest">
-                Crear Mi Cuenta
+            <button type="submit" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100">
+                Registrarse
             </button>
 
             <div class="text-center mt-6">
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                <p class="text-[10px] text-gray-400 font-bold uppercase">
                     ¿Ya tenés cuenta? 
                     <a href="{{ route('login') }}" class="text-button hover:underline ml-1">Inicia sesión acá</a>
                 </p>
