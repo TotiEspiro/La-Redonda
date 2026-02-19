@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Models;
-
+use App\Notifications\ResetPasswordNotification; 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use NotificationChannels\WebPush\HasPushSubscriptions;
+
+
 
 class User extends Authenticatable
 {
