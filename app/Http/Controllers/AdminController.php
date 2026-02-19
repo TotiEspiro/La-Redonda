@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\Intention;
 use App\Models\Donation;
 use App\Models\Announcement;
+use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +39,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Gestión de Usuarios
+     * Gestión de Usuarios - Listado principal
      */
     public function users()
     {
@@ -48,47 +49,33 @@ class AdminController extends Controller
     }
 
     /**
-     * Actualizar roles con protección para Super Admin
-     * CORRECCIÓN: Se elimina la asignación automática de 'admin_grupo_parroquial'
+     * Actualizar roles (Versión Dinámica)
+     * Procesa tanto los roles básicos como los roles de grupos enviados desde la vista.
      */
     public function updateUserRoles(Request $request, $id)
     {
         $user = User::findOrFail($id);
         
+        // Protección para que nadie le quite el acceso al Super Admin
         if ($user->isSuperAdmin()) {
             return back()->with('error', 'Los privilegios del Super Administrador son permanentes.');
         }
 
-        // Roles básicos (admin, user, etc) marcados en los checkboxes de roles generales
-        $rolesToSync = $request->input('basic_roles', []);
+        // Obtenemos los slugs de los roles marcados en los arrays del formulario
+        $basicRoles = $request->input('basic_roles', []); // admin, usuario, etc.
+        $groupRoles = $request->input('roles', []);       // catequesis_ninos, admin_acutis, etc.
         
-        $grupos = [
-            'catequesis_ninos', 'catequesis_adolescentes', 'catequesis_adultos', 
-            'acutis', 'juveniles', 'juan_pablo', 'coro', 'misioneros', 
-            'santa_ana', 'san_joaquin', 'ardillas', 'costureras', 
-            'caridad', 'caritas', 'comedor'
-        ];
-
-        foreach ($grupos as $grupo) {
-            // Si se marca como miembro
-            if ($request->has("member_$grupo")) {
-                $rolesToSync[] = $grupo;
-            }
-            // Si se marca como administrador específico
-            if ($request->has("admin_$grupo")) {
-                $rolesToSync[] = "admin_$grupo";
-                $rolesToSync[] = $grupo; // También lo hacemos miembro por lógica
-            }
-        }
+        // Combinamos todos los slugs en una sola lista única
+        $allSlugsToSync = array_unique(array_merge($basicRoles, $groupRoles));
 
         try {
-            // Buscamos los IDs de los roles únicos seleccionados
-            $roleIds = Role::whereIn('name', array_unique($rolesToSync))->pluck('id')->toArray();
+            // Buscamos los IDs de los roles en la base de datos usando los slugs
+            $roleIds = Role::whereIn('slug', $allSlugsToSync)->pluck('id')->toArray();
             
-            // Sincronizamos (esto borra los viejos y pone los nuevos)
+            // Sincronizamos la relación (borra lo anterior y pone lo nuevo)
             $user->roles()->sync($roleIds);
             
-            return back()->with('success', 'Roles y permisos de comunidad actualizados.');
+            return back()->with('success', 'Roles y permisos de comunidad actualizados correctamente.');
         } catch (\Exception $e) {
             Log::error("Error actualizando roles de usuario {$id}: " . $e->getMessage());
             return back()->with('error', 'Ocurrió un error al intentar guardar los cambios.');
@@ -96,14 +83,17 @@ class AdminController extends Controller
     }
 
     /**
-     * Eliminar usuario
+     * Eliminar usuario con protecciones de seguridad
      */
     public function deleteUser($id)
     {
         $user = User::findOrFail($id);
+
+        // No permitir eliminarse a uno mismo ni eliminar al Superadmin
         if ($user->isSuperAdmin() || $user->id === Auth::id()) {
             return back()->with('error', 'No se puede eliminar este usuario por seguridad.');
         }
+
         $user->delete();
         return back()->with('success', 'Usuario eliminado de la base de datos.');
     }
@@ -117,28 +107,34 @@ class AdminController extends Controller
         return view('admin.intentions.index', compact('intentions'));
     }
 
+    /**
+     * Eliminar una intención específica
+     */
     public function deleteIntention($id)
     {
         try {
             Intention::findOrFail($id)->delete();
             return back()->with('success', 'Intención eliminada.');
         } catch (\Exception $e) {
-            return back()->with('error', 'No se pudo eliminar.');
-        }
-    }
-
-    public function deleteAllIntentions()
-    {
-        try {
-            Intention::query()->delete();
-            return back()->with('success', 'Lista de intenciones vaciada.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Error al vaciar la lista.');
+            return back()->with('error', 'No se pudo eliminar la intención.');
         }
     }
 
     /**
-     * Listado de Donaciones
+     * Vaciar toda la tabla de intenciones
+     */
+    public function deleteAllIntentions()
+    {
+        try {
+            Intention::query()->delete();
+            return back()->with('success', 'Lista de intenciones vaciada correctamente.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Ocurrió un error al intentar vaciar la lista.');
+        }
+    }
+
+    /**
+     * Listado de Donaciones (Integración con Mercado Pago / Manual)
      */
     public function donations()
     {
@@ -147,11 +143,13 @@ class AdminController extends Controller
     }
 
     /**
-     * Imprimir Intenciones
+     * Vista de impresión de intenciones con filtros de fecha y tipo
      */
     public function printIntentions(Request $request)
     {
+        // Ajustamos zona horaria para la consulta
         config(['app.timezone' => 'America/Argentina/Buenos_Aires']);
+        
         $intentions = Intention::when($request->type, function($query, $type) {
                 return $query->where('type', $type);
             })->when($request->date, function($query, $date) {
