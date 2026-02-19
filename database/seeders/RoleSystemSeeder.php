@@ -9,7 +9,8 @@ use App\Models\Group;
 class RoleSystemSeeder extends Seeder
 {
     /**
-     * Crea los roles llenando 'slug', 'name' y 'display_name' para evitar errores de BD.
+     * Crea o actualiza los roles buscando por 'name' para evitar errores de duplicados,
+     * y asegura que 'slug' y 'display_name' estén correctamente llenos.
      */
     public function run()
     {
@@ -21,11 +22,12 @@ class RoleSystemSeeder extends Seeder
         ];
 
         foreach ($rolesBase as $slug => $nombreHumano) {
+            // Buscamos por 'name' que es la columna única que ya existe en tu DB
             Role::updateOrCreate(
-                ['slug' => $slug],
+                ['name' => $slug], 
                 [
-                    'name'         => $slug, // Nombre técnico
-                    'display_name' => $nombreHumano, // Nombre para mostrar (el que faltaba)
+                    'slug'         => $slug, // Actualizamos el slug que antes estaba vacío
+                    'display_name' => $nombreHumano,
                     'description'  => 'Rol de ' . $nombreHumano
                 ]
             );
@@ -37,9 +39,9 @@ class RoleSystemSeeder extends Seeder
         foreach ($grupos as $grupo) {
             // Rol de Miembro (ej: catequesis_ninos)
             Role::updateOrCreate(
-                ['slug' => $grupo->category],
+                ['name' => $grupo->category],
                 [
-                    'name'         => $grupo->category,
+                    'slug'         => $grupo->category,
                     'display_name' => 'Miembro ' . $grupo->name,
                     'description'  => 'Usuario miembro del grupo ' . $grupo->name
                 ]
@@ -48,15 +50,15 @@ class RoleSystemSeeder extends Seeder
             // Rol de Admin de Grupo (ej: admin_catequesis_ninos)
             $adminSlug = 'admin_' . $grupo->category;
             Role::updateOrCreate(
-                ['slug' => $adminSlug],
+                ['name' => $adminSlug],
                 [
-                    'name'         => $adminSlug,
+                    'slug'         => $adminSlug,
                     'display_name' => 'Administrador ' . $grupo->name,
                     'description'  => 'Coordinador responsable del grupo ' . $grupo->name
                 ]
             );
         }
 
-        $this->command->info('Roles creados exitosamente con todos los campos requeridos.');
+        $this->command->info('Roles sincronizados correctamente buscando por nombre único.');
     }
 }
