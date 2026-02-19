@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 class AdminController extends Controller
 {
     /**
-     * Dashboard principal con estadísticas y avisos
+     * Dashboard principal con estadísticas y avisos recientes.
      */
     public function dashboard()
     {
@@ -39,7 +39,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Gestión de Usuarios - Listado principal
+     * Gestión de Usuarios - Listado con paginación.
      */
     public function users()
     {
@@ -49,65 +49,69 @@ class AdminController extends Controller
     }
 
     /**
-     * Actualizar roles (Versión Dinámica y Robusta)
-     * Detecta si los roles existen en la DB antes de intentar sincronizar.
+     * Actualización dinámica de roles.
+     * Esta versión busca por 'slug' y 'name' para asegurar la sincronización 
+     * tras la migración de la columna slug.
      */
     public function updateUserRoles(Request $request, $id)
     {
         $user = User::findOrFail($id);
         
-        // Protección para el Super Admin
+        // Protección de seguridad para el Super Administrador
         if ($user->isSuperAdmin()) {
-            return back()->with('error', 'Los privilegios del Super Administrador son permanentes.');
+            return back()->with('error', 'Los privilegios del Super Administrador son permanentes y no pueden ser modificados.');
         }
 
-        // Recolectamos todos los slugs enviados desde el formulario (checkboxes)
-        $basicRoles = $request->input('basic_roles', []); 
-        $groupRoles = $request->input('roles', []);       
+        // Recolectamos los datos enviados desde los dos grupos de checkboxes de la vista
+        $basicRoles = $request->input('basic_roles', []); // admin, usuario
+        $groupRoles = $request->input('roles', []);       // catequesis_ninos, admin_acutis, etc.
         
-        // Unificamos y limpiamos valores nulos
-        $requestedSlugs = array_filter(array_unique(array_merge($basicRoles, $groupRoles)));
+        // Fusionamos en una lista única de identificadores (slugs/names)
+        $requestedIdentifiers = array_filter(array_unique(array_merge($basicRoles, $groupRoles)));
 
         try {
-            // Buscamos los roles existentes en la base de datos
-            $rolesFound = Role::whereIn('slug', $requestedSlugs)->get();
-            $roleIds = $rolesFound->pluck('id')->toArray();
+            // Buscamos los roles en la BD comparando contra slug o name por seguridad
+            $rolesInDb = Role::whereIn('slug', $requestedIdentifiers)
+                             ->orWhereIn('name', $requestedIdentifiers)
+                             ->get();
 
-            // Sincronizamos (Esto reemplaza los roles viejos por los nuevos IDs encontrados)
+            $roleIds = $rolesInDb->pluck('id')->toArray();
+
+            // Sincronizamos la relación: elimina los anteriores y agrega los nuevos IDs
             $user->roles()->sync($roleIds);
             
-            // Verificamos si algún rol solicitado no se encontró en la DB
-            $foundSlugs = $rolesFound->pluck('slug')->toArray();
-            $missingSlugs = array_diff($requestedSlugs, $foundSlugs);
+            // Verificamos si hubo algún identificador que no se encontró en la base de datos
+            $foundIdentifiers = $rolesInDb->pluck('slug')->merge($rolesInDb->pluck('name'))->unique()->toArray();
+            $missing = array_diff($requestedIdentifiers, $foundIdentifiers);
 
-            if (count($missingSlugs) > 0) {
-                return back()->with('success', 'Cuidado: Se actualizaron los roles existentes, pero estos NO existen en la base de datos y fueron ignorados: ' . implode(', ', $missingSlugs) . '. Por favor, vuelve a ejecutar el Seeder.');
+            if (count($missing) > 0) {
+                return back()->with('success', 'Se actualizaron los roles, pero algunos no existen en la BD y fueron omitidos: ' . implode(', ', $missing));
             }
 
             return back()->with('success', 'Roles y permisos de comunidad actualizados correctamente.');
         } catch (\Exception $e) {
             Log::error("Error actualizando roles de usuario {$id}: " . $e->getMessage());
-            return back()->with('error', 'Error técnico al guardar: ' . $e->getMessage());
+            return back()->with('error', 'Error técnico al intentar guardar los cambios.');
         }
     }
 
     /**
-     * Eliminar usuario
+     * Eliminación de usuario con restricciones.
      */
     public function deleteUser($id)
     {
         $user = User::findOrFail($id);
 
         if ($user->isSuperAdmin() || $user->id === Auth::id()) {
-            return back()->with('error', 'No se puede eliminar este usuario por seguridad.');
+            return back()->with('error', 'No se puede eliminar a este usuario por razones de seguridad.');
         }
 
         $user->delete();
-        return back()->with('success', 'Usuario eliminado de la base de datos.');
+        return back()->with('success', 'El usuario ha sido eliminado correctamente.');
     }
 
     /**
-     * Gestión de Intenciones
+     * Gestión de Intenciones de Misa.
      */
     public function intentions()
     {
@@ -115,34 +119,28 @@ class AdminController extends Controller
         return view('admin.intentions.index', compact('intentions'));
     }
 
-    /**
-     * Eliminar una intención específica
-     */
     public function deleteIntention($id)
     {
         try {
             Intention::findOrFail($id)->delete();
-            return back()->with('success', 'Intención eliminada.');
+            return back()->with('success', 'Intención eliminada con éxito.');
         } catch (\Exception $e) {
             return back()->with('error', 'No se pudo eliminar la intención.');
         }
     }
 
-    /**
-     * Vaciar toda la tabla de intenciones
-     */
     public function deleteAllIntentions()
     {
         try {
             Intention::query()->delete();
-            return back()->with('success', 'Lista de intenciones vaciada correctamente.');
+            return back()->with('success', 'La lista de intenciones ha sido vaciada.');
         } catch (\Exception $e) {
             return back()->with('error', 'Ocurrió un error al intentar vaciar la lista.');
         }
     }
 
     /**
-     * Listado de Donaciones
+     * Listado histórico de Donaciones.
      */
     public function donations()
     {
@@ -151,10 +149,11 @@ class AdminController extends Controller
     }
 
     /**
-     * Vista de impresión de intenciones
+     * Generación de vista para impresión de intenciones.
      */
     public function printIntentions(Request $request)
     {
+        // Ajuste de zona horaria para reportes precisos
         config(['app.timezone' => 'America/Argentina/Buenos_Aires']);
         
         $intentions = Intention::when($request->type, function($query, $type) {
