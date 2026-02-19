@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Auth\Events\PasswordReset;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -70,7 +71,6 @@ class AuthController extends Controller
      */
     public function sendResetLinkEmail(Request $request)
     {
-        // 1. Validación básica y de Captcha
         $request->validate([
             'email' => 'required|email',
             'g-recaptcha-response' => 'required'
@@ -78,7 +78,6 @@ class AuthController extends Controller
             'g-recaptcha-response.required' => 'Por favor, completa el captcha de seguridad.'
         ]);
 
-        // 2. Verificación de seguridad reCAPTCHA
         $captchaResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret' => config('services.recaptcha.secret_key') ?? env('RECAPTCHA_SECRET_KEY'),
             'response' => $request->input('g-recaptcha-response'),
@@ -89,21 +88,19 @@ class AuthController extends Controller
             return back()->withErrors(['captcha' => 'La verificación de seguridad falló.'])->withInput();
         }
 
-        // 3. Envío del enlace de recuperación
         $status = Password::broker()->sendResetLink(
             $request->only('email')
         );
 
-        // Si el estado es exitoso, devolvemos con el mensaje de Laravel
         return $status === Password::RESET_LINK_SENT
             ? back()->with('status', __($status))
             : back()->withErrors(['email' => __($status)]);
     }
 
     /**
-     * Procesa la actualización de la contraseña en la base de datos.
+     * PROCESA LA ACTUALIZACIÓN FINAL (Renombrado a updatePassword para evitar Error 404/500)
      */
-    public function resetPassword(Request $request)
+    public function updatePassword(Request $request)
     {
         $request->validate([
             'token' => 'required',
@@ -111,22 +108,28 @@ class AuthController extends Controller
             'password' => 'required|min:8|confirmed',
         ]);
 
-        $status = Password::broker()->reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password)
-                ])->setRememberToken(Str::random(60));
+        try {
+            $status = Password::broker()->reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function ($user, $password) {
+                    $user->password = Hash::make($password);
+                    $user->setRememberToken(Str::random(60));
+                    $user->save();
 
-                $user->save();
+                    event(new PasswordReset($user));
+                }
+            );
+
+            if ($status === Password::PASSWORD_RESET) {
+                return redirect()->route('login')->with('success', 'Tu contraseña ha sido actualizada correctamente.');
             }
-        );
 
-        // Si se restableció correctamente, enviamos al login con éxito.
-        // Si no, volvemos atrás con el error correspondiente.
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('success', __($status))
-            : back()->withErrors(['email' => [__($status)]]);
+            return back()->withErrors(['email' => [__($status)]])->withInput($request->only('email'));
+
+        } catch (\Exception $e) {
+            Log::error('Error crítico al resetear contraseña: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la contraseña.'])->withInput($request->only('email'));
+        }
     }
 
     public function register(Request $request)
@@ -146,7 +149,6 @@ class AuthController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        // Verificación de reCAPTCHA
         $captchaResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret' => config('services.recaptcha.secret_key') ?? env('RECAPTCHA_SECRET_KEY'),
             'response' => $request->input('g-recaptcha-response'),
@@ -167,7 +169,6 @@ class AuthController extends Controller
                 'onboarding_completed' => false
             ]);
 
-            // Asignar rol por defecto
             $userRole = Role::where('slug', 'usuario')->first();
             if ($userRole) {
                 $user->roles()->attach($userRole->id);
