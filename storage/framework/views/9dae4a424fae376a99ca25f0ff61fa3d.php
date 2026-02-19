@@ -75,5 +75,6 @@
             });
         }
     </script>
+    
 </body>
 </html><?php /**PATH C:\laragon\www\la_redonda_joven\resources\views/layouts/app.blade.php ENDPATH**/ ?>

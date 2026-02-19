@@ -14,14 +14,10 @@
         </div>
 
         {{-- BOTONES SOCIALES --}}
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid gap-4">
             <a href="{{ route('social.redirect', 'google') }}" class="flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95">
                 <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
                 <span class="text-xs font-bold text-gray-600">Google</span>
-            </a>
-            <a href="{{ route('social.redirect', 'facebook') }}" class="flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95">
-                <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5" alt="Facebook">
-                <span class="text-xs font-bold text-gray-600">Facebook</span>
             </a>
         </div>
 
