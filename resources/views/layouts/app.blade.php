@@ -26,6 +26,7 @@
             }
         }
     </script>
+    @yield('head')
 </head>
 <body class="font-poppins">
 
