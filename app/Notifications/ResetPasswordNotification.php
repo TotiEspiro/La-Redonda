@@ -42,7 +42,7 @@ class ResetPasswordNotification extends Notification
          */
         return (new MailMessage)
             ->subject('Restablecer Contraseña - La Redonda Joven')
-            ->view('auth.reset-password', [
+            ->view('emails.reset-password', [
                 'url' => $url,
                 'user' => $notifiable
             ]);
