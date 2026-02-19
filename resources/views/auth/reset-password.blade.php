@@ -28,7 +28,7 @@
             </div>
 
             <div>
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Repetir Contraseña</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Confirmar Contraseña</label>
                 <input name="password_confirmation" type="password" required 
                        class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm bg-gray-50/50"placeholder="Confirmá tu nueva contraseña">
             </div>
