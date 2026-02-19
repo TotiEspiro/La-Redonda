@@ -106,7 +106,7 @@
             <h1>Restablecer Contraseña</h1>
             
             <p>
-                ¡Hola, <strong>{{ $user->name }}</strong>!<br>
+                ¡Hola, <strong>{{ $notifiable->name }}</strong>!<br>
                 Recibimos una solicitud para cambiar tu contraseña en la comunidad de <strong>La Redonda Joven</strong>.
             </p>
             
