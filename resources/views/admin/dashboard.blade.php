@@ -129,7 +129,7 @@
             <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-button/30 transition-all"
                  data-user-id="{{ $user->id }}"
                  data-user-name="{{ $user->name }}"
-                 data-user-roles="{{ $user->roles->pluck('name')->implode(',') }}">
+                 data-user-roles="{{ $user->roles->pluck('slug')->implode(',') }}">
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-button text-white flex items-center justify-center font-black text-sm shadow-sm flex-shrink-0">
                         {{ substr($user->name, 0, 1) }}

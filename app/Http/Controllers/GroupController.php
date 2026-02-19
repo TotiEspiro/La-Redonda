@@ -53,6 +53,7 @@ class GroupController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
+        // CORRECCIÓN: 'catequesis_ninos' sin la 'ñ' para coincidir con el Seeder y la BD
         $allGroupSlugs = [
             'catequesis_ninos', 'catequesis_adolescentes', 'catequesis_adultos', 
             'acutis', 'juveniles', 'juan_pablo', 'coro', 'misioneros', 
@@ -128,6 +129,7 @@ class GroupController extends Controller
             'catequesis' => [
                 'title' => 'Catequesis',
                 'desc' => 'Formación sacramental para niños, adolescentes y adultos.',
+                // CORRECCIÓN: 'catequesis_ninos' sin la 'ñ'
                 'slugs' => ['catequesis_ninos', 'catequesis_adolescentes', 'catequesis_adultos']
             ],
             'jovenes' => [
