@@ -124,7 +124,7 @@
 
         <div class="footer-bottom flex flex-col md:flex-row justify-between items-center pt-4 gap-4 text-center md:text-left">
             <div class="copyright text-sm text-text-light">
-                &copy; 2025 La Redonda - Inmaculada Concepción de Belgrano (Sitio Web realizado por Tomas Espiro)
+                &copy; 2026 La Redonda - Inmaculada Concepción de Belgrano (Sitio Web realizado por Tomas Espiro)
             </div>
             <div class="legal-links flex flex-col md:flex-row gap-4 md:gap-6">
                 <a href="{{ route('legal.terminos') }}" class="text-sm text-text-light no-underline hover:text-button hover:underline transition-colors">Términos y Condiciones</a>
