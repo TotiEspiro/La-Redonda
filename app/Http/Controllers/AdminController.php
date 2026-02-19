@@ -49,47 +49,55 @@ class AdminController extends Controller
     }
 
     /**
-     * Actualizar roles (Versión Dinámica)
-     * Procesa tanto los roles básicos como los roles de grupos enviados desde la vista.
+     * Actualizar roles (Versión Dinámica y Robusta)
+     * Detecta si los roles existen en la DB antes de intentar sincronizar.
      */
     public function updateUserRoles(Request $request, $id)
     {
         $user = User::findOrFail($id);
         
-        // Protección para que nadie le quite el acceso al Super Admin
+        // Protección para el Super Admin
         if ($user->isSuperAdmin()) {
             return back()->with('error', 'Los privilegios del Super Administrador son permanentes.');
         }
 
-        // Obtenemos los slugs de los roles marcados en los arrays del formulario
-        $basicRoles = $request->input('basic_roles', []); // admin, usuario, etc.
-        $groupRoles = $request->input('roles', []);       // catequesis_ninos, admin_acutis, etc.
+        // Recolectamos todos los slugs enviados desde el formulario (checkboxes)
+        $basicRoles = $request->input('basic_roles', []); 
+        $groupRoles = $request->input('roles', []);       
         
-        // Combinamos todos los slugs en una sola lista única
-        $allSlugsToSync = array_unique(array_merge($basicRoles, $groupRoles));
+        // Unificamos y limpiamos valores nulos
+        $requestedSlugs = array_filter(array_unique(array_merge($basicRoles, $groupRoles)));
 
         try {
-            // Buscamos los IDs de los roles en la base de datos usando los slugs
-            $roleIds = Role::whereIn('slug', $allSlugsToSync)->pluck('id')->toArray();
-            
-            // Sincronizamos la relación (borra lo anterior y pone lo nuevo)
+            // Buscamos los roles existentes en la base de datos
+            $rolesFound = Role::whereIn('slug', $requestedSlugs)->get();
+            $roleIds = $rolesFound->pluck('id')->toArray();
+
+            // Sincronizamos (Esto reemplaza los roles viejos por los nuevos IDs encontrados)
             $user->roles()->sync($roleIds);
             
+            // Verificamos si algún rol solicitado no se encontró en la DB
+            $foundSlugs = $rolesFound->pluck('slug')->toArray();
+            $missingSlugs = array_diff($requestedSlugs, $foundSlugs);
+
+            if (count($missingSlugs) > 0) {
+                return back()->with('success', 'Cuidado: Se actualizaron los roles existentes, pero estos NO existen en la base de datos y fueron ignorados: ' . implode(', ', $missingSlugs) . '. Por favor, vuelve a ejecutar el Seeder.');
+            }
+
             return back()->with('success', 'Roles y permisos de comunidad actualizados correctamente.');
         } catch (\Exception $e) {
             Log::error("Error actualizando roles de usuario {$id}: " . $e->getMessage());
-            return back()->with('error', 'Ocurrió un error al intentar guardar los cambios.');
+            return back()->with('error', 'Error técnico al guardar: ' . $e->getMessage());
         }
     }
 
     /**
-     * Eliminar usuario con protecciones de seguridad
+     * Eliminar usuario
      */
     public function deleteUser($id)
     {
         $user = User::findOrFail($id);
 
-        // No permitir eliminarse a uno mismo ni eliminar al Superadmin
         if ($user->isSuperAdmin() || $user->id === Auth::id()) {
             return back()->with('error', 'No se puede eliminar este usuario por seguridad.');
         }
@@ -134,7 +142,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Listado de Donaciones (Integración con Mercado Pago / Manual)
+     * Listado de Donaciones
      */
     public function donations()
     {
@@ -143,11 +151,10 @@ class AdminController extends Controller
     }
 
     /**
-     * Vista de impresión de intenciones con filtros de fecha y tipo
+     * Vista de impresión de intenciones
      */
     public function printIntentions(Request $request)
     {
-        // Ajustamos zona horaria para la consulta
         config(['app.timezone' => 'America/Argentina/Buenos_Aires']);
         
         $intentions = Intention::when($request->type, function($query, $type) {
