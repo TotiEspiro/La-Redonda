@@ -216,10 +216,8 @@
                         <tbody class="divide-y divide-gray-50">
                             @php
                                 $grupos = [
-                                    'catequesis' => 'Catequesis', 'juveniles' => 'Jóvenes', 'acutis' => 'Acutis',
-                                    'juan_pablo' => 'Juan Pablo II', 'coro' => 'Coro', 'san_joaquin' => 'San Joaquín',
-                                    'santa_ana' => 'Santa Ana', 'ardillas' => 'Ardillas', 'costureras' => 'Costureras',
-                                    'misioneros' => 'Misioneros', 'caridad_comedor' => 'Caridad'
+                                    'catequesis_ninos' => 'Catequesis Niños', 'catequesis_adolescentes' => 'Catequesis Adolescentes', 'catequesis_adultos' => 'Catequesis Adultos','juveniles' => 'Juveniles', 'acutis' => 'Acutis',
+                                    'juan_pablo' => 'Juan Pablo II', 'coro' => 'Coro', 'misioneros' => 'Misioneros','san_joaquin' => 'San Joaquín','santa_ana' => 'Santa Ana', 'ardillas' => 'Ardillas', 'costureras' => 'Costureras', 'caridad' => 'Caridad', 'comedor' => 'Comedor','caritas' => 'Cáritas', 
                                 ];
                             @endphp
                             @foreach($grupos as $key => $label)
