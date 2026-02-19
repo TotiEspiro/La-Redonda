@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="mb-8">
-    <h2 class="text-3xl font-black text-text-dark">Adminstración del Sistema</h2>
+    <h2 class="text-3xl font-black text-text-dark">Administración del Sistema</h2>
     <p class="text-text-light text-sm font-medium">Control general y actividad reciente de La Redonda</p>
 </div>
 
@@ -60,7 +60,7 @@
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    {{-- ÚLTIMOS AVISOS (Administrable) --}}
+    {{-- ÚLTIMOS AVISOS --}}
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
         <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
             <h3 class="text-lg font-black text-text-dark uppercase tracking-tight">Últimos Avisos</h3>
@@ -78,7 +78,7 @@
                         <p class="text-xs text-text-light line-clamp-1 mb-3">{{ $announcement->short_description }}</p>
                         <div class="flex items-center gap-3">
                             <a href="{{ route('admin.announcements.edit', $announcement->id) }}" class="text-[10px] font-black text-button uppercase tracking-widest hover:underline">Editar</a>
-                            <button onclick="confirmDeleteAnnouncement({{ $announcement->id }}, '{{ $announcement->title }}')" class="text-[10px] font-black text-red-400 uppercase tracking-widest hover:text-red-600 transition-colors">Eliminar</button>
+                            <button onclick="confirmDeleteAnnouncement({{ $announcement->id }}, '{{ $announcement->title }}')" class="text-[10px] font-black text-button uppercase tracking-widest hover:text-red-600 transition-colors">Eliminar</button>
                         </div>
                     </div>
                     <span class="text-[10px] font-bold text-gray-400 bg-white px-2 py-1 rounded-lg border border-gray-100 shadow-sm">{{ $announcement->created_at->format('d/m') }}</span>
@@ -117,7 +117,7 @@
     </div>
 </div>
 
-{{-- ÚLTIMOS USUARIOS (Administrable) --}}
+{{-- ÚLTIMOS USUARIOS --}}
 <div class="mt-8 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
     <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
         <h3 class="text-lg font-black text-text-dark uppercase tracking-tight">Usuarios Recientes</h3>
@@ -129,7 +129,8 @@
             <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-button/30 transition-all"
                  data-user-id="{{ $user->id }}"
                  data-user-name="{{ $user->name }}"
-                 data-user-roles="{{ $user->roles->pluck('name')->implode(',') }}">
+                 {{-- CAMBIO CRÍTICO: Usamos el SLUG del rol, no el nombre, para que el JS lo reconozca --}}
+                 data-user-roles="{{ $user->roles->pluck('slug')->implode(',') }}">
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-button text-white flex items-center justify-center font-black text-sm shadow-sm flex-shrink-0">
                         {{ substr($user->name, 0, 1) }}
@@ -140,14 +141,14 @@
                     </div>
                 </div>
                 <div class="flex gap-2 ml-4">
-                    <button  onclick="openRoleModal({{ $user->id }}, '{{ $user->name }}')"" 
-                        class="flex-1 py-2.5 text-xs font-bold text-button hover:bg-blue-50 active:bg-blue-100 transition-colors flex items-center justify-center gap-2 uppercase tracking-wide rounded">
-                        <svg class="w-6 h-" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    <button onclick="openRoleModal({{ $user->id }}, '{{ $user->name }}')" 
+                        class="p-2.5 text-xs font-bold text-button hover:bg-blue-50 active:bg-blue-100 transition-colors rounded-xl">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     </button>
                     @if(!$user->isSuperAdmin() && $user->id !== auth()->id())
                     <button onclick="confirmDeleteUser({{ $user->id }}, '{{ $user->name }}')"
-                        class="flex-1 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors flex items-center justify-center gap-2 uppercase tracking-wide">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        class="p-2.5 text-xs font-bold text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors rounded-xl">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                     @endif
                 </div>
@@ -159,11 +160,9 @@
     </div>
 </div>
 
-{{-- MODALES --}}
-
-{{-- Modal Gestión de Roles (Versión 15 Grupos) --}}
+{{-- MODAL GESTIÓN DE ROLES (DINÁMICO) --}}
 <div id="roleModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
-    <div class="bg-white w-full md:max-w-3xl rounded-3xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden mx-4">
+    <div class="bg-white w-full md:max-w-4xl rounded-3xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden mx-4">
         <div class="bg-button px-8 py-6 text-white flex justify-between items-center">
             <div>
                 <h2 id="modalUserName" class="text-xl font-black uppercase tracking-tight"></h2>
@@ -184,9 +183,9 @@
                         </div>
                     </label>
                     <label class="flex items-center p-4 border-2 border-gray-50 rounded-2xl cursor-pointer hover:border-button/20 transition-all group">
-                        <input type="checkbox" name="basic_roles[]" value="user" class="w-6 h-6 text-button rounded-lg border-gray-200">
+                        <input type="checkbox" name="basic_roles[]" value="usuario" class="w-6 h-6 text-button rounded-lg border-gray-200">
                         <div class="ml-4">
-                            <span class="block text-sm font-bold text-text-dark uppercase">Usuario</span>
+                            <span class="block text-sm font-bold text-text-dark uppercase">Usuario Registrado</span>
                         </div>
                     </label>
                 </div>
@@ -199,25 +198,22 @@
                             <tr>
                                 <th class="px-6 py-4 tracking-widest">Grupo Parroquial</th>
                                 <th class="px-6 py-4 text-center tracking-widest">Miembro</th>
-                                <th class="px-6 py-4 text-center tracking-widest">Gestor</th>
+                                <th class="px-6 py-4 text-center tracking-widest">Coordinador (Admin)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
-                            @php
-                                $grupos = [
-                                    'catequesis_ninos' => 'Catequesis Niños', 'catequesis_adolescentes' => 'Catequesis Adolescentes', 'catequesis_adultos' => 'Catequesis Adultos','juveniles' => 'Juveniles', 'acutis' => 'Acutis',
-                                    'juan_pablo' => 'Juan Pablo II', 'coro' => 'Coro', 'misioneros' => 'Misioneros','san_joaquin' => 'San Joaquín','santa_ana' => 'Santa Ana', 'ardillas' => 'Ardillas', 'costureras' => 'Costureras', 'caridad' => 'Caridad', 'comedor' => 'Comedor','caritas' => 'Cáritas', 
-                                ];
-                            @endphp
-                            @foreach($grupos as $key => $label)
+                            {{-- CAMBIO CLÍTICO: Cargamos los grupos desde la DB automáticamente --}}
+                            @foreach(\App\Models\Group::all() as $grupo)
                                 <tr class="hover:bg-gray-50/50">
-                                    <td class="px-6 py-4 font-bold text-text-dark text-xs uppercase">{{ $label }}</td>
+                                    <td class="px-6 py-4 font-bold text-text-dark text-xs uppercase">{{ $grupo->name }}</td>
                                     <td class="px-6 py-4 text-center">
-                                        <input type="checkbox" name="member_{{ $key }}" id="member_{{ $key }}" class="w-5 h-5 text-button rounded-md border-gray-200">
+                                        {{-- El rol de miembro usa el slug del grupo (ej. catequesis_ninos) --}}
+                                        <input type="checkbox" name="roles[]" value="{{ $grupo->category }}" id="member_{{ $grupo->category }}" class="w-5 h-5 text-button rounded-md border-gray-200">
                                     </td>
                                     <td class="px-6 py-4 text-center">
-                                        <input type="checkbox" name="admin_{{ $key }}" id="admin_{{ $key }}" 
-                                               onchange="document.getElementById('member_{{ $key }}').checked = this.checked" 
+                                        {{-- El rol de admin usa admin_ + slug (ej. admin_catequesis_ninos) --}}
+                                        <input type="checkbox" name="roles[]" value="admin_{{ $grupo->category }}" id="admin_{{ $grupo->category }}" 
+                                               onchange="if(this.checked) document.getElementById('member_{{ $grupo->category }}').checked = true" 
                                                class="w-5 h-5 text-blue-600 rounded-md border-gray-200">
                                     </td>
                                 </tr>
@@ -235,7 +231,7 @@
     </div>
 </div>
 
-{{-- Modal Eliminar (Genérico) --}}
+{{-- Modales de Soporte --}}
 <div id="deleteModal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4 bg-black/75 backdrop-blur-md">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center">
         <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-red-50 mb-6">
@@ -253,7 +249,6 @@
     </div>
 </div>
 
-{{-- Modal Estado --}}
 <div id="statusModal" class="hidden fixed inset-0 z-[110] items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center animate-fade-in">
         <div id="statusModalIcon" class="mb-6"></div>
@@ -264,26 +259,38 @@
 </div>
 
 <script>
-// Roles Modal
 function openRoleModal(userId, userName) {
     const userItem = document.querySelector(`[data-user-id="${userId}"]`);
     const form = document.getElementById('activeRoleForm');
     document.getElementById('modalUserName').textContent = userName;
     form.action = `/admin/users/${userId}/update-roles`;
+    
+    // Limpiar todos los checkboxes
     form.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     
-    const roles = userItem.dataset.userRoles.split(',');
-    roles.forEach(role => {
-        const basic = form.querySelector(`input[name="basic_roles[]"][value="${role}"]`);
+    // Obtener los slugs de los roles del usuario
+    const roleSlugs = userItem.dataset.userRoles.split(',');
+    
+    roleSlugs.forEach(slug => {
+        // 1. Check básico (admin, usuario)
+        const basic = form.querySelector(`input[name="basic_roles[]"][value="${slug}"]`);
         if(basic) basic.checked = true;
-        if(role.startsWith('admin_') && role !== 'admin_grupo_parroquial') {
-            const key = role.replace('admin_', '');
-            if(document.getElementById(`admin_${key}`)) document.getElementById(`admin_${key}`).checked = true;
-            if(document.getElementById(`member_${key}`)) document.getElementById(`member_${key}`).checked = true;
-        } else if(document.getElementById(`member_${role}`)) {
-            document.getElementById(`member_${role}`).checked = true;
+
+        // 2. Check de Miembro o Admin de Grupo
+        // Si el slug empieza con admin_, marcamos el checkbox de admin
+        if(slug.startsWith('admin_') && slug !== 'admin_grupo_parroquial') {
+            const groupKey = slug.replace('admin_', '');
+            const adminCheckbox = document.getElementById(`admin_${groupKey}`);
+            const memberCheckbox = document.getElementById(`member_${groupKey}`);
+            if(adminCheckbox) adminCheckbox.checked = true;
+            if(memberCheckbox) memberCheckbox.checked = true;
+        } else {
+            // Es un rol de miembro simple
+            const memberCheckbox = document.getElementById(`member_${slug}`);
+            if(memberCheckbox) memberCheckbox.checked = true;
         }
     });
+
     document.getElementById('roleModal').classList.remove('hidden');
     document.getElementById('roleModal').classList.add('flex');
     document.body.style.overflow = 'hidden';
@@ -294,7 +301,6 @@ function closeRoleModal() {
     document.body.style.overflow = 'auto';
 }
 
-// Eliminación de Anuncios
 function confirmDeleteAnnouncement(id, title) {
     document.getElementById('deleteTitle').textContent = '¿Eliminar Aviso?';
     document.getElementById('deleteMessage').innerHTML = `Vas a eliminar permanentemente el aviso: <br><span class="font-bold text-red-500">${title}</span>`;
@@ -303,7 +309,6 @@ function confirmDeleteAnnouncement(id, title) {
     document.getElementById('deleteModal').classList.add('flex');
 }
 
-// Eliminación de Usuarios
 function confirmDeleteUser(id, name) {
     document.getElementById('deleteTitle').textContent = '¿Eliminar Usuario?';
     document.getElementById('deleteMessage').innerHTML = `Vas a eliminar permanentemente a: <br><span class="font-bold text-red-500">${name}</span>`;
@@ -317,7 +322,6 @@ function closeDeleteModal() {
     document.body.style.overflow = 'auto';
 }
 
-// Mensajes de Flash
 @if(session('success') || session('error'))
     window.onload = function() {
         const isSuccess = {{ session('success') ? 'true' : 'false' }};
