@@ -4,25 +4,30 @@
  */
 window.subscribeUserToPush = async function() {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.warn('Push notifications are not supported in this browser.');
         return;
     }
 
     try {
         const registration = await navigator.serviceWorker.ready;
         
-        // Obtenemos la llave pública VAPID del meta tag que pusimos en el layout
+        // Obtenemos la llave pública VAPID del meta tag
         const vapidPublicKey = document.querySelector('meta[name="vapid-pub"]').content;
         
         if (!vapidPublicKey) {
+            console.error('VAPID public key not found in meta tags.');
             return;
         }
 
+        // Función necesaria para convertir la llave base64 a Uint8Array
+        const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+
         const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: vapidPublicKey
+            applicationServerKey: convertedKey
         });
 
-        // Enviamos la suscripción al servidor (AuthController@updatePushSubscription)
+        // Enviamos la suscripción al servidor
         const response = await fetch('/notifications/subscribe', {
             method: 'POST',
             body: JSON.stringify(subscription),
@@ -34,14 +39,29 @@ window.subscribeUserToPush = async function() {
         });
 
         if (response.ok) {
-        } else {
+            console.log('Successfully subscribed to Push Notifications');
         }
 
     } catch (error) {
+        console.error('Error during push subscription:', error);
     }
 };
 
-// Solicitar permiso automáticamente al cargar si no se ha decidido
+/**
+ * Auxiliar para convertir la llave pública VAPID
+ */
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+// Iniciar solicitud de permiso
 if (Notification.permission === 'default') {
     Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
