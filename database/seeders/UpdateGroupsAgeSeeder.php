@@ -15,8 +15,8 @@ class UpdateGroupsAgeSeeder extends Seeder
     {
         $config = [
             // --- CATEQUESIS ---
-            'catequesis' => [
-                'nombre' => 'Catequesis Niños',
+            'catequesis_ninos' => [
+                'nombre' => 'Catequesis Jovenes',
                 'min' => 6,
                 'max' => 12,
                 'descripcion' => 'Preparación para la comunión y formación inicial.'

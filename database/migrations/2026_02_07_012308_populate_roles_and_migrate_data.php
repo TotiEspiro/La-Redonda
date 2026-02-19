@@ -27,9 +27,9 @@ return new class extends Migration
         $roles = [
             ['name' => 'superadmin', 'display_name' => 'Super Administrador', 'description' => 'Acceso completo al sistema', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'admin', 'display_name' => 'Administrador', 'description' => 'Administración del sistema', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'catequesis_niños', 'display_name' => 'Catequesis', 'description' => 'Responsable de catequesis para niños', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'catequesis_adolescentes', 'display_name' => 'Catequesis', 'description' => 'Responsable de catequesis para adolescentes', 'created_at' => now(), 'updated_at' => now()],
-            ['name' => 'catequesis_adultos', 'display_name' => 'Catequesis', 'description' => 'Responsable de catequesis para adultos', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'catequesis_ninos', 'display_name' => 'Catequesis Jovenes', 'description' => 'Responsable de catequesis para infantes', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'catequesis_adolescentes', 'display_name' => 'Catequesis Adolescentes', 'description' => 'Responsable de catequesis para adolescentes', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'catequesis_adultos', 'display_name' => 'Catequesis Adultos', 'description' => 'Responsable de catequesis para adultos', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'juveniles', 'display_name' => 'Juveniles', 'description' => 'Responsable de grupo juvenil', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'acutis', 'display_name' => 'Acutis', 'description' => 'Responsable de grupo Acutis', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'juan_pablo', 'display_name' => 'Juan Pablo', 'description' => 'Responsable de grupo Juan Pablo', 'created_at' => now(), 'updated_at' => now()],
