@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str; // Importante para generar la contraseña aleatoria
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -23,6 +27,14 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
+    /**
+     * Muestra el formulario de olvido de contraseña.
+     */
+    public function showLinkRequestForm()
+    {
+        return view('auth.forgot-password');
+    }
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -33,13 +45,48 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             $user = Auth::user();
-            if ($user->isAdmin()) return redirect()->route('admin.dashboard');
+            if ($user->isAdmin() || $user->isSuperAdmin()) return redirect()->route('admin.dashboard');
             return redirect()->intended('dashboard');
         }
 
         return back()->withErrors([
             'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
         ])->onlyInput('email');
+    }
+
+    /**
+     * Procesa el envío del correo de recuperación con validación de Captcha.
+     */
+    public function sendResetLinkEmail(Request $request)
+    {
+        // 1. Validación básica y de Captcha
+        $request->validate([
+            'email' => 'required|email',
+            'g-recaptcha-response' => 'required'
+        ], [
+            'g-recaptcha-response.required' => 'Por favor, completa el captcha de seguridad.'
+        ]);
+
+        // 2. Verificación de seguridad reCAPTCHA
+        $captchaResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => config('services.recaptcha.secret_key') ?? env('RECAPTCHA_SECRET_KEY'),
+            'response' => $request->input('g-recaptcha-response'),
+            'remoteip' => $request->ip(),
+        ]);
+
+        if (!$captchaResponse->json('success')) {
+            return back()->withErrors(['captcha' => 'La verificación de seguridad falló.'])->withInput();
+        }
+
+        // 3. Envío del enlace de recuperación
+        $status = Password::broker()->sendResetLink(
+            $request->only('email')
+        );
+
+        // Si el estado es exitoso, devolvemos con el mensaje de Laravel
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('status', __($status))
+            : back()->withErrors(['email' => __($status)]);
     }
 
     public function register(Request $request)
@@ -49,27 +96,53 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'g-recaptcha-response' => 'required'
-        ], ['g-recaptcha-response.required' => 'Por favor, confirma que no eres un robot.']);
+        ], [
+            'email.unique' => 'Este correo ya está registrado.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'g-recaptcha-response.required' => 'Confirma que no eres un robot.'
+        ]);
 
-        if ($validator->fails()) return back()->withErrors($validator)->withInput();
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
 
+        // Verificación de reCAPTCHA
         $captchaResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => env('RECAPTCHA_SECRET_KEY'),
+            'secret' => config('services.recaptcha.secret_key') ?? env('RECAPTCHA_SECRET_KEY'),
             'response' => $request->input('g-recaptcha-response'),
             'remoteip' => $request->ip(),
         ]);
 
-        if (!$captchaResponse->json('success')) return back()->withErrors(['captcha' => 'Fallo la verificación de seguridad.'])->withInput();
+        if (!$captchaResponse->json('success')) {
+            return back()->withErrors(['captcha' => 'Fallo la verificación de seguridad.'])->withInput();
+        }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'onboarding_completed' => false
-        ]);
+        try {
+            DB::beginTransaction();
 
-        Auth::login($user);
-        return redirect()->route('profile.edit')->with('info', '¡Bienvenido! Completa tu edad.');
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'onboarding_completed' => false
+            ]);
+
+            // Asignar rol por defecto
+            $userRole = Role::where('slug', 'usuario')->first();
+            if ($userRole) {
+                $user->roles()->attach($userRole->id);
+            }
+
+            DB::commit();
+
+            Auth::login($user);
+            return redirect()->route('profile.edit')->with('success', '¡Bienvenido! Por favor completa tu edad.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error en registro: " . $e->getMessage());
+            return back()->withErrors(['error' => 'Error al crear la cuenta.'])->withInput();
+        }
     }
 
     public function redirectToProvider($provider)
@@ -78,29 +151,21 @@ class AuthController extends Controller
         return Socialite::driver($provider)->redirect();
     }
 
-    /**
-     * MANEJO DEL CALLBACK (Corregido para evitar errores de integridad en la BD)
-     */
     public function handleProviderCallback($provider)
     {
         try {
-            // Usamos stateless() para evitar problemas de sesión en entornos cloud
             $socialUser = Socialite::driver($provider)->stateless()->user();
         } catch (\Exception $e) {
-            return redirect()->route('login')->with('error', 'Error de conexión con ' . ucfirst($provider) . '. Inténtalo de nuevo.');
+            return redirect()->route('login')->with('error', 'Error con ' . ucfirst($provider));
         }
 
-        // Buscamos usuario por email
         $user = User::where('email', $socialUser->getEmail())->first();
 
         if ($user) {
-            // CASO 1: El usuario ya existe. Vinculamos o actualizamos datos.
             if ($user->provider_name !== null && $user->provider_name !== $provider) {
-                return redirect()->route('login')->with('error', "Este email ya está registrado con {$user->provider_name}. Ingresa con ese botón.");
+                return redirect()->route('login')->with('error', "Email registrado con {$user->provider_name}.");
             }
-
             if ($user->provider_name === null) {
-                // Vinculamos cuenta manual con la red social para mayor comodidad
                 $user->update([
                     'provider_id'   => $socialUser->getId(),
                     'provider_name' => $provider,
@@ -108,27 +173,22 @@ class AuthController extends Controller
                 ]);
             }
         } else {
-            // CASO 3: Usuario totalmente nuevo (Aquí estaba el error)
-            // Generamos una contraseña aleatoria de 24 caracteres para cumplir con la BD
             $user = User::create([
                 'name' => $socialUser->getName(),
                 'email' => $socialUser->getEmail(),
                 'provider_id' => $socialUser->getId(),
                 'provider_name' => $provider,
                 'avatar' => $socialUser->getAvatar(),
-                'password' => Hash::make(Str::random(24)), // <--- SOLUCIÓN: Nunca enviamos NULL
+                'password' => Hash::make(Str::random(24)),
                 'onboarding_completed' => false,
             ]);
+
+            $userRole = Role::where('slug', 'usuario')->first();
+            if ($userRole) $user->roles()->attach($userRole->id);
         }
 
         Auth::login($user);
-
-        // Si es la primera vez o no tiene edad, lo mandamos a completar su perfil
-        if (!$user->age) {
-            return redirect()->route('profile.edit')->with('info', 'Por favor, registra tu edad para poder inscribirte en grupos.');
-        }
-
-        return redirect()->route('dashboard');
+        return $user->age ? redirect()->route('dashboard') : redirect()->route('profile.edit');
     }
 
     public function logout(Request $request)
@@ -142,15 +202,20 @@ class AuthController extends Controller
     public function updatePushSubscription(Request $request)
     {
         $this->validate($request, [
-            'endpoint' => 'required',
-            'keys.auth' => 'required',
+            'endpoint'    => 'required',
+            'keys.auth'   => 'required',
             'keys.p256dh' => 'required'
         ]);
 
         $user = Auth::user();
         if (!$user) return response()->json(['success' => false], 401);
 
-        $user->updatePushSubscription($request->endpoint, $request->keys['p256dh'], $request->keys['auth']);
+        $user->updatePushSubscription(
+            $request->endpoint, 
+            $request->keys['p256dh'], 
+            $request->keys['auth']
+        );
+
         return response()->json(['success' => true]);
     }
 }
