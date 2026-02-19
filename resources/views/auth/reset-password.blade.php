@@ -1,137 +1,56 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restablecer Contraseña - La Redonda</title>
-    <style>
-        /* Estilos base para clientes de correo */
-        body {
-            font-family: 'Poppins', Arial, sans-serif;
-            background-color: #f9fafb;
-            margin: 0;
-            padding: 0;
-            -webkit-text-size-adjust: none;
-            width: 100% !important;
-        }
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-        .card {
-            background-color: #ffffff;
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border: 1px solid #f3f4f6;
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .logo img {
-            width: 80px;
-            height: auto;
-            border-radius: 50%;
-        }
-        h1 {
-            color: #111827;
-            font-size: 24px;
-            font-weight: 800;
-            text-align: center;
-            margin: 0 0 16px 0;
-            text-transform: uppercase;
-            letter-spacing: -0.025em;
-        }
-        p {
-            color: #4b5563;
-            font-size: 16px;
-            line-height: 24px;
-            text-align: center;
-            margin: 0 0 30px 0;
-        }
-        .button-container {
-            text-align: center;
-            margin: 30px 0;
-        }
-        .button {
-            background-color: #1e3a8a;
-            color: #ffffff !important;
-            padding: 18px 36px;
-            border-radius: 16px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: bold;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            color: #9ca3af;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .divider {
-            border-top: 1px solid #f3f4f6;
-            margin: 30px 0;
-        }
-        .small-text {
-            font-size: 12px;
-            color: #9ca3af;
-            text-align: center;
-            line-height: 18px;
-        }
-        .link-text {
-            word-break: break-all;
-            color: #1e3a8a;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Logo de la Parroquia -->
-        <div class="logo">
-            <img src="{{ asset('img/logo_redonda.png') }}" alt="La Redonda Joven">
+@extends('layouts.app')
+
+@section('content')
+<div class="min-h-[calc(100vh-180px)] flex items-center justify-center bg-background-light py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-gray-100">
+        <div class="text-center">
+            <h2 class="text-3xl font-black text-text-dark uppercase tracking-tighter">Nueva Contraseña</h2>
+            <p class="mt-2 text-sm text-text-light font-medium">Ingresá tu nueva clave para acceder</p>
         </div>
 
-        <!-- Contenido Principal -->
-        <div class="card">
-            <h1>Restablecer Contraseña</h1>
-            
-            <p>
-                ¡Hola, <strong>{{ $notifiable->name }}</strong>!<br>
-                Recibimos una solicitud para cambiar tu contraseña en la comunidad de <strong>La Redonda Joven</strong>.
-            </p>
-            
-            <div class="button-container">
-                <a href="{{ $url }}" class="button">Cambiar Contraseña</a>
+        {{-- Alerta de Errores --}}
+        @if ($errors->any())
+            <div class="p-4 mb-4 text-xs text-red-700 bg-red-50 rounded-2xl border border-red-100">
+                <ul class="list-disc list-inside font-medium">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('password.update') }}" method="POST" class="mt-8 space-y-6">
+            @csrf
+
+            {{-- Token de seguridad obligatorio enviado por Laravel en el mail --}}
+            <input type="hidden" name="token" value="{{ $token }}">
+
+            {{-- Email (generalmente se pasa por la URL para seguridad) --}}
+            <div>
+                <label for="email" class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Confirmar Email</label>
+                <input id="email" name="email" type="email" value="{{ $email ?? old('email') }}" required 
+                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50"
+                       placeholder="ejemplo@correo.com">
             </div>
 
-            <p>
-                Este enlace expirará en 60 minutos.<br>
-                Si no solicitaste este cambio, puedes ignorar este mensaje con total tranquilidad. Tu cuenta sigue segura.
-            </p>
-            
-            <div class="divider"></div>
-            
-            <!-- Link de respaldo -->
-            <p class="small-text">
-                Si tienes problemas con el botón, copia y pega este enlace en tu navegador:<br>
-                <a href="{{ $url }}" class="link-text">{{ $url }}</a>
-            </p>
-        </div>
+            {{-- Nueva Contraseña --}}
+            <div>
+                <label for="password" class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Nueva Contraseña</label>
+                <input id="password" name="password" type="password" required 
+                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50">
+            </div>
 
-        <!-- Pie de página -->
-        <div class="footer">
-            &copy; {{ date('Y') }} La Redonda Joven. Nos vemos pronto en la parroquia.
-        </div>
+            {{-- Confirmar Contraseña --}}
+            <div>
+                <label for="password_confirmation" class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Repetir Contraseña</label>
+                <input id="password_confirmation" name="password_confirmation" type="password" required 
+                       class="block w-full px-5 py-4 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50">
+            </div>
+
+            <button type="submit" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-xs font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100 uppercase tracking-widest">
+                Actualizar Contraseña
+            </button>
+        </form>
     </div>
-</body>
-</html>
+</div>
+@endsection
