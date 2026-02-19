@@ -11,47 +11,41 @@ class NuevaIntencion extends Notification
 {
     use Queueable;
 
-    protected $intention;
+    public $intencion;
 
-    /**
-     * Recibe el objeto de la intención creada.
-     */
-    public function __construct($intention)
+    public function __construct($intencion)
     {
-        $this->intention = $intention;
+        $this->intencion = $intencion;
     }
 
-    /**
-     * Determina los canales de envío.
-     */
     public function via($notifiable)
     {
+        // Enviamos a la base de datos y al canal Push
         return ['database', WebPushChannel::class];
     }
 
-    /**
-     * Estructura para la base de datos (lo que lee el PC).
-     */
     public function toArray($notifiable)
     {
         return [
-            'title' => 'Intención Recibida',
-            'message' => 'Tu petición "' . $this->intention->type . '" ha sido registrada correctamente.',
-            'link' => route('profile.show'),
+            'title' => 'Nueva Intención Recibida',
+            'message' => "{$this->intencion->name} ha dejado una intención: " . substr($this->intencion->message, 0, 50) . "...",
+            'url' => route('admin.intentions'),
+            'type' => 'intention'
         ];
     }
 
     /**
-     * Estructura para el Push (lo que hace vibrar el celular).
+     * Formato para notificación Push nativa
      */
     public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)
-            ->title('Intención Registrada')
-            ->icon('/img/logo_notificacion_redonda.png')
+            ->title('Nueva Intención de Misa')
+            ->icon('/img/icono_intenciones.png')
             ->badge('/img/badge_logo_redonda.png')
-            ->body('Tu petición de oración ha sido recibida. Rezaremos por ella en la próxima misa.')
-            ->action('Ver Perfil', 'view_profile')
+            ->body("De: {$this->intencion->name}\nTipo: {$this->intencion->type}")
+            ->action('Revisar', 'view_intentions')
+            ->data(['url' => route('admin.intentions')])
             ->options(['TTL' => 1000]);
     }
 }

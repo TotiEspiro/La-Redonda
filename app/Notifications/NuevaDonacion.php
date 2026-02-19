@@ -11,11 +11,11 @@ class NuevaDonacion extends Notification
 {
     use Queueable;
 
-    protected $donation;
+    public $donacion;
 
-    public function __construct($donation)
+    public function __construct($donacion)
     {
-        $this->donation = $donation;
+        $this->donacion = $donacion;
     }
 
     public function via($notifiable)
@@ -26,19 +26,25 @@ class NuevaDonacion extends Notification
     public function toArray($notifiable)
     {
         return [
-            'title' => '¡Gracias por tu Donación!',
-            'message' => 'Hemos recibido tu aporte de $' . number_format($this->donation->amount, 2),
-            'link' => route('home'),
+            'title' => 'Nueva Donación',
+            'message' => "Se ha recibido una donación de $" . number_format($this->donacion->amount, 2),
+            'url' => route('admin.donations'),
+            'type' => 'donation'
         ];
     }
 
+    /**
+     * Formato para notificación Push nativa
+     */
     public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)
-            ->title('Donación Confirmada')
-            ->icon('/img/logo_notificacion_redonda.png')
+            ->title('¡Nueva Donación Recibida!')
+            ->icon('/img/icono_donaciones_admin.png')
             ->badge('/img/badge_logo_redonda.png')
-            ->body('Muchas gracias por tu generosidad. Tu aporte ayuda a mantener nuestra comunidad activa.')
+            ->body("Monto: $" . number_format($this->donacion->amount, 2) . "\n¡Gracias por la generosidad!")
+            ->action('Ver detalle', 'view_donations')
+            ->data(['url' => route('admin.donations')])
             ->options(['TTL' => 1000]);
     }
 }

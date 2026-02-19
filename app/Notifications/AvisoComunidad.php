@@ -11,42 +11,44 @@ class AvisoComunidad extends Notification
 {
     use Queueable;
 
-    public $title;
-    public $message;
-    public $link;
+    public $titulo;
+    public $mensaje;
+    public $url;
 
-    /**
-     * Notificación genérica para avisos de grupos y comunidad.
-     */
-    public function __construct($title, $message, $link = null)
+    public function __construct($titulo, $mensaje, $url = '#')
     {
-        $this->title = $title;
-        $this->message = $message;
-        $this->link = $link;
+        $this->titulo = $titulo;
+        $this->mensaje = $mensaje;
+        $this->url = $url;
     }
 
     public function via($notifiable)
     {
+        // Agregamos WebPushChannel para que llegue al sistema operativo
         return ['database', WebPushChannel::class];
     }
 
     public function toArray($notifiable)
     {
         return [
-            'title' => $this->title,
-            'message' => $this->message,
-            'link' => $this->link ?? route('dashboard'),
+            'title' => $this->titulo,
+            'message' => $this->mensaje,
+            'url' => $this->url,
         ];
     }
 
+    /**
+     * Lógica para la notificación Push de navegador/sistema
+     */
     public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)
-            ->title('' . $this->title)
+            ->title($this->titulo)
             ->icon('/img/logo_notificacion_redonda.png')
             ->badge('/img/badge_logo_redonda.png')
-            ->body($this->message)
-            ->action('Abrir', 'open_url')
-            ->options(['TTL' => 3600]);
+            ->body($this->mensaje)
+            ->action('Ver ahora', 'view_app')
+            ->data(['url' => $this->url])
+            ->options(['TTL' => 1000]);
     }
 }
