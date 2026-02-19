@@ -74,7 +74,10 @@
 
             {{-- GOOGLE RECAPTCHA --}}
             <div class="flex justify-center py-2">
-                <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"></div>
+               <button class="g-recaptcha" 
+                data-sitekey="6LcPinAsAAAAAN3c-uvioaNrghYf4Eg3s0PLig_N" 
+                data-callback='onSubmit' 
+                data-action='submit'>Submit</button>
             </div>
 
             <button type="submit" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-xs font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100 uppercase tracking-widest">
