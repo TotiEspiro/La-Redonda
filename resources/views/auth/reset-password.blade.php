@@ -33,7 +33,7 @@
                        class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm bg-gray-50/50"placeholder="Confirmá tu nueva contraseña">
             </div>
 
-            <button type="submit" class="w-full py-4 bg-button text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-900 transition-all">
+            <button type="submit" class="w-full py-4 bg-button text-white rounded-2xl font-black text-sm hover:bg-blue-900 transition-all">
                 Actualizar Contraseña
             </button>
         </form>
