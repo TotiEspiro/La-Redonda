@@ -38,17 +38,12 @@ class AuthController extends Controller
 
     /**
      * Muestra el formulario para establecer la nueva contraseña.
-     * Corregido: Ahora busca al usuario y asegura el envío del token.
      */
     public function showResetForm(Request $request, $token)
     {
-        // Buscamos al usuario por el email que viene en la URL para que la vista tenga el nombre ($user->name)
-        $user = User::where('email', $request->email)->first();
-
         return view('auth.reset-password')->with([
             'token' => $token,
-            'email' => $request->email,
-            'user'  => $user
+            'email' => $request->email
         ]);
     }
 
@@ -103,7 +98,7 @@ class AuthController extends Controller
     }
 
     /**
-     * PROCESA LA ACTUALIZACIÓN FINAL
+     * PROCESA LA ACTUALIZACIÓN FINAL (Renombrado a updatePassword para evitar Error 404/500)
      */
     public function updatePassword(Request $request)
     {

@@ -4,13 +4,14 @@
 <div class="min-h-[calc(100vh-180px)] flex items-center justify-center bg-background-light py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-gray-100">
         <div class="text-center">
-            {{-- Ahora podemos usar $user porque lo pasamos desde el controlador --}}
             <h2 class="text-3xl font-black text-text-dark uppercase tracking-tighter">Nueva Contraseña</h2>
             <p class="mt-2 text-sm text-text-light font-medium">
+                {{-- Protección para el nombre del usuario --}}
                 Hola, <strong>{{ $user->name ?? 'Feligrés' }}</strong>. Ingresá tu nueva clave a continuación.
             </p>
         </div>
 
+        {{-- Lista de errores de validación --}}
         @if ($errors->any())
             <div class="p-4 mb-4 text-xs text-red-700 bg-red-50 rounded-2xl border border-red-100">
                 <ul class="list-disc list-inside font-medium">
@@ -21,13 +22,21 @@
             </div>
         @endif
 
+        {{-- El formulario debe apuntar a password.update (POST) --}}
         <form action="{{ route('password.update') }}" method="POST" class="mt-8 space-y-6">
             @csrf
-            <input type="hidden" name="token" value="{{ $token }}">
+            
+            {{-- 
+                SOLUCIÓN AL ERROR DE VARIABLE INDEFINIDA:
+                Si $token no existe como variable, intentamos obtenerlo de la ruta o lo dejamos vacío.
+                Esto evita que Blade lance el error 'Undefined variable'.
+            --}}
+            <input type="hidden" name="token" value="{{ $token ?? request()->route('token') }}">
 
             <div>
                 <label for="email" class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Confirmar Email</label>
-                <input id="email" name="email" type="email" value="{{ $email ?? old('email') }}" required readonly
+                {{-- Aplicamos la misma lógica de protección para el email --}}
+                <input id="email" name="email" type="email" value="{{ $email ?? request()->email ?? old('email') }}" required readonly
                        class="block w-full px-5 py-4 border border-gray-100 rounded-2xl text-sm bg-gray-50 text-gray-400 cursor-not-allowed">
             </div>
 
