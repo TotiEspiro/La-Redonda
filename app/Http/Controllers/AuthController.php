@@ -35,6 +35,17 @@ class AuthController extends Controller
         return view('auth.forgot-password');
     }
 
+    /**
+     * Muestra el formulario para establecer la nueva contraseña.
+     */
+    public function showResetForm(Request $request, $token)
+    {
+        return view('auth.reset-password')->with([
+            'token' => $token,
+            'email' => $request->email
+        ]);
+    }
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -87,6 +98,35 @@ class AuthController extends Controller
         return $status === Password::RESET_LINK_SENT
             ? back()->with('status', __($status))
             : back()->withErrors(['email' => __($status)]);
+    }
+
+    /**
+     * Procesa la actualización de la contraseña en la base de datos.
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $status = Password::broker()->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(Str::random(60));
+
+                $user->save();
+            }
+        );
+
+        // Si se restableció correctamente, enviamos al login con éxito.
+        // Si no, volvemos atrás con el error correspondiente.
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('success', __($status))
+            : back()->withErrors(['email' => [__($status)]]);
     }
 
     public function register(Request $request)

@@ -64,6 +64,7 @@ Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
 
+
 /*
 |--------------------------------------------------------------------------
 | Rutas Protegidas (REQUIEREN LOGIN)
