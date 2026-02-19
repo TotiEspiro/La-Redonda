@@ -108,10 +108,15 @@
                         </div>
                         <div class="max-h-80 overflow-y-auto custom-scrollbar">
                             @forelse($unreadNotifications as $n)
-                                @php $nData = is_array($n->data) ? $n->data : json_decode($n->data, true); @endphp
-                                <a href="{{ $nData['link'] ?? '#' }}" class="block px-4 py-4 hover:bg-blue-50 border-b border-gray-50 transition-colors">
-                                    <p class="text-xs font-bold text-gray-900 leading-tight mb-1">{{ $nData['title'] ?? 'Aviso' }}</p>
-                                    <p class="text-[11px] text-gray-500 line-clamp-2">{{ $nData['message'] ?? '' }}</p>
+                                @php 
+                                    $nData = is_array($n->data) ? $n->data : json_decode($n->data, true); 
+                                    // CORRECCIÓN: Priorizar 'url', luego 'link', y si no hay nada o es '#', ir al dashboard
+                                    $rawUrl = $nData['url'] ?? ($nData['link'] ?? null);
+                                    $notiUrl = ($rawUrl && $rawUrl !== '#') ? $rawUrl : route('dashboard');
+                                @endphp
+                                <a href="{{ $notiUrl }}" class="block px-4 py-4 hover:bg-blue-50 border-b border-gray-50 transition-colors">
+                                    <p class="text-xs font-bold text-gray-900 leading-tight mb-1">{{ $nData['title'] ?? ($nData['titulo'] ?? 'Aviso') }}</p>
+                                    <p class="text-[11px] text-gray-500 line-clamp-2">{{ $nData['message'] ?? ($nData['mensaje'] ?? '') }}</p>
                                     <span class="text-[9px] text-gray-400 mt-2 block font-medium">{{ $n->created_at->diffForHumans() }}</span>
                                 </a>
                             @empty
@@ -195,7 +200,7 @@
                                         </a>
                                     @endif
 
-                                    {{-- MIS COMUNIDADES (VISIBILIDAD ASEGURADA) --}}
+                                    {{-- MIS COMUNIDADES (VISIBILIDAD ASEGURADA CON SEGURIDAD) --}}
                                     @if($memberGroups->isNotEmpty())
                                         <div class="border-b border-gray-50">
                                             <button class="w-full flex items-center justify-between px-5 py-4 text-xs font-black text-gray-700 hover:bg-blue-50 transition uppercase" onclick="toggleAccordionSmooth('pcComuSub', 'pcComuArr')">
@@ -204,7 +209,21 @@
                                             </button>
                                             <div id="pcComuSub" class="accordion-content bg-gray-50/50 px-3">
                                                 @foreach($memberGroups as $slug)
-                                                    <a href="{{ route('grupos.dashboard', $slug) }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 truncate uppercase mb-1">{{ str_replace('_', ' ', $slug) }}</a>
+                                                    @php
+                                                        $groupData = \App\Models\Group::where('category', $slug)->first();
+                                                        // SEGURIDAD: Redirigir a verificación si hay clave y no se ha validado
+                                                        $targetRoute = route('grupos.dashboard', $slug);
+                                                        if ($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)) {
+                                                            $targetRoute = route('grupos.verify-form', $slug);
+                                                        }
+                                                    @endphp
+                                                    <a href="{{ $targetRoute }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 truncate uppercase mb-1">
+                                                        @if($groupData && $groupData->group_password && !session('group_unlocked_' . $slug))
+                                                            🔒 {{ str_replace('_', ' ', $slug) }}
+                                                        @else
+                                                            {{ str_replace('_', ' ', $slug) }}
+                                                        @endif
+                                                    </a>
                                                 @endforeach
                                             </div>
                                         </div>
@@ -285,7 +304,7 @@
             </a>
             @endif
 
-            {{-- MIS COMUNIDADES MÓVIL (NUEVO) --}}
+            {{-- MIS COMUNIDADES MÓVIL (CON SEGURIDAD) --}}
             @if($memberGroups->isNotEmpty())
                 <div class="bg-white border border-sky-100 rounded-2xl overflow-hidden">
                     <button onclick="toggleAccordionSmooth('mobMemberSub', 'mobMemberArr')" class="w-full flex justify-between items-center px-5 py-4 text-xs font-black text-gray-700 uppercase">
@@ -295,7 +314,20 @@
                     <div id="mobMemberSub" class="accordion-content bg-white/50">
                         <div class="grid grid-cols-2 gap-2 p-2">
                             @foreach($memberGroups as $slug)
-                                <a href="{{ route('grupos.dashboard', $slug) }}" class="grid-menu-item bg-white border border-gray-100 rounded-xl text-[8px] font-bold text-gray-500 uppercase shadow-sm">{{ str_replace('_', ' ', $slug) }}</a>
+                                @php
+                                    $groupData = \App\Models\Group::where('category', $slug)->first();
+                                    $targetRoute = route('grupos.dashboard', $slug);
+                                    if ($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)) {
+                                        $targetRoute = route('grupos.verify-form', $slug);
+                                    }
+                                @endphp
+                                <a href="{{ $targetRoute }}" class="grid-menu-item bg-white border border-gray-100 rounded-xl text-[8px] font-bold text-gray-500 uppercase shadow-sm">
+                                    @if($groupData && $groupData->group_password && !session('group_unlocked_' . $slug))
+                                        🔒 {{ str_replace('_', ' ', $slug) }}
+                                    @else
+                                        {{ str_replace('_', ' ', $slug) }}
+                                    @endif
+                                </a>
                             @endforeach
                         </div>
                     </div>
@@ -322,7 +354,7 @@
                 <a href="{{ route('diario.index') }}" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="{{ asset('img/icono_biblia.png') }}" class="w-6 h-6 mr-4"><span class="text-xs font-black uppercase">Diario de La Redonda</span></a>
             @endif
             
-            <a href="{{ route('profile.show') }}" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="{{ asset('img/icono_perfil.png') }}" class="h-6 w-6 mr-4"><span class="text-xs font-black uppercase">Mi Perfil</span></a>
+            <a href="{{ route('profile.show') }}" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="{{ asset('img/icono_perfil.png') }}" class="h-6 h-6 mr-4"><span class="text-xs font-black uppercase">Mi Perfil</span></a>
             
             <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf
                 <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl text-xs font-black uppercase">Cerrar Sesión</button>

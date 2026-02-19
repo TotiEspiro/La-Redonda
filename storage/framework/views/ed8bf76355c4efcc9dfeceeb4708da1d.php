@@ -109,10 +109,15 @@
                         </div>
                         <div class="max-h-80 overflow-y-auto custom-scrollbar">
                             <?php $__empty_1 = true; $__currentLoopData = $unreadNotifications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $n): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                <?php $nData = is_array($n->data) ? $n->data : json_decode($n->data, true); ?>
-                                <a href="<?php echo e($nData['link'] ?? '#'); ?>" class="block px-4 py-4 hover:bg-blue-50 border-b border-gray-50 transition-colors">
-                                    <p class="text-xs font-bold text-gray-900 leading-tight mb-1"><?php echo e($nData['title'] ?? 'Aviso'); ?></p>
-                                    <p class="text-[11px] text-gray-500 line-clamp-2"><?php echo e($nData['message'] ?? ''); ?></p>
+                                <?php 
+                                    $nData = is_array($n->data) ? $n->data : json_decode($n->data, true); 
+                                    // CORRECCIÓN: Priorizar 'url', luego 'link', y si no hay nada o es '#', ir al dashboard
+                                    $rawUrl = $nData['url'] ?? ($nData['link'] ?? null);
+                                    $notiUrl = ($rawUrl && $rawUrl !== '#') ? $rawUrl : route('dashboard');
+                                ?>
+                                <a href="<?php echo e($notiUrl); ?>" class="block px-4 py-4 hover:bg-blue-50 border-b border-gray-50 transition-colors">
+                                    <p class="text-xs font-bold text-gray-900 leading-tight mb-1"><?php echo e($nData['title'] ?? ($nData['titulo'] ?? 'Aviso')); ?></p>
+                                    <p class="text-[11px] text-gray-500 line-clamp-2"><?php echo e($nData['message'] ?? ($nData['mensaje'] ?? '')); ?></p>
                                     <span class="text-[9px] text-gray-400 mt-2 block font-medium"><?php echo e($n->created_at->diffForHumans()); ?></span>
                                 </a>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
@@ -205,7 +210,23 @@
                                             </button>
                                             <div id="pcComuSub" class="accordion-content bg-gray-50/50 px-3">
                                                 <?php $__currentLoopData = $memberGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slug): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                    <a href="<?php echo e(route('grupos.dashboard', $slug)); ?>" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 truncate uppercase mb-1"><?php echo e(str_replace('_', ' ', $slug)); ?></a>
+                                                    <?php
+                                                        $groupData = \App\Models\Group::where('category', $slug)->first();
+                                                        // SEGURIDAD: Redirigir a verificación si hay clave y no se ha validado
+                                                        $targetRoute = route('grupos.dashboard', $slug);
+                                                        if ($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)) {
+                                                            $targetRoute = route('grupos.verify-form', $slug);
+                                                        }
+                                                    ?>
+                                                    <a href="<?php echo e($targetRoute); ?>" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 truncate uppercase mb-1">
+                                                        <?php if($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)): ?>
+                                                            🔒 <?php echo e(str_replace('_', ' ', $slug)); ?>
+
+                                                        <?php else: ?>
+                                                            <?php echo e(str_replace('_', ' ', $slug)); ?>
+
+                                                        <?php endif; ?>
+                                                    </a>
                                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </div>
                                         </div>
@@ -297,7 +318,22 @@
                     <div id="mobMemberSub" class="accordion-content bg-white/50">
                         <div class="grid grid-cols-2 gap-2 p-2">
                             <?php $__currentLoopData = $memberGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slug): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <a href="<?php echo e(route('grupos.dashboard', $slug)); ?>" class="grid-menu-item bg-white border border-gray-100 rounded-xl text-[8px] font-bold text-gray-500 uppercase shadow-sm"><?php echo e(str_replace('_', ' ', $slug)); ?></a>
+                                <?php
+                                    $groupData = \App\Models\Group::where('category', $slug)->first();
+                                    $targetRoute = route('grupos.dashboard', $slug);
+                                    if ($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)) {
+                                        $targetRoute = route('grupos.verify-form', $slug);
+                                    }
+                                ?>
+                                <a href="<?php echo e($targetRoute); ?>" class="grid-menu-item bg-white border border-gray-100 rounded-xl text-[8px] font-bold text-gray-500 uppercase shadow-sm">
+                                    <?php if($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)): ?>
+                                        🔒 <?php echo e(str_replace('_', ' ', $slug)); ?>
+
+                                    <?php else: ?>
+                                        <?php echo e(str_replace('_', ' ', $slug)); ?>
+
+                                    <?php endif; ?>
+                                </a>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                     </div>
@@ -324,7 +360,7 @@
                 <a href="<?php echo e(route('diario.index')); ?>" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="<?php echo e(asset('img/icono_biblia.png')); ?>" class="w-6 h-6 mr-4"><span class="text-xs font-black uppercase">Diario de La Redonda</span></a>
             <?php endif; ?>
             
-            <a href="<?php echo e(route('profile.show')); ?>" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="<?php echo e(asset('img/icono_perfil.png')); ?>" class="h-6 w-6 mr-4"><span class="text-xs font-black uppercase">Mi Perfil</span></a>
+            <a href="<?php echo e(route('profile.show')); ?>" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="<?php echo e(asset('img/icono_perfil.png')); ?>" class="h-6 h-6 mr-4"><span class="text-xs font-black uppercase">Mi Perfil</span></a>
             
             <form method="POST" action="<?php echo e(route('logout')); ?>" class="m-0"><?php echo csrf_field(); ?>
                 <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl text-xs font-black uppercase">Cerrar Sesión</button>

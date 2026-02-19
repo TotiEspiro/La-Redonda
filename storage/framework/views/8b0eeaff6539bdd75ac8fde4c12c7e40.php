@@ -174,6 +174,42 @@
                         <?php endif; ?>
                     </div>
                 </div>
+
+                
+                <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                    <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Seguridad del Grupo</h3>
+                        <div class="bg-blue-50 p-2 rounded-lg">
+                            <svg class="w-4 h-4 text-button" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        
+                        <?php if(session('success') && request()->routeIs('grupos.dashboard')): ?>
+                            <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-2xl flex items-center gap-3 animate-fade-in">
+                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <p class="text-[10px] font-black text-green-700 uppercase tracking-widest">Configuración actualizada exitosamente</p>
+                            </div>
+                        <?php endif; ?>
+
+                        <p class="text-[11px] text-gray-500 font-bold uppercase mb-6 tracking-tight">Establece una contraseña que los usuarios deban ingresar para acceder a los materiales después de ser aprobados.</p>
+                        
+                        <form action="<?php echo e(route('grupos.update-password', $groupRole)); ?>" method="POST" class="space-y-4">
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('PATCH'); ?>
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Contraseña de Acceso</label>
+                                <input type="text" name="group_password" value="<?php echo e($group->group_password); ?>" 
+                                    placeholder="Sin contraseña (acceso libre)"
+                                    class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-medium focus:ring-2 focus:ring-button transition-all text-sm">
+                                <p class="mt-2 text-[9px] text-gray-400 italic">Si dejas este campo vacío, los usuarios aprobados entrarán directamente sin validación extra.</p>
+                            </div>
+                            <button type="submit" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg hover:bg-black transition-all active:scale-95">
+                                Actualizar Configuración
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
             

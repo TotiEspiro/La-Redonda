@@ -120,6 +120,11 @@ Route::middleware(['auth'])->group(function () {
         // Dashboard de Grupo (Solo Coordinadores o acceso a materiales)
         Route::get('/{groupRole}/panel-comunidad', [GroupController::class, 'groupDashboard'])->name('grupos.dashboard');
         
+        // --- Seguridad de Acceso (NUEVO: Contraseña de Grupo) ---
+        Route::get('/{groupRole}/validar-acceso', [GroupController::class, 'showVerifyPassword'])->name('grupos.verify-form');
+        Route::post('/{groupRole}/verificar-acceso', [GroupController::class, 'verifyPassword'])->name('grupos.verify-password');
+        Route::patch('/{groupRole}/configurar-clave', [GroupController::class, 'updateGroupPassword'])->name('grupos.update-password');
+
         // Materiales
         Route::get('/{groupRole}/materiales', [GroupController::class, 'groupMaterials'])->name('grupos.materials');
         Route::post('/{groupRole}/upload', [GroupController::class, 'uploadMaterial'])->name('grupos.upload-material');

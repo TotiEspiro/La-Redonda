@@ -129,7 +129,7 @@
             <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-button/30 transition-all"
                  data-user-id="<?php echo e($user->id); ?>"
                  data-user-name="<?php echo e($user->name); ?>"
-                 data-user-roles="<?php echo e($user->roles->pluck('name')->implode(',')); ?>">
+                 data-user-roles="<?php echo e($user->roles->pluck('slug')->implode(',')); ?>">
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-button text-white flex items-center justify-center font-black text-sm shadow-sm flex-shrink-0">
                         <?php echo e(substr($user->name, 0, 1)); ?>
@@ -206,11 +206,8 @@
                         <tbody class="divide-y divide-gray-50">
                             <?php
                                 $grupos = [
-                                    'catequesis' => 'Catequesis', 'juveniles' => 'Jóvenes', 'acutis' => 'Acutis',
-                                    'jovenes_adultos' => 'Jóvenes Adultos', 'coro' => 'Coro', 'san_joaquin' => 'San Joaquín',
-                                    'santa_ana' => 'Santa Ana', 'ardillas' => 'Ardillas', 'costureras' => 'Costureras',
-                                    'misioneros' => 'Misioneros', 'caridad_comedor' => 'Caridad', 'scouts' => 'Scouts',
-                                    'confirmacion' => 'Confirmación', 'monaguillos' => 'Monaguillos', 'liturgia' => 'Liturgia'
+                                    'catequesis_ninos' => 'Catequesis Niños', 'catequesis_adolescentes' => 'Catequesis Adolescentes', 'catequesis_adultos' => 'Catequesis Adultos','juveniles' => 'Juveniles', 'acutis' => 'Acutis',
+                                    'juan_pablo' => 'Juan Pablo II', 'coro' => 'Coro', 'misioneros' => 'Misioneros','san_joaquin' => 'San Joaquín','santa_ana' => 'Santa Ana', 'ardillas' => 'Ardillas', 'costureras' => 'Costureras', 'caridad' => 'Caridad', 'comedor' => 'Comedor','caritas' => 'Cáritas', 
                                 ];
                             ?>
                             <?php $__currentLoopData = $grupos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>

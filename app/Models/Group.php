@@ -11,11 +11,13 @@ class Group extends Model
 
     /**
      * Los atributos que se pueden asignar masivamente.
-     * Esto permite que el Seeder y los controladores guarden los datos.
+     * CORRECCIÓN: Se añade 'group_password' para permitir que el controlador 
+     * guarde la clave configurada por el admin.
      */
     protected $fillable = [
         'name',
         'category',
+        'group_password', // <--- CAMBIO CRÍTICO: Ahora Laravel permitirá guardar este campo
         'description',
         'min_age',
         'max_age',
@@ -24,8 +26,6 @@ class Group extends Model
 
     /**
      * Los atributos que deben ser convertidos a tipos nativos.
-     * Ayuda a que 'is_active' siempre sea un booleano (true/false) 
-     * y las edades sean números enteros.
      */
     protected $casts = [
         'is_active' => 'boolean',
@@ -35,11 +35,18 @@ class Group extends Model
 
     /**
      * Relación con los materiales del grupo.
-     * Aunque usamos 'group_role' en el controlador, esta relación 
-     * permite acceder a los materiales desde el objeto Grupo.
      */
     public function materials()
     {
         return $this->hasMany(GroupMaterial::class, 'group_role', 'category');
+    }
+
+    /**
+     * Relación con los usuarios (miembros oficiales)
+     * Utilizada para la tabla pivot si decides persistir la pertenencia.
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'role_user', 'role_id', 'user_id');
     }
 }
