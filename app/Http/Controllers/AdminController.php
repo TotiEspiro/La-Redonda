@@ -63,9 +63,10 @@ class AdminController extends Controller
         $rolesToSync = $request->input('basic_roles', []);
         
         $grupos = [
-            'catequesis', 'acutis', 'juveniles', 'jovenes_adultos', 'coro', 
-            'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 
-            'caridad_comedor', 'scouts', 'confirmacion', 'monaguillos', 'liturgia'
+            'catequesis_ninos', 'catequesis_adolescentes', 'catequesis_adultos', 
+            'acutis', 'juveniles', 'juan_pablo', 'coro', 'misioneros', 
+            'santa_ana', 'san_joaquin', 'ardillas', 'costureras', 
+            'caridad', 'caritas', 'comedor'
         ];
 
         foreach ($grupos as $grupo) {

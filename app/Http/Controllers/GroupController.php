@@ -128,7 +128,7 @@ class GroupController extends Controller
             'catequesis' => [
                 'title' => 'Catequesis',
                 'desc' => 'Formación sacramental para niños, adolescentes y adultos.',
-                'slugs' => ['catequesis_niños', 'catequesis_adolescentes', 'catequesis_adultos']
+                'slugs' => ['catequesis_ninos', 'catequesis_adolescentes', 'catequesis_adultos']
             ],
             'jovenes' => [
                 'title' => 'Jóvenes',
