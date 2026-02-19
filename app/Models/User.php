@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Models;
+
 use App\Notifications\ResetPasswordNotification; 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use NotificationChannels\WebPush\HasPushSubscriptions;
-
-
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -29,55 +30,44 @@ class User extends Authenticatable
         'notify_announcements' => 'boolean',
     ];
 
+    /**
+     * SOBRESCRITURA DE NOTIFICACIÓN DE CONTRASEÑA
+     * Este método hace que Laravel use tu archivo personalizado ResetPasswordNotification.
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
     // =========================================================================
-    // LÓGICA DE ROLES Y PERMISOS (Optimizado para Nav y Rendimiento)
+    // LÓGICA DE ROLES Y PERMISOS
     // =========================================================================
 
-    /**
-     * RELACIÓN DE ROLES MEJORADA
-     * Se agrega withTimestamps() para rastrear cuándo se asignó un rol (unión al grupo).
-     */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'user_roles')->withTimestamps();
     }
 
-    /**
-     * Verifica si el usuario tiene un rol específico.
-     * Usa 'contains' para aprovechar la carga en memoria y mejorar el Nav.
-     */
     public function hasRole($roleName): bool
     {
         return $this->roles->contains('name', $roleName);
     }
 
-    /**
-     * Verifica si el usuario tiene al menos uno de los roles listados.
-     */
     public function hasAnyRole($roles): bool
     {
         return $this->roles->whereIn('name', (array)$roles)->isNotEmpty();
     }
 
-    /**
-     * Verifica específicamente el rol de Super Admin.
-     */
     public function isSuperAdmin(): bool
     {
         return $this->hasRole('superadmin');
     }
 
-    /**
-     * Verifica si es Administrador General o Super Administrador.
-     */
     public function isAdmin(): bool
     {
         return $this->hasAnyRole(['admin', 'superadmin']);
     }
 
-    /**
-     * Verifica si el usuario coordina un grupo o es admin general.
-     */
     public function isAdminOfGroup($groupCategory): bool
     {
         $slug = str_replace('admin_', '', strtolower($groupCategory));
