@@ -39,6 +39,7 @@ class GroupController extends Controller
         $baseSlug = $this->normalizeSlug($slug);
 
         if ($user->isAdmin() || $user->isSuperAdmin()) return true;
+        // Se verifica contra el slug del rol para mayor precisión
         if ($user->hasRole('admin_' . $baseSlug)) return true;
         if ($user->hasRole('admin_grupo_parroquial')) return true;
 
@@ -60,10 +61,11 @@ class GroupController extends Controller
             'caridad', 'caritas', 'comedor'
         ];
 
+        // CORRECCIÓN: Se usa 'slug' en lugar de 'name' para el filtrado técnico
         $userGroups = $user->roles->filter(function($r) use ($allGroupSlugs) {
-            $slug = str_replace('admin_', '', $r->name);
+            $slug = str_replace('admin_', '', $r->slug);
             return in_array($slug, $allGroupSlugs);
-        })->unique(fn($r) => str_replace('admin_', '', $r->name));
+        })->unique(fn($r) => str_replace('admin_', '', $r->slug));
 
         $unreadNotifications = $user->unreadNotifications()->take(5)->get();
         $announcements = Announcement::where('is_active', true)->orderBy('order')->latest()->get();
@@ -78,6 +80,7 @@ class GroupController extends Controller
     {
         $slug = $this->normalizeSlug($groupRole);
         $group = Group::where('category', $slug)->first();
+        
         if (!$group) abort(404);
 
         /** @var \App\Models\User $user */
@@ -90,13 +93,12 @@ class GroupController extends Controller
 
         $groupName = $group->name;
         
-        // Miembros con fecha de unión (Pivot) y estado de actividad
-        $members = User::whereHas('roles', fn($q) => $q->where('name', $slug))
-            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'superadmin'))
-            ->with(['roles' => fn($q) => $q->where('name', $slug)])
+        $members = User::whereHas('roles', fn($q) => $q->where('slug', $slug))
+            ->whereDoesntHave('roles', fn($q) => $q->where('slug', 'superadmin'))
+            ->with(['roles' => fn($q) => $q->where('slug', $slug)])
             ->get()
             ->map(function($member) use ($slug) {
-                $role = $member->roles->where('name', $slug)->first();
+                $role = $member->roles->where('slug', $slug)->first();
                 $member->joined_at = ($role && $role->pivot->created_at) ? Carbon::parse($role->pivot->created_at) : $member->created_at;
                 $member->is_active_now = $member->updated_at->diffInMinutes(now()) < 15;
                 return $member;
@@ -117,11 +119,10 @@ class GroupController extends Controller
     }
 
     /**
-     * Categorías de grupos (CORREGIDO: Mapeo exhaustivo para "Más Grupos").
+     * Categorías de grupos.
      */
     public function category($slug)
     {
-        // Normalizamos el slug para buscar en el mapeo (quitamos guiones)
         $categorySlug = str_replace('-', '_', strtolower(trim($slug)));
         
         $categoryMapping = [
@@ -140,7 +141,6 @@ class GroupController extends Controller
                 'desc' => 'Espacios de oración y fraternidad para adultos mayores.',
                 'slugs' => ['santa_ana', 'san_joaquin', 'ardillas', 'costureras']
             ],
-            // Agrupamos todos los posibles nombres para la categoría de caridad
             'especiales' => [
                 'title' => 'Más Grupos',
                 'desc' => 'Servicio, caridad y misiones especiales de nuestra parroquia.',
@@ -153,7 +153,6 @@ class GroupController extends Controller
             ],
         ];
 
-        // Si el slug no está en el mapeo manual, buscamos por coincidencia parcial
         if (!isset($categoryMapping[$categorySlug])) {
              $groups = Group::where('category', 'like', $categorySlug . '%')->where('is_active', true)->get();
              return view('grupos.categoria', [
@@ -168,16 +167,13 @@ class GroupController extends Controller
         $groups = Group::whereIn('category', $config['slugs'])->where('is_active', true)->get();
 
         return view('grupos.categoria', [
-            'categoria'   => $config['title'], // "Más Grupos"
+            'categoria'   => $config['title'],
             'descripcion' => $config['desc'],
             'groups'      => $groups,
             'slug'        => $categorySlug
         ]);
     }
 
-    /**
-     * Subida de Material (Soporta 500MB + MP3/MP4 + Notificaciones).
-     */
     public function uploadMaterial(Request $request, $groupRole) {
         $slug = $this->normalizeSlug($groupRole);
         if (!$this->isAuthorizedCoordinator($slug)) return response()->json(['success' => false], 403);
@@ -197,7 +193,7 @@ class GroupController extends Controller
                 'created_at' => now(), 'updated_at' => now()
             ]);
 
-            $members = User::whereHas('roles', fn($q) => $q->where('name', $slug))->get();
+            $members = User::whereHas('roles', fn($q) => $q->where('slug', $slug))->get();
             if ($members->isNotEmpty()) {
                 $group = Group::where('category', $slug)->first();
                 try {
@@ -212,9 +208,6 @@ class GroupController extends Controller
         } catch (\Exception $e) { return response()->json(['success' => false], 500); }
     }
 
-    /**
-     * Biblioteca con iconos multimedia dinámicos.
-     */
     public function groupMaterials($groupRole)
     {
         $slug = $this->normalizeSlug($groupRole);
@@ -258,7 +251,8 @@ class GroupController extends Controller
         $status = ($request->action === 'approve') ? 'approved' : 'rejected';
         DB::table('group_requests')->where('id', $requestId)->update(['status' => $status, 'updated_at' => now()]);
         if ($status === 'approved') { 
-            $u = User::find($sol->user_id); $r = Role::where('name', $sol->group_role)->first(); 
+            $u = User::find($sol->user_id); 
+            $r = Role::where('slug', $sol->group_role)->first(); 
             if ($u && $r) { 
                 $u->roles()->syncWithoutDetaching([$r->id]); 
                 try { $u->notify(new AvisoComunidad("¡Aceptado!", "Ya eres parte de " . str_replace('_', ' ', $sol->group_role))); } catch (\Exception $e) {} 
@@ -270,7 +264,8 @@ class GroupController extends Controller
     public function removeMember($groupRole, $userId) {
         $slug = $this->normalizeSlug($groupRole);
         if (!$this->isAuthorizedCoordinator($slug)) abort(403);
-        $u = User::findOrFail($userId); $r = Role::where('name', $slug)->first(); 
+        $u = User::findOrFail($userId); 
+        $r = Role::where('slug', $slug)->first(); 
         if ($r) $u->roles()->detach($r->id);
         return response()->json(['success' => true]);
     }
