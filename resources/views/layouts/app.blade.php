@@ -9,8 +9,8 @@
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <link rel="icon" href="{{ asset('img/logo_nav_redonda.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
-     <script src="https://www.google.com/recaptcha/api.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    @yield('head')
     <script>
         tailwind.config = {
             theme: {
@@ -27,7 +27,6 @@
             }
         }
     </script>
-    @yield('head')
 </head>
 <body class="font-poppins">
 
@@ -76,10 +75,5 @@
             });
         }
     </script>
-     <script>
-   function onSubmit(token) {
-     document.getElementById("demo-form").submit();
-   }
- </script>
 </body>
 </html>
