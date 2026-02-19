@@ -12,9 +12,6 @@ class ResetPasswordNotification extends Notification
 
     public $token;
 
-    /**
-     * @param string $token
-     */
     public function __construct($token)
     {
         $this->token = $token;
@@ -25,24 +22,17 @@ class ResetPasswordNotification extends Notification
         return ['mail'];
     }
 
-    /**
-     * Construye el mensaje usando la vista personalizada.
-     */
     public function toMail($notifiable)
     {
-        // Generamos la URL para el botón
         $url = url(route('password.reset', [
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
-        /**
-         * NOTA: Usamos 'emails.reset-password' (PLURAL) 
-         * para que coincida con resources/views/emails/reset-password.blade.php
-         */
+        // IMPORTANTE: Aquí apuntamos al diseño del mail, NO al de la carpeta auth
         return (new MailMessage)
-            ->subject('Restablecer Contraseña - La Redonda Joven')
-            ->view('emails.reset-password', [
+            ->subject('Restablecer Contraseña - La Redonda')
+            ->view('emails.email-reset', [
                 'url' => $url,
                 'user' => $notifiable
             ]);
