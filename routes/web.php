@@ -64,6 +64,10 @@ Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
 
+// --- Secciones Legales ---
+Route::get('/terminos-y-condiciones', [HomeController::class, 'terminos'])->name('legal.terminos');
+Route::get('/politica-de-privacidad', [HomeController::class, 'privacidad'])->name('legal.privacidad');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -160,9 +164,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
-// --- Secciones Legales ---
-Route::get('/terminos-y-condiciones', [HomeController::class, 'terminos'])->name('legal.terminos');
-Route::get('/politica-de-privacidad', [HomeController::class, 'privacidad'])->name('legal.privacidad');
+
 
 });
 
