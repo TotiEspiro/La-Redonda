@@ -69,12 +69,6 @@
                                 <span class="px-2 py-0.5 rounded-lg text-[8px] font-black uppercase bg-gray-50 text-gray-400 border border-gray-100 group-hover:bg-white transition-colors">
                                     {{ $material->file_type }}
                                 </span>
-                                
-                                @if($material->created_at->gt(now()->subHours(48)))
-                                    <span class="px-2 py-0.5 rounded-lg text-[8px] font-black uppercase bg-green-500 text-white animate-pulse shadow-sm">
-                                        ¡NUEVO!
-                                    </span>
-                                @endif
                             </div>
                         </div>
 

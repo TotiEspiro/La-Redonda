@@ -195,19 +195,41 @@
                         <p class="text-[11px] text-gray-500 font-bold uppercase mb-6 tracking-tight">Establece una contraseña que los usuarios deban ingresar para acceder a los materiales después de ser aprobados.</p>
                         
                         <form action="<?php echo e(route('grupos.update-password', $groupRole)); ?>" method="POST" class="space-y-4">
-                            <?php echo csrf_field(); ?>
-                            <?php echo method_field('PATCH'); ?>
-                            <div>
-                                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Contraseña de Acceso</label>
-                                <input type="text" name="group_password" value="<?php echo e($group->group_password); ?>" 
-                                    placeholder="Sin contraseña (acceso libre)"
-                                    class="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-medium focus:ring-2 focus:ring-button transition-all text-sm">
-                                <p class="mt-2 text-[9px] text-gray-400 italic">Si dejas este campo vacío, los usuarios aprobados entrarán directamente sin validación extra.</p>
-                            </div>
-                            <button type="submit" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg hover:bg-black transition-all active:scale-95">
-                                Actualizar Configuración
-                            </button>
-                        </form>
+    <?php echo csrf_field(); ?>
+    <?php echo method_field('PATCH'); ?>
+    <div>
+        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">
+            Contraseña de Acceso
+        </label>
+        
+        <div class="relative group">
+            
+            <input id="group_password" type="password" name="group_password" value="<?php echo e($group->group_password); ?>" 
+                placeholder="Sin contraseña (acceso libre)"
+                class="w-full p-4 pr-14 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-medium focus:ring-2 focus:ring-button transition-all text-s">
+            
+            
+            <button type="button" onclick="toggleGroupPassword()" 
+                class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-button transition-colors focus:outline-none">
+                
+                <svg id="eyeClosed" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.057 10.057 0 012.183-4.403M15 12a3 3 0 11-6 0 3 3 0 016 0zm6.362-3.638A9.956 9.956 0 0121.542 12c-1.274 4.057-5.064 7-9.542 7-1.447 0-2.812-.324-4.032-.904m3.582-11.096A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l3.582 3.582" />
+                </svg>
+                
+                <svg id="eyeOpen" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+            </button>
+        </div>
+
+        <p class="mt-2 text-[9px] text-gray-400 italic">Si dejas este campo vacío, los usuarios aprobados entrarán directamente sin validación extra.</p>
+    </div>
+
+    <button type="submit" class="w-full py-4 bg-blue-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg hover:bg-blue-950 transition-all active:scale-95">
+        Actualizar Contraseña
+    </button>
+</form>
                     </div>
                 </div>
             </div>
@@ -406,6 +428,23 @@
         } catch (err) { showUIStatus('Error Fatal', 'Conexión interrumpida.', false); }
         finally { this.disabled = false; }
     });
+</script>
+<script>
+    function toggleGroupPassword() {
+        const input = document.getElementById('group_password');
+        const eyeOpen = document.getElementById('eyeOpen');
+        const eyeClosed = document.getElementById('eyeClosed');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeOpen.classList.remove('hidden');
+            eyeClosed.classList.add('hidden');
+        } else {
+            input.type = 'password';
+            eyeOpen.classList.add('hidden');
+            eyeClosed.classList.remove('hidden');
+        }
+    }
 </script>
 
 <style>

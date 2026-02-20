@@ -38,11 +38,9 @@ class AuthController extends Controller
 
     /**
      * Muestra el formulario para establecer la nueva contraseña.
-     * Corregido: Ahora busca al usuario y asegura el envío del token.
      */
     public function showResetForm(Request $request, $token)
     {
-        // Buscamos al usuario por el email que viene en la URL para que la vista tenga el nombre ($user->name)
         $user = User::where('email', $request->email)->first();
 
         return view('auth.reset-password')->with([
@@ -72,7 +70,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Procesa el envío del correo de recuperación con validación de Captcha.
+     * Procesa el envío del correo de recuperación.
      */
     public function sendResetLinkEmail(Request $request)
     {
@@ -103,7 +101,7 @@ class AuthController extends Controller
     }
 
     /**
-     * PROCESA LA ACTUALIZACIÓN FINAL
+     * Procesa la actualización de contraseña.
      */
     public function updatePassword(Request $request)
     {
@@ -120,7 +118,6 @@ class AuthController extends Controller
                     $user->password = Hash::make($password);
                     $user->setRememberToken(Str::random(60));
                     $user->save();
-
                     event(new PasswordReset($user));
                 }
             );
@@ -137,23 +134,40 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * REGISTRO DE USUARIO CORREGIDO
+     * Se agrega validación de Mayúsculas y Números.
+     */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/[A-Z]/', // Al menos una mayúscula
+                'regex:/[0-9]/', // Al menos un número
+            ],
             'g-recaptcha-response' => 'required'
         ], [
+            'name.required' => 'El nombre es obligatorio.',
+            'email.required' => 'El correo electrónico es obligatorio.',
             'email.unique' => 'Este correo ya está registrado.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'password.confirmed' => 'Las contraseñas no coinciden.',
-            'g-recaptcha-response.required' => 'Confirma que no eres un robot.'
+            'password.regex' => 'La contraseña debe incluir al menos una letra mayúscula y un número.',
+            'g-recaptcha-response.required' => 'Confirma que no eres un robot completando el captcha.'
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
+        // Verificación de Captcha
         $captchaResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret' => config('services.recaptcha.secret_key') ?? env('RECAPTCHA_SECRET_KEY'),
             'response' => $request->input('g-recaptcha-response'),
@@ -161,7 +175,7 @@ class AuthController extends Controller
         ]);
 
         if (!$captchaResponse->json('success')) {
-            return back()->withErrors(['captcha' => 'Fallo la verificación de seguridad.'])->withInput();
+            return back()->withErrors(['captcha' => 'La verificación del captcha falló, inténtalo de nuevo.'])->withInput();
         }
 
         try {
@@ -187,7 +201,7 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Error en registro: " . $e->getMessage());
-            return back()->withErrors(['error' => 'Error al crear la cuenta.'])->withInput();
+            return back()->withErrors(['error' => 'No pudimos crear tu cuenta en este momento. Inténtalo más tarde.'])->withInput();
         }
     }
 
@@ -224,8 +238,8 @@ class AuthController extends Controller
                 'email' => $socialUser->getEmail(),
                 'provider_id' => $socialUser->getId(),
                 'provider_name' => $provider,
-                'avatar' => $socialUser->getAvatar(),
-                'password' => Hash::make(Str::random(24)),
+                'avatar'        => $socialUser->getAvatar(),
+                'password'      => Hash::make(Str::random(24)),
                 'onboarding_completed' => false,
             ]);
 
