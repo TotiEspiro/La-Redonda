@@ -38,7 +38,6 @@ class AuthController extends Controller
 
     /**
      * Muestra el formulario para establecer la nueva contraseña.
-     * Corregido: Ahora busca al usuario y asegura el envío del token.
      */
     public function showResetForm(Request $request, $token)
     {
@@ -52,6 +51,9 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Procesa el inicio de sesión con retraso para la pantalla de carga.
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -59,10 +61,17 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
+        // Añadimos un pequeño retraso para que la pantalla de carga sea visible
+        usleep(1200000); // 1.2 segundos
+
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             $user = Auth::user();
-            if ($user->isAdmin() || $user->isSuperAdmin()) return redirect()->route('admin.dashboard');
+            
+            if ($user->isAdmin() || $user->isSuperAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
+            
             return redirect()->intended('dashboard');
         }
 
@@ -137,6 +146,9 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Registro de usuario con retraso para la pantalla de carga.
+     */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -163,6 +175,9 @@ class AuthController extends Controller
         if (!$captchaResponse->json('success')) {
             return back()->withErrors(['captcha' => 'Fallo la verificación de seguridad.'])->withInput();
         }
+
+        // Retraso para que se vea el progreso en el registro
+        usleep(1500000); // 1.5 segundos
 
         try {
             DB::beginTransaction();

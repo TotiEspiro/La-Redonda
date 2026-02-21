@@ -4,7 +4,7 @@
 <div class="min-h-[calc(100vh-180px)] flex items-center justify-center bg-background-light py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-gray-100">
         <div class="text-center">
-            <h2 class="text-3xl font-black text-text-dark uppercase">Iniciar Sesión</h2>
+            <h2 class="text-3xl font-black text-text-dark uppercase tracking-tight">Iniciar Sesión</h2>
             <p class="mt-2 text-sm text-text-light font-medium">Accedé a tu cuenta en La Redonda</p>
         </div>
 
@@ -21,7 +21,6 @@
             <div class="relative flex justify-center text-xs uppercase"><span class="px-2 bg-white text-gray-400 font-bold tracking-widest">O con tus datos</span></div>
         </div>
 
-        
         <?php if($errors->any()): ?>
             <div class="p-4 mb-4 text-xs text-red-700 bg-red-50 rounded-2xl border border-red-100">
                 <p class="font-bold">Error de ingreso:</p>
@@ -33,7 +32,7 @@
             </div>
         <?php endif; ?>
 
-        <form action="<?php echo e(route('login')); ?>" method="POST" class="mt-4 space-y-6">
+        <form action="<?php echo e(route('login')); ?>" method="POST" id="loginForm" class="mt-4 space-y-6">
             <?php echo csrf_field(); ?>
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Email</label>
@@ -72,6 +71,18 @@
     </div>
 </div>
 
+
+<div id="loadingScreenProgress" class="fixed inset-0 bg-nav-footer backdrop-blur-sm flex flex-col items-center justify-center z-50" style="display: none;">
+    <div class="text-center px-4">
+        <img src="<?php echo e(asset('img/logo_redonda.png')); ?>" alt="La Redonda" class="w-24 md:w-28 mx-auto mb-6 h-auto">
+        <div class="w-64 bg-gray-200 rounded-full h-2 mb-4 mx-auto overflow-hidden">
+            <div id="loadingProgress" class="bg-button h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p class="text-[10px] font-black text-text-dark uppercase tracking-widest">Accediendo <span id="loadingPercent">0</span>%</p>
+    </div>
+</div>
+
+<script src="<?php echo e(asset('js/login.js')); ?>"></script>
 <script>
 function togglePassword(inputId, iconId) {
     const input = document.getElementById(inputId);
