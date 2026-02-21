@@ -31,8 +31,10 @@ class AuthController extends Controller
         return view('auth.reset-password')->with(['token' => $token, 'email' => $request->email, 'user' => $user]);
     }
 
-    // --- LÓGICA DE VERIFICACIÓN DE EMAIL ---
-    
+    /**
+     * AVISO DE VERIFICACIÓN
+     * Esta vista se muestra cuando el usuario está logueado pero no verificado.
+     */
     public function showVerificationNotice()
     {
         return Auth::user()->hasVerifiedEmail() 
@@ -41,8 +43,7 @@ class AuthController extends Controller
     }
 
     /**
-     * VERIFICACIÓN DE EMAIL MEJORADA
-     * Permite verificar sin estar logueado previamente (útil para móviles).
+     * PROCESAR VERIFICACIÓN DESDE EL MAIL
      */
     public function verifyEmail(Request $request, $id, $hash)
     {
@@ -63,6 +64,9 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', '¡Excelente! Tu cuenta ha sido activada correctamente. Ya podés iniciar sesión.');
     }
 
+    /**
+     * REENVIAR EMAIL DE ACTIVACIÓN
+     */
     public function resendVerificationEmail(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
@@ -74,8 +78,9 @@ class AuthController extends Controller
         return back()->with('status', 'verification-link-sent');
     }
 
-    // --- LÓGICA DE ACCESO ---
-
+    /**
+     * INICIO DE SESIÓN
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -92,16 +97,15 @@ class AuthController extends Controller
             /**
              * LÓGICA PARA CUENTAS NUEVAS VS EXISTENTES
              * Fecha de corte: 21 de Febrero de 2026.
-             * Solo bloqueamos si el usuario se creó DESPUÉS de esa fecha y no verificó.
              */
             $cutoffDate = Carbon::parse('2026-02-21 00:00:00');
 
+            // Flujo Profesional: Si no está verificado y es cuenta nueva, redirigir al aviso (sin desloguear)
             if (!$user->email_verified_at && $user->created_at->gt($cutoffDate)) {
-                Auth::logout();
-                return back()->withErrors(['email' => 'Debes verificar tu cuenta para ingresar. Revisa el correo enviado a tu casilla.']);
+                return redirect()->route('verification.notice');
             }
 
-            // Validar Inactividad (7 días) - Aplica a todos por seguridad
+            // Validar Inactividad (7 días)
             if ($user->last_login_at && Carbon::parse($user->last_login_at)->diffInDays(Carbon::now()) > 7) {
                 return $this->sendSecurityCode($user);
             }
@@ -118,8 +122,6 @@ class AuthController extends Controller
     private function sendSecurityCode($user)
     {
         $code = (string)rand(100000, 999999);
-        
-        // Guardamos el código hasheado
         $user->update(['security_code' => Hash::make($code)]);
         
         try {
@@ -168,6 +170,9 @@ class AuthController extends Controller
         return redirect()->intended('dashboard');
     }
 
+    /**
+     * REGISTRO DE USUARIO
+     */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -198,17 +203,20 @@ class AuthController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'email_verified_at' => null // Nuevos usuarios DEBEN verificar
+                'email_verified_at' => null 
             ]);
 
             $role = Role::where('slug', 'usuario')->first();
             if ($role) $user->roles()->attach($role->id);
             DB::commit();
 
-            // Enviar notificación nativa de Laravel
+            // Enviar notificación nativa
             $user->sendEmailVerificationNotification();
 
-            return redirect()->route('login')->with('success', '¡Cuenta creada! Por favor revisá tu mail para validarla y poder ingresar.');
+            // Flujo Profesional: Loguear y mandar al aviso de verificación
+            Auth::login($user);
+            return redirect()->route('verification.notice');
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Error en registro: " . $e->getMessage());
@@ -246,13 +254,12 @@ class AuthController extends Controller
                     'avatar' => $socialUser->getAvatar(),
                     'password' => Hash::make(Str::random(24)),
                     'onboarding_completed' => false,
-                    'email_verified_at' => Carbon::now(), // El login social auto-verifica
+                    'email_verified_at' => Carbon::now(), 
                 ]);
                 $role = Role::where('slug', 'usuario')->first();
                 if ($role) $user->roles()->attach($role->id);
             }
 
-            // Chequear inactividad incluso en login social
             if ($user->last_login_at && Carbon::parse($user->last_login_at)->diffInDays(Carbon::now()) > 7) {
                 return $this->sendSecurityCode($user);
             }
