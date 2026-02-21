@@ -9,8 +9,16 @@
         </div>
 
         
+        <?php if(session('status') || session('success')): ?>
+            <div class="p-4 mb-4 text-[10px] text-button bg-blue-50 rounded-2xl border border-blue-100 font-bold uppercase tracking-widest text-center">
+                <?php echo e(session('status') ?? session('success')); ?>
+
+            </div>
+        <?php endif; ?>
+
+        
         <div class="grid gap-4">
-            <a href="<?php echo e(route('social.redirect', 'google')); ?>" class="flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95">
+            <a href="<?php echo e(route('social.redirect', 'google')); ?>" class="social-btn flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all shadow-sm active:scale-95">
                 <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
                 <span class="text-xs font-bold text-gray-600">Google</span>
             </a>
@@ -21,10 +29,10 @@
             <div class="relative flex justify-center text-xs uppercase"><span class="px-2 bg-white text-gray-400 font-bold tracking-widest">O con tus datos</span></div>
         </div>
 
+        
         <?php if($errors->any()): ?>
-            <div class="p-4 mb-4 text-xs text-red-700 bg-red-50 rounded-2xl border border-red-100">
-                <p class="font-bold">Error de ingreso:</p>
-                <ul class="mt-1 list-disc list-inside">
+            <div class="p-4 mb-4 text-[10px] text-red-700 bg-red-50 rounded-2xl border border-red-100 font-bold uppercase tracking-widest">
+                <ul class="list-disc list-inside">
                     <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <li><?php echo e($error); ?></li>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -57,7 +65,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100">
+            <button type="submit" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100 uppercase tracking-widest">
                 Iniciar Sesión
             </button>
 
@@ -72,13 +80,13 @@
 </div>
 
 
-<div id="loadingScreenProgress" class="fixed inset-0 bg-nav-footer backdrop-blur-sm flex flex-col items-center justify-center z-50" style="display: none;">
+<div id="loadingScreenProgress" class="fixed inset-0 bg-nav-footer flex flex-col items-center justify-center z-50" style="display: none;">
     <div class="text-center px-4">
-        <img src="<?php echo e(asset('img/logo_redonda.png')); ?>" alt="La Redonda" class="w-24 md:w-28 mx-auto mb-6 h-auto">
-        <div class="w-64 bg-gray-200 rounded-full h-2 mb-4 mx-auto overflow-hidden">
+        <img src="<?php echo e(asset('img/logo_redonda.png')); ?>" alt="La Redonda" class="w-24 md:w-28 mx-auto mb-6 h-auto animate-pulse">
+        <div class="w-64 bg-gray-200 rounded-full h-1.5 mb-4 mx-auto overflow-hidden">
             <div id="loadingProgress" class="bg-button h-full rounded-full transition-all duration-300" style="width: 0%"></div>
         </div>
-        <p class="text-[10px] font-black text-text-dark uppercase tracking-widest">Accediendo <span id="loadingPercent">0</span>%</p>
+        <p class="text-text-dark font-black uppercase tracking-[0.2em] text-[10px]">Accediendo <span id="loadingPercent">0</span>%</p>
     </div>
 </div>
 

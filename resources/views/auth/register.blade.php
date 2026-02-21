@@ -42,20 +42,20 @@
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Nombre Completo</label>
                     <input name="name" type="text" required value="{{ old('name') }}"
-                           class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Tu nombre">
+                           class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Ingresá tu nombre">
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Email</label>
                     <input name="email" type="email" required value="{{ old('email') }}"
-                           class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Tu email personal">
+                           class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Ingresá tu email">
                 </div>
 
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Contraseña (Mín. 8)</label>
                     <div class="relative">
                         <input name="password" id="password_reg" type="password" required 
-                               class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Elegí una clave segura">
+                               class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Ingresá una contraseña segura">
                         <button type="button" onclick="togglePassword('password_reg', 'eye-icon-reg')" class="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-400 hover:text-button transition-colors">
                             <svg id="eye-icon-reg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
@@ -69,7 +69,7 @@
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Confirmar Contraseña</label>
                     <div class="relative">
                         <input name="password_confirmation" id="password_conf" type="password" required 
-                               class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Repetí tu clave">
+                               class="block w-full px-5 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button/20 focus:border-button text-sm transition-all bg-gray-50/50" placeholder="Repetí tu contraseña">
                         <button type="button" onclick="togglePassword('password_conf', 'eye-icon-conf')" class="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-400 hover:text-button transition-colors">
                             <svg id="eye-icon-conf" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
@@ -84,14 +84,14 @@
                 <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') ?? env('RECAPTCHA_SITE_KEY') }}"></div>
             </div>
 
-            <button type="submit" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100 uppercase tracking-widest">
-                Crear Mi Cuenta
+            <button type="submit" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-black text-white bg-button hover:bg-blue-900 transition-all active:scale-95 shadow-blue-100">
+                Registrarse
             </button>
 
             <div class="text-center mt-6">
                 <p class="text-[10px] text-gray-400 font-bold uppercase">
                     ¿Ya tenés cuenta? 
-                    <a href="{{ route('login') }}" class="text-button hover:underline ml-1">Iniciá Sesión</a>
+                    <a href="{{ route('login') }}" class="text-button hover:underline ml-1">Iniciá Sesión acá</a>
                 </p>
             </div>
         </form>
@@ -102,7 +102,7 @@
 <div id="loadingScreenProgress" class="fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50" style="display: none;">
     <div class="text-center px-4">
         <img src="{{ asset('img/logo_redonda.png') }}" alt="La Redonda" class="w-24 md:w-28 mx-auto mb-6 h-auto animate-pulse">
-        <div class="w-64 bg-gray-200 rounded-full h-1.5 mb-4 mx-auto overflow-hidden">
+        <div class="w-64 bg-nav-footer rounded-full h-1.5 mb-4 mx-auto overflow-hidden">
             <div id="loadingProgress" class="bg-button h-full rounded-full transition-all duration-300" style="width: 0%"></div>
         </div>
         <p class="text-[10px] font-black text-text-dark uppercase tracking-[0.2em]">Registrando <span id="loadingPercent">0</span>%</p>
