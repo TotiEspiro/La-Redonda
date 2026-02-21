@@ -68,10 +68,19 @@
     ];
 
     $unreadNotifications = collect();
+    $isRestricted = false;
+
     if (Auth::check()) {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         $unreadNotifications = $user->unreadNotifications;
+
+        // Lógica de restricción profesional: 
+        // Solo para cuentas nuevas creadas después de hoy que no estén verificadas.
+        $cutoffDate = \Carbon\Carbon::parse('2026-02-21 00:00:00');
+        if (!$user->email_verified_at && $user->created_at->gt($cutoffDate)) {
+            $isRestricted = true;
+        }
     }
 
     $inicioUrl = Auth::check() ? route('dashboard') : url('/');
@@ -110,9 +119,10 @@
                             @forelse($unreadNotifications as $n)
                                 @php 
                                     $nData = is_array($n->data) ? $n->data : json_decode($n->data, true); 
-                                    // CORRECCIÓN: Priorizar 'url', luego 'link', y si no hay nada o es '#', ir al dashboard
                                     $rawUrl = $nData['url'] ?? ($nData['link'] ?? null);
                                     $notiUrl = ($rawUrl && $rawUrl !== '#') ? $rawUrl : route('dashboard');
+                                    // Si está restringido, no puede ir a los links de las notis
+                                    if($isRestricted) $notiUrl = route('verification.notice');
                                 @endphp
                                 <a href="{{ $notiUrl }}" class="block px-4 py-4 hover:bg-blue-50 border-b border-gray-50 transition-colors">
                                     <p class="text-xs font-bold text-gray-900 leading-tight mb-1">{{ $nData['title'] ?? ($nData['titulo'] ?? 'Aviso') }}</p>
@@ -141,14 +151,14 @@
                             
                             @if(Auth::check() && Auth::user()->isAdmin())
                             <div class="p-3 bg-yellow-400">
-                                <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-center w-full py-3 bg-white/20 hover:bg-white/30 border border-white/30 rounded-xl text-black text-[11px] font-black uppercase tracking-widest transition-all">
+                                <a href="{{ $isRestricted ? route('verification.notice') : route('admin.dashboard') }}" class="flex items-center justify-center w-full py-3 bg-white/20 hover:bg-white/30 border border-white/30 rounded-xl text-black text-[11px] font-black uppercase tracking-widest transition-all">
                                     <img src="{{ asset('img/icono_admin.png') }}" class="w-4 h-4 mr-2"> Panel de Administrador
                                 </a>
                             </div>
                             @endif
 
                             <div class="py-2 border-b border-gray-50">
-                                <a href="{{ $inicioUrl }}" class="block px-5 py-3 text-xs font-bold text-gray-700 hover:bg-blue-50 transition uppercase">Inicio</a>
+                                <a href="{{ $isRestricted ? route('verification.notice') : $inicioUrl }}" class="block px-5 py-3 text-xs font-bold text-gray-700 hover:bg-blue-50 transition uppercase">Inicio</a>
                                 
                                 {{-- EXPLORAR COMUNIDADES --}}
                                 <div class="border-t border-gray-50">
@@ -178,7 +188,7 @@
 
                                     // Grupos donde el usuario es MIEMBRO
                                     $memberGroups = $userRoles->filter(fn($r) => in_array($r->name, $allGroupSlugs))
-                                                             ->map(fn($r) => $r->name)->unique();
+                                                               ->map(fn($r) => $r->name)->unique();
                                     
                                     // Grupos para GESTIÓN
                                     if($user->isSuperAdmin()) {
@@ -188,19 +198,19 @@
                                         ]);
                                     } else {
                                         $managedGroups = $userRoles->filter(fn($r) => str_starts_with($r->name, 'admin_') && $r->name !== 'admin_grupo_parroquial')
-                                                                  ->map(fn($r) => (object)['name' => $r->name, 'display' => str_replace('admin_', '', $r->name)]);
+                                                                   ->map(fn($r) => (object)['name' => $r->name, 'display' => str_replace('admin_', '', $r->name)]);
                                     }
 
                                     $hasAccessToDiario = $user->isAdmin() || $memberGroups->isNotEmpty() || $managedGroups->isNotEmpty();
                                 @endphp
                                 <div class="bg-gray-50/30">
                                     @if($hasAccessToDiario)
-                                        <a href="{{ route('diario.index') }}" class="flex items-center px-5 py-4 text-xs font-bold border-b uppercase border-gray-100 text-gray-700 hover:bg-blue-50 transition">
+                                        <a href="{{ $isRestricted ? route('verification.notice') : route('diario.index') }}" class="flex items-center px-5 py-4 text-xs font-bold border-b uppercase border-gray-100 text-gray-700 hover:bg-blue-50 transition">
                                             <img src="{{ asset('img/icono_biblia.png') }}" class="w-4 h-4 mr-3"> Diario de La Redonda
                                         </a>
                                     @endif
 
-                                    {{-- MIS COMUNIDADES (VISIBILIDAD ASEGURADA CON SEGURIDAD) --}}
+                                    {{-- MIS COMUNIDADES --}}
                                     @if($memberGroups->isNotEmpty())
                                         <div class="border-b border-gray-50">
                                             <button class="w-full flex items-center justify-between px-5 py-4 text-xs font-black text-gray-700 hover:bg-blue-50 transition uppercase" onclick="toggleAccordionSmooth('pcComuSub', 'pcComuArr')">
@@ -211,14 +221,19 @@
                                                 @foreach($memberGroups as $slug)
                                                     @php
                                                         $groupData = \App\Models\Group::where('category', $slug)->first();
-                                                        // SEGURIDAD: Redirigir a verificación si hay clave y no se ha validado
                                                         $targetRoute = route('grupos.dashboard', $slug);
-                                                        if ($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)) {
+                                                        
+                                                        // Prioridad 1: Si está restringido por email
+                                                        if ($isRestricted) {
+                                                            $targetRoute = route('verification.notice');
+                                                        } 
+                                                        // Prioridad 2: Si tiene contraseña de grupo
+                                                        elseif ($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)) {
                                                             $targetRoute = route('grupos.verify-form', $slug);
                                                         }
                                                     @endphp
                                                     <a href="{{ $targetRoute }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 truncate uppercase mb-1">
-                                                        @if($groupData && $groupData->group_password && !session('group_unlocked_' . $slug))
+                                                        @if(!$isRestricted && $groupData && $groupData->group_password && !session('group_unlocked_' . $slug))
                                                             🔒 {{ str_replace('_', ' ', $slug) }}
                                                         @else
                                                             {{ str_replace('_', ' ', $slug) }}
@@ -241,13 +256,13 @@
                                             </button>
                                             <div id="pcGestionSub" class="accordion-content bg-gray-50/50 px-3">
                                                 @foreach($managedGroups as $g)
-                                                    <a href="{{ route('grupos.dashboard', str_replace('admin_', '',  $g->name)) }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 truncate uppercase mb-1">{{ $g->display }}</a>
+                                                    <a href="{{ $isRestricted ? route('verification.notice') : route('grupos.dashboard', str_replace('admin_', '',  $g->name)) }}" class="block p-2 text-[9px] font-bold border border-gray-100 rounded bg-white hover:bg-button hover:text-white text-gray-600 truncate uppercase mb-1">{{ $g->display }}</a>
                                                 @endforeach
                                             </div>
                                         </div>
                                     @endif
 
-                                    <a href="{{ route('profile.show') }}" class="flex items-center px-5 py-4 text-xs font-bold text-gray-700 hover:bg-blue-50 transition border-b border-gray-50 uppercase">
+                                    <a href="{{ $isRestricted ? route('verification.notice') : route('profile.show') }}" class="flex items-center px-5 py-4 text-xs font-bold text-gray-700 hover:bg-blue-50 transition border-b border-gray-50 uppercase">
                                         <img src="{{ asset('img/icono_perfil.png') }}" class="w-4 h-4 mr-3"> Mi Perfil
                                     </a>
                                     <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf
@@ -273,12 +288,9 @@
 <div class="md:hidden">
     <nav class="fixed bottom-0 left-0 w-full bg-nav-footer border-t-2 border-sky-400 z-50 h-16 shadow-lg">
         <div class="flex justify-around items-center h-full">
-            <a href="{{ $inicioUrl }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_inicio.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Inicio</span></a>
+            <a href="{{ $isRestricted ? route('verification.notice') : $inicioUrl }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_inicio.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Inicio</span></a>
             <a href="{{ route('grupos.index') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_grupos.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Grupos</span></a>
-            
-            {{-- NUEVO ACCESO INTENCIONES MÓVIL --}}
             <a href="{{ url('/intenciones') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_intenciones.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Intenciones</span></a>
-            
             <a href="{{ url('/donaciones') }}" class="flex flex-col items-center justify-center w-full h-full text-gray-600"><img src="{{ asset('img/icono_donaciones.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Donar</span></a>
             @auth
                 <button id="bottomMenuTrigger" class="flex flex-col items-center justify-center w-full h-full text-gray-600 focus:outline-none"><img src="{{ asset('img/icono_perfil.png') }}" class="h-6 w-6 mb-1"><span class="text-[9px] font-black uppercase">Cuenta</span></button>
@@ -299,12 +311,12 @@
         </div>
         <div class="max-h-[60vh] overflow-y-auto p-4 space-y-4 bg-gray-50/30">
             @if(Auth::user()->isAdmin())
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center w-full px-5 py-4 bg-yellow-400 text-black rounded-2xl shadow-md transition-transform active:scale-95">
+            <a href="{{ $isRestricted ? route('verification.notice') : route('admin.dashboard') }}" class="flex items-center w-full px-5 py-4 bg-yellow-400 text-black rounded-2xl shadow-md transition-transform active:scale-95">
                 <img src="{{ asset('img/icono_admin.png') }}" class="w-6 h-6 mr-4"> <span class="text-xs font-black uppercase">Panel de Administrador</span>
             </a>
             @endif
 
-            {{-- MIS COMUNIDADES MÓVIL (CON SEGURIDAD) --}}
+            {{-- MIS COMUNIDADES MÓVIL --}}
             @if($memberGroups->isNotEmpty())
                 <div class="bg-white border border-sky-100 rounded-2xl overflow-hidden">
                     <button onclick="toggleAccordionSmooth('mobMemberSub', 'mobMemberArr')" class="w-full flex justify-between items-center px-5 py-4 text-xs font-black text-gray-700 uppercase">
@@ -317,12 +329,14 @@
                                 @php
                                     $groupData = \App\Models\Group::where('category', $slug)->first();
                                     $targetRoute = route('grupos.dashboard', $slug);
-                                    if ($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)) {
+                                    if ($isRestricted) {
+                                        $targetRoute = route('verification.notice');
+                                    } elseif ($groupData && $groupData->group_password && !session('group_unlocked_' . $slug)) {
                                         $targetRoute = route('grupos.verify-form', $slug);
                                     }
                                 @endphp
                                 <a href="{{ $targetRoute }}" class="grid-menu-item bg-white border border-gray-100 rounded-xl text-[8px] font-bold text-gray-500 uppercase shadow-sm">
-                                    @if($groupData && $groupData->group_password && !session('group_unlocked_' . $slug))
+                                    @if(!$isRestricted && $groupData && $groupData->group_password && !session('group_unlocked_' . $slug))
                                         🔒 {{ str_replace('_', ' ', $slug) }}
                                     @else
                                         {{ str_replace('_', ' ', $slug) }}
@@ -343,7 +357,7 @@
                     <div id="mobSuperSub" class="accordion-content bg-white/50">
                         <div class="grid grid-cols-2 gap-2 p-2">
                             @foreach($managedGroups as $g)
-                                <a href="{{ route('grupos.dashboard', str_replace('admin_', '', $g->name)) }}" class="grid-menu-item bg-white border border-gray-100 rounded-xl text-[8px] font-bold text-gray-500 uppercase shadow-sm">{{ $g->display }}</a>
+                                <a href="{{ $isRestricted ? route('verification.notice') : route('grupos.dashboard', str_replace('admin_', '', $g->name)) }}" class="grid-menu-item bg-white border border-gray-100 rounded-xl text-[8px] font-bold text-gray-500 uppercase shadow-sm">{{ $g->display }}</a>
                             @endforeach
                         </div>
                     </div>
@@ -351,10 +365,10 @@
             @endif
             
             @if($hasAccessToDiario)
-                <a href="{{ route('diario.index') }}" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="{{ asset('img/icono_biblia.png') }}" class="w-6 h-6 mr-4"><span class="text-xs font-black uppercase">Diario de La Redonda</span></a>
+                <a href="{{ $isRestricted ? route('verification.notice') : route('diario.index') }}" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="{{ asset('img/icono_biblia.png') }}" class="w-6 h-6 mr-4"><span class="text-xs font-black uppercase">Diario de La Redonda</span></a>
             @endif
             
-            <a href="{{ route('profile.show') }}" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="{{ asset('img/icono_perfil.png') }}" class="h-6 h-6 mr-4"><span class="text-xs font-black uppercase">Mi Perfil</span></a>
+            <a href="{{ $isRestricted ? route('verification.notice') : route('profile.show') }}" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="{{ asset('img/icono_perfil.png') }}" class="h-6 h-6 mr-4"><span class="text-xs font-black uppercase">Mi Perfil</span></a>
             
             <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf
                 <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl text-xs font-black uppercase">Cerrar Sesión</button>
