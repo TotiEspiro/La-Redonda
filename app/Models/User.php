@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\ResetPasswordNotification; 
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -33,6 +34,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'onboarding_completed' => 'boolean',
         'notify_announcements' => 'boolean',
     ];
+
+    /**
+     * SOBRESCRITURA DE NOTIFICACIÓN DE VERIFICACIÓN
+     * Usa nuestro diseño personalizado de "La Redonda".
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new VerifyEmailNotification);
+    }
 
     /**
      * SOBRESCRITURA DE NOTIFICACIÓN DE CONTRASEÑA

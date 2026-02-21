@@ -58,8 +58,13 @@ Route::get('/logout', [AuthController::class, 'logout']);
 // --- Verificación de Email (Nativas de Laravel) ---
 // Estas rutas son necesarias para que MustVerifyEmail funcione correctamente
 Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->middleware('auth')->name('verification.notice');
-Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['auth', 'signed'])->name('verification.verify');
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['signed'])->name('verification.verify');
 Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+// Ruta para mostrar la vista de enlace expirado
+Route::get('/email/verificacion-expirada', function () {
+    return view('auth.verification-expire');
+})->name('auth.verification.expire'); // <--- Asegúrate de que se llame así
 
 // --- Login Social (Google y Facebook) ---
 Route::get('/auth/{provider}/redirect', [AuthController::class, 'redirectToProvider'])->name('social.redirect');

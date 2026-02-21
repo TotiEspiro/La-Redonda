@@ -40,17 +40,27 @@ class AuthController extends Controller
             : view('auth.verify-email');
     }
 
-    public function verifyEmail(Request $request)
+    /**
+     * VERIFICACIÓN DE EMAIL MEJORADA
+     * Permite verificar sin estar logueado previamente (útil para móviles).
+     */
+    public function verifyEmail(Request $request, $id, $hash)
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->route('dashboard');
+        $user = User::findOrFail($id);
+
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return redirect()->route('login')->withErrors(['email' => 'El enlace de verificación no es válido o ha expirado.']);
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('login')->with('success', 'Tu email ya había sido verificado. Podés ingresar.');
         }
 
-        return redirect()->route('dashboard')->with('verified', true);
+        if ($user->markEmailAsVerified()) {
+            event(new Verified($user));
+        }
+
+        return redirect()->route('login')->with('success', '¡Excelente! Tu cuenta ha sido activada correctamente. Ya podés iniciar sesión.');
     }
 
     public function resendVerificationEmail(Request $request)
@@ -113,7 +123,6 @@ class AuthController extends Controller
         $user->update(['security_code' => Hash::make($code)]);
         
         try {
-            // Disparamos la notificación que creamos anteriormente
             $user->notify(new SecurityCodeNotification($code));
         } catch (\Exception $e) {
             Log::error("Error enviando código de seguridad por mail: " . $e->getMessage());
@@ -166,6 +175,10 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'g-recaptcha-response' => 'required'
+        ], [
+            'email.unique' => 'Este correo ya está registrado.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'g-recaptcha-response.required' => 'Confirma que no eres un robot.'
         ]);
 
         if ($validator->fails()) return back()->withErrors($validator)->withInput();
@@ -287,6 +300,6 @@ class AuthController extends Controller
             $user->save();
             event(new PasswordReset($user));
         });
-        return $status === Password::PASSWORD_RESET ? redirect()->route('login')->with('success', 'Contraseña actualizada.') : back()->withErrors(['email' => [__($status)]]);
+        return $status === Password::PASSWORD_RESET ? redirect()->route('login')->with('success', 'Tu contraseña ha sido actualizada correctamente.') : back()->withErrors(['email' => [__($status)]]);
     }
 }
