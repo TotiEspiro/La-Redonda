@@ -62,7 +62,6 @@
                                 data-user-id="{{ $user->id }}"
                                 data-name="{{ strtolower($user->name) }}" 
                                 data-email="{{ strtolower($user->email) }}"
-                                {{-- Pasamos SLUGS para que el JS marque los checkboxes correctamente --}}
                                 data-roles="{{ $user->roles->pluck('slug')->filter()->implode(',') }}">
                                 <td class="px-8 py-5 whitespace-nowrap">
                                     <div class="flex items-center gap-4">
@@ -165,7 +164,6 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
-                        {{-- Cargamos los grupos directamente de la BD para que siempre esté actualizado --}}
                         @foreach(\App\Models\Group::orderBy('name')->get() as $grupo)
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-text-dark text-xs uppercase">{{ $grupo->name }}</td>
@@ -217,7 +215,7 @@
 </div>
 
 <script>
-// Lógica de Filtros
+// Lógica de Filtros (Filtra solo lo visible en la página actual)
 const searchInput = document.getElementById('userSearch');
 const userRows = document.querySelectorAll('.user-row');
 

@@ -43,7 +43,8 @@ class AdminController extends Controller
      */
     public function users()
     {
-        $users = User::with('roles')->latest()->paginate(10);
+        // Se cambia el límite de paginación a 15 usuarios por página
+        $users = User::with('roles')->latest()->paginate(15);
         $allRoles = Role::withCount('users')->get();
         return view('admin.users.index', compact('users', 'allRoles'));
     }

@@ -62,7 +62,6 @@
                                 data-user-id="<?php echo e($user->id); ?>"
                                 data-name="<?php echo e(strtolower($user->name)); ?>" 
                                 data-email="<?php echo e(strtolower($user->email)); ?>"
-                                
                                 data-roles="<?php echo e($user->roles->pluck('slug')->filter()->implode(',')); ?>">
                                 <td class="px-8 py-5 whitespace-nowrap">
                                     <div class="flex items-center gap-4">
@@ -168,7 +167,6 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
-                        
                         <?php $__currentLoopData = \App\Models\Group::orderBy('name')->get(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $grupo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-text-dark text-xs uppercase"><?php echo e($grupo->name); ?></td>
@@ -220,7 +218,7 @@
 </div>
 
 <script>
-// Lógica de Filtros
+// Lógica de Filtros (Filtra solo lo visible en la página actual)
 const searchInput = document.getElementById('userSearch');
 const userRows = document.querySelectorAll('.user-row');
 
