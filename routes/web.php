@@ -54,15 +54,24 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', [AuthController::class, 'logout']); 
- 
+
+// --- Verificación de Email (Nativas de Laravel) ---
+// Estas rutas son necesarias para que MustVerifyEmail funcione correctamente
+Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->middleware('auth')->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['auth', 'signed'])->name('verification.verify');
+Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
 // --- Login Social (Google y Facebook) ---
 Route::get('/auth/{provider}/redirect', [AuthController::class, 'redirectToProvider'])->name('social.redirect');
 Route::get('/auth/{provider}/callback', [AuthController::class, 'handleProviderCallback'])->name('social.callback');
 
+// --- Recuperación de Contraseña ---
 Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('password.request');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
+
+// --- Validación por Inactividad (Código de Seguridad) ---
 Route::get('/verificar-codigo', [AuthController::class, 'showVerifyCode'])->name('auth.verify.code');
 Route::post('/verificar-codigo', [AuthController::class, 'verifyCode'])->name('auth.verify.code.post');
 
@@ -163,10 +172,6 @@ Route::middleware(['auth'])->group(function () {
             route('dashboard')
         ));
     });
-
-
-
-
 });
 
 /*
