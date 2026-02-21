@@ -213,3 +213,6 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::fallback(fn() => response()->view('errors.404', [], 404));
+Route::get('/mantenimiento', function () {
+    return view('errors.503');
+})->name('maintenance.preview');
