@@ -4,7 +4,7 @@
 <div class="intentions-container py-8 md:py-12">
     {{-- (Contenido del formulario igual al original) --}}
     <div class="container max-w-7xl mx-auto px-4">
-        <h1 class="donation-title text-3xl md:text-4xl font-semibold text-text-dark text-center mb-8 md:mb-12 border-b-2 border-black pb-2">Intenciones</h1>
+        <h1 class="donation-title text-3xl md:text-4xl font-semibold text-text-dark text-center mb-8 md:mb-12 border-b-2 border-black pb-2 uppercase tracking-tight">Intenciones</h1>
         <div class="intentions-content grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 max-w-6xl mx-auto items-start">
             <div class="intentions-left order-1 lg:order-1">
                 <div class="space-y-6 text-base md:text-lg bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:bg-transparent lg:shadow-none lg:border-none lg:p-0">

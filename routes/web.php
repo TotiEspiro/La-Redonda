@@ -20,7 +20,7 @@ use App\Http\Controllers\Admin\EvangelioDiarioController;
 |--------------------------------------------------------------------------
 */
 Route::get('/home', function () {
-    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('home');
+    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('home'); 
 });
 
 /*
@@ -54,7 +54,7 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', [AuthController::class, 'logout']); 
-
+ 
 // --- Login Social (Google y Facebook) ---
 Route::get('/auth/{provider}/redirect', [AuthController::class, 'redirectToProvider'])->name('social.redirect');
 Route::get('/auth/{provider}/callback', [AuthController::class, 'handleProviderCallback'])->name('social.callback');
@@ -63,6 +63,8 @@ Route::get('/forgot-password', fn() => view('auth.forgot-password'))->name('pass
 Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
+Route::get('/verificar-codigo', [AuthController::class, 'showVerifyCode'])->name('auth.verify.code');
+Route::post('/verificar-codigo', [AuthController::class, 'verifyCode'])->name('auth.verify.code.post');
 
 // --- Secciones Legales ---
 Route::get('/terminos-y-condiciones', [HomeController::class, 'terminos'])->name('legal.terminos');
@@ -160,7 +162,6 @@ Route::middleware(['auth'])->group(function () {
             "Si estás leyendo esto, tu celular ya recibe avisos de La Redonda.",
             route('dashboard')
         ));
-        return "Se ha enviado la señal a tu celular...";
     });
 
 

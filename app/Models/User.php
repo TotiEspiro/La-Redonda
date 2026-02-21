@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\ResetPasswordNotification; 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,7 +11,7 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable, HasPushSubscriptions;
 
@@ -18,14 +19,17 @@ class User extends Authenticatable
         'name', 'email', 'password', 'diario_data', 'last_diario_entry', 
         'age', 'onboarding_completed', 'notify_announcements',
         // Campos para Social Login (Google/Facebook)
-        'provider_id', 'provider_name', 'avatar'
+        'provider_id', 'provider_name', 'avatar',
+        // Campos de Seguridad y Validación
+        'last_login_at', 'security_code'
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'security_code'];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
         'last_diario_entry' => 'datetime',
+        'last_login_at' => 'datetime',
         'onboarding_completed' => 'boolean',
         'notify_announcements' => 'boolean',
     ];

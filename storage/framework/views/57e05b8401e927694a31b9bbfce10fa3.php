@@ -2,7 +2,7 @@
 <div class="donations-container">
     <section class="donation-section full-width bg-white py-8 md:py-12 border-b-2 border-background-light">
         <div class="container max-w-7xl mx-auto px-4">
-            <h1 class="donation-title text-3xl md:text-4xl font-semibold text-text-dark text-center mb-8 md:mb-12 border-b-2 border-black pb-2">Donar con tarjeta</h1>
+            <h1 class="donation-title text-3xl md:text-4xl font-semibold text-text-dark text-center mb-8 md:mb-12 border-b-2 border-black pb-2 uppercase tracking-tight">Donar con tarjeta</h1>
 
             <div class="donation-content grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 max-w-6xl mx-auto">
                 <div class="donation-left">
