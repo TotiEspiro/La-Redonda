@@ -3,16 +3,6 @@
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8 md:py-12">
     <div class="max-w-2xl mx-auto px-4">
-        
-        {{-- Breadcrumb / Navegación --}}
-        <nav class="flex mb-6 uppercase tracking-widest text-[10px] font-bold text-gray-400">
-            <a href="{{ route('dashboard') }}" class="hover:text-button transition-colors">Inicio</a> 
-            <span class="mx-2">/</span> 
-            <a href="{{ route('profile.show') }}" class="hover:text-button transition-colors">Perfil</a>
-            <span class="mx-2">/</span> 
-            <span class="text-text-dark">Editar</span>
-        </nav>
-
         <div class="bg-white shadow-xl rounded-[2.5rem] overflow-hidden border border-gray-100">
             <div class="bg-button px-8 py-8 text-white relative">
                 <div class="absolute top-0 right-0 p-8 opacity-10">

@@ -270,7 +270,7 @@
                                         <img src="<?php echo e(asset('img/icono_perfil.png')); ?>" class="w-4 h-4 mr-3"> Mi Perfil
                                     </a>
                                     <form method="POST" action="<?php echo e(route('logout')); ?>" class="m-0"><?php echo csrf_field(); ?>
-                                        <button type="submit" class="w-full text-center px-5 py-4 text-xs font-bold text-white bg-red-500 hover:bg-red-600 transition uppercase">Cerrar Sesión</button>
+                                        <button type="submit" class="w-full text-center px-5 py-4 text-xs font-bold text-red-500 bg-red-100 hover:bg-red-200 transition uppercase">Cerrar Sesión</button>
                                     </form>
                                 </div>
                             <?php else: ?>
@@ -377,7 +377,7 @@
             <a href="<?php echo e($isRestricted ? route('verification.notice') : route('profile.show')); ?>" class="flex items-center w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl text-gray-700 shadow-sm"><img src="<?php echo e(asset('img/icono_perfil.png')); ?>" class="h-6 h-6 mr-4"><span class="text-xs font-black uppercase">Mi Perfil</span></a>
             
             <form method="POST" action="<?php echo e(route('logout')); ?>" class="m-0"><?php echo csrf_field(); ?>
-                <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl text-xs font-black uppercase">Cerrar Sesión</button>
+                <button type="submit" class="w-full py-4 bg-red-100 text-red-500 rounded-2xl text-xs font-black uppercase hover:bg-red-200">Cerrar Sesión</button>
             </form>
         </div>
     </div>
