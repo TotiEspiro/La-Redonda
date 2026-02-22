@@ -30724,3 +30724,18 @@ Stack level 1.\"><span class=\"sf-dump-ellipsis sf-dump-ellipsis-path\">C:\\lara
 [2026-02-21 16:44:44] local.INFO: AdminMiddleware ejecutándose para: admin/users  
 [2026-02-21 16:44:44] local.INFO: Usuario autenticado: {"id":8,"email":"test1@laredonda.com","role":"user","isAdmin":true} 
 [2026-02-21 16:44:44] local.INFO: Acceso admin permitido  
+[2026-02-21 20:04:32] local.INFO: AdminMiddleware ejecutándose para: admin  
+[2026-02-21 20:04:33] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-21 20:04:33] local.INFO: Acceso admin permitido  
+[2026-02-21 20:04:34] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-21 20:04:34] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-21 20:04:34] local.INFO: Acceso admin permitido  
+[2026-02-21 20:05:31] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-21 20:05:31] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-21 20:05:31] local.INFO: Acceso admin permitido  
+[2026-02-21 20:05:35] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-21 20:05:35] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-21 20:05:35] local.INFO: Acceso admin permitido  
+[2026-02-21 20:07:35] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-21 20:07:35] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-21 20:07:35] local.INFO: Acceso admin permitido  
