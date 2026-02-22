@@ -28,6 +28,11 @@
             }
         }
     </script>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+    </style>
 </head>
 <body class="font-poppins">
 

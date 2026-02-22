@@ -11,6 +11,12 @@
     <link rel="stylesheet" href="/css/app.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+
+    <style>
+        :root {
+            color-scheme: light;
+        }
+    </style>
     
     @stack('styles')
 </head>
