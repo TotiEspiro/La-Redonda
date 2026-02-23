@@ -6,6 +6,7 @@
     <title>La Redonda | Inmaculada Concepción de Belgrano</title>
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <meta name="vapid-pub" content="<?php echo e(env('VAPID_PUBLIC_KEY')); ?>">
+    <meta name="color-scheme" content="light">
     <link rel="manifest" href="<?php echo e(asset('manifest.json')); ?>">
     <link rel="icon" href="<?php echo e(asset('img/logo_nav_redonda.png')); ?>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,6 +28,11 @@
             }
         }
     </script>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+    </style>
 </head>
 <body class="font-poppins">
 

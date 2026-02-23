@@ -7,9 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="<?php echo e(asset('img/logo_nav_redonda.png')); ?>">
+    <meta name="color-scheme" content="light">
     <link rel="stylesheet" href="/css/app.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+
+    <style>
+        :root {
+            color-scheme: light;
+        }
+    </style>
     
     <?php echo $__env->yieldPushContent('styles'); ?>
 </head>

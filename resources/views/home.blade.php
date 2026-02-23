@@ -59,6 +59,29 @@
         @endif
     </div>
 </section>
+<section class="py-12 bg-gospel-bg">
+    <div class="container max-w-7xl mx-auto px-4">
+        <div class="gospel-content text-left max-w-4xl mx-auto">
+            <h2 class="gospel-title text-2xl md:text-3xl text-center font-semibold text-text-dark mb-6">Evangelio del Día</h2>
+
+            @php
+                $evangelioHoy = \App\Models\EvangelioDiario::obtenerEvangelioHoy();
+            @endphp
+
+            @if($evangelioHoy && $evangelioHoy->contenido)
+                <p class="gospel-text italic text-lg mb-4 leading-loose">
+                    {!! nl2br(e($evangelioHoy->contenido)) !!}
+                </p>
+                <p class="gospel-reference text-text-light text-right font-semibold">{{ $evangelioHoy->referencia }}</p>
+            @else
+                <p class="gospel-text italic md:text-lg mb-4 leading-loose">
+                    "Porque tanto amó Dios al mundo que dio a su Hijo único, para que todo el que crea en él no perezca, sino que tenga vida eterna. Porque Dios no envió a su Hijo para juzgar al mundo, sino para que el mundo se salve por él."
+                </p>
+                <p class="gospel-reference text-text-light text-right font-semibold">Juan 3:16-18</p>
+            @endif
+        </div>
+    </div>
+</section>
 
 {{-- HORARIOS INTERACTIVOS (COMO ESTABAN ANTES) --}}
 <section class="py-12 bg-white">

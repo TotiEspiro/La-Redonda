@@ -16,7 +16,6 @@
                     <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Mis Comunidades Activas</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <?php
-                            // Lista de slugs actualizada
                             $allGroupSlugs = [
                                 'catequesis_niños', 'catequesis_adolescentes', 'catequesis_adultos', 
                                 'acutis', 'juveniles', 'juan_pablo', 'coro', 'misioneros', 
@@ -51,11 +50,10 @@
 
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    
                     <?php if($isMember): ?>
                     <a href="<?php echo e(route('diario.index')); ?>" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
                         <div class="p-3 bg-blue-50 rounded-2xl"><img src="<?php echo e(asset('img/icono_biblia.png')); ?>" class="w-8 h-8"></div>
-                        <div><span class="block font-black text-gray-800 text-xs uppercase tracking-tight">Diario Espiritual</span><span class="text-[10px] text-gray-400 font-medium">Tus reflexiones</span></div>
+                        <div><span class="block font-black text-gray-800 text-xs uppercase tracking-tight">Diario de La Redonda</span><span class="text-[10px] text-gray-400 font-medium">Tus reflexiones</span></div>
                     </a>
                     <?php endif; ?>
 
@@ -64,7 +62,6 @@
                         <div><span class="block font-black text-gray-800 text-xs uppercase tracking-tight">Intenciones</span><span class="text-[10px] text-gray-400 font-medium">Sube tus peticiones</span></div>
                     </a>
 
-                    
                     <a href="<?php echo e(route('donations.create')); ?>" class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
                         <div class="p-3 bg-blue-50 rounded-2xl"><img src="<?php echo e(asset('img/icono_donaciones.png')); ?>" class="w-8 h-8"></div>
                         <div><span class="block font-black text-gray-800 text-xs uppercase tracking-tight">Donaciones</span><span class="text-[10px] text-gray-400 font-medium">Apoya a la iglesia</span></div>
@@ -117,9 +114,37 @@
             </div>
             <?php endif; ?>
         </section>
+    </div>
 
+    
+    <section class="py-16 bg-nav-footer border-y border-sky-200 w-full overflow-hidden">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="gospel-content">
+                <h2 class="text-2xl md:text-3xl font-black text-text-dark mb-10 uppercase tracking-tighter text-center">Evangelio del Día</h2>
+
+                <?php
+                    $evangelioHoy = \App\Models\EvangelioDiario::obtenerEvangelioHoy();
+                ?>
+
+                <?php if($evangelioHoy && $evangelioHoy->contenido): ?>
+                    <p class="gospel-text italic text-lg md:text-xl mb-6 leading-loose text-gray-700 font-medium">
+                        <?php echo nl2br(e($evangelioHoy->contenido)); ?>
+
+                    </p>
+                    <p class="gospel-reference text-gray-700 font-black uppercase tracking-widest text-sm text-right">— <?php echo e($evangelioHoy->referencia); ?></p>
+                <?php else: ?>
+                    <p class="gospel-text italic text-lg md:text-xl mb-6 leading-loose text-gray-700 font-medium">
+                        "Porque tanto amó Dios al mundo que dio a su Hijo único, para que todo el que crea en él no perezca, sino que tenga vida eterna. Porque Dios no envió a su Hijo para juzgar al mundo, sino para que el mundo se salve por él."
+                    </p>
+                    <p class="gospel-reference text-gray-700 font-black uppercase tracking-widest text-sm text-right">— Juan 3:16-18</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <div class="container max-w-7xl mx-auto px-4">
         
-        <section class="py-12 pb-20 border-t border-gray-100">
+        <section class="py-20 pb-20">
             <h2 class="text-2xl md:text-3xl font-black text-center text-text-dark mb-10 border-b-2 border-black pb-2 uppercase tracking-tighter">Horarios de la Parroquia</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
                 

@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use NotificationChannels\WebPush\HasPushSubscriptions;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -89,8 +91,22 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     // =========================================================================
-    // LÓGICA DEL DIARIO ESPIRITUAL
+    // LÓGICA DEL DIARIO ESPIRITUAL (CON SEGURIDAD DE ENCRIPTACIÓN)
     // =========================================================================
+
+    /**
+     * Helper para desencriptar valores de forma segura.
+     * Si el valor no está encriptado (datos antiguos), lo devuelve tal cual.
+     */
+    private function safelyDecrypt($value)
+    {
+        if (!$value) return '';
+        try {
+            return Crypt::decryptString($value);
+        } catch (DecryptException $e) {
+            return $value;
+        }
+    }
 
     public function getDiarioDataAttribute($value)
     {
@@ -109,19 +125,36 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasAnyRole($allowed);
     }
 
+    /**
+     * Obtiene las entradas desencriptando los datos sensibles en memoria.
+     */
     public function getDiarioEntries()
     {
-        return collect($this->diario_data)->sortByDesc('created_at')->values()->all();
+        return collect($this->diario_data)->map(function($entry) {
+            $entry['title'] = $this->safelyDecrypt($entry['title'] ?? '');
+            $entry['content'] = $this->safelyDecrypt($entry['content'] ?? '');
+            return $entry;
+        })->sortByDesc('created_at')->values()->all();
     }
 
+    /**
+     * Obtiene una entrada específica desencriptada.
+     */
     public function getDiarioEntry($entryId)
     {
         foreach ($this->diario_data as $entry) {
-            if ($entry['id'] == $entryId) return $entry;
+            if ($entry['id'] == $entryId) {
+                $entry['title'] = $this->safelyDecrypt($entry['title'] ?? '');
+                $entry['content'] = $this->safelyDecrypt($entry['content'] ?? '');
+                return $entry;
+            }
         }
         return null;
     }
 
+    /**
+     * Agrega una entrada ENCRIPTANDO el título y el contenido.
+     */
     public function addDiarioEntry($data)
     {
         if (!$this->canAccessDiario()) throw new \Exception('No tiene permisos para usar el diario.');
@@ -131,8 +164,8 @@ class User extends Authenticatable implements MustVerifyEmail
         
         $entry = [
             'id' => $entryId,
-            'title' => $data['title'] ?? '', 
-            'content' => $data['content'] ?? '', 
+            'title' => Crypt::encryptString($data['title'] ?? ''), 
+            'content' => Crypt::encryptString($data['content'] ?? ''), 
             'type' => $data['type'] ?? 'texto',
             'color' => $data['color'] ?? '#3b82f6',
             'is_favorite' => (bool)($data['is_favorite'] ?? false),
@@ -145,9 +178,15 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->last_diario_entry = now();
         $this->save();
         
+        // Retornamos la versión limpia para la respuesta inmediata
+        $entry['title'] = $data['title'] ?? '';
+        $entry['content'] = $data['content'] ?? '';
         return $entry;
     }
 
+    /**
+     * Actualiza una entrada ENCRIPTANDO los nuevos valores.
+     */
     public function updateDiarioEntry($entryId, $data)
     {
         $diarioData = $this->diario_data;
@@ -155,11 +194,12 @@ class User extends Authenticatable implements MustVerifyEmail
         
         foreach ($diarioData as &$entry) {
             if ($entry['id'] == $entryId) {
-                $entry['title'] = $data['title'] ?? $entry['title'];
-                $entry['content'] = $data['content'] ?? $entry['content'];
+                if (isset($data['title'])) $entry['title'] = Crypt::encryptString($data['title']);
+                if (isset($data['content'])) $entry['content'] = Crypt::encryptString($data['content']);
+                
                 $entry['type'] = $data['type'] ?? $entry['type'];
                 $entry['color'] = $data['color'] ?? $entry['color'];
-                $entry['is_favorite'] = isset($data['is_favorite']) ? (bool)$data['is_favorite'] : (bool)$entry['is_favorite'];
+                $entry['is_favorite'] = isset($data['is_favorite']) ? (bool)$data['is_favorite'] : (bool)($entry['is_favorite'] ?? false);
                 $entry['updated_at'] = now()->toDateTimeString();
                 $updated = true;
                 break;
@@ -191,17 +231,25 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return collect($this->diario_data)
             ->filter(fn($e) => ($e['is_favorite'] ?? false))
+            ->map(function($entry) {
+                $entry['title'] = $this->safelyDecrypt($entry['title'] ?? '');
+                $entry['content'] = $this->safelyDecrypt($entry['content'] ?? '');
+                return $entry;
+            })
             ->sortByDesc('created_at')
             ->values()
             ->all();
     }
 
+    /**
+     * Búsqueda en el diario: Desencripta en memoria para poder filtrar por texto.
+     */
     public function searchDiarioEntries($query)
     {
         $q = strtolower($query);
-        return collect($this->diario_data)->filter(function($e) use ($q) {
+        return collect($this->getDiarioEntries())->filter(function($e) use ($q) {
             return str_contains(strtolower($e['title'] ?? ''), $q) || 
                    str_contains(strtolower($e['content'] ?? ''), $q);
-        })->sortByDesc('created_at')->values()->all();
+        })->values()->all();
     }
 }
