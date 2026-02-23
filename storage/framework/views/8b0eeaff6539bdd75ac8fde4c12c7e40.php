@@ -12,7 +12,7 @@
                     <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-2"><?php echo e($groupName); ?></h1>
                     <div class="flex items-center gap-3">
                         <span class="bg-blue-900/50 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/10">Coordinación</span>
-                        <p class="text-blue-50 font-bold uppercase text-[10px] tracking-widest opacity-80"><?php echo e(count($members)); ?> Miembros</p>
+                        <p class="text-blue-50 font-bold uppercase text-[10px] tracking-widest opacity-80"><?php echo e($totalMembers); ?> Miembros</p>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-3 w-full md:w-auto">
@@ -21,6 +21,10 @@
                     </button>
                     <a href="<?php echo e(route('grupos.materials', $group->category)); ?>" class="flex-1 md:flex-none bg-blue-900 text-white border border-white/20 px-6 py-3 rounded-2xl font-black  text-sm  text-center backdrop-blur-sm hover:scale-105 transition-all">
                         Biblioteca
+                    </a>
+                    
+                    <a href="<?php echo e(route('grupos.members', $groupRole)); ?>" class="fflex-1 md:flex-none bg-blue-900 text-white border border-white/20 px-6 py-3 rounded-2xl font-black  text-sm  text-center backdrop-blur-sm hover:scale-105 transition-all">
+                        Miembros
                     </a>
                 </div>
             </div>
@@ -34,13 +38,12 @@
             <div class="lg:col-span-8 space-y-8">
                 <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                     <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Comunidad</h3>
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Últimos Agregados</h3>
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                            <span class="text-[9px] font-black text-gray-400 uppercase hidden sm:inline">En línea</span>
+                            <span class="text-[9px] font-black text-gray-400 uppercase hidden sm:inline">Actividad Reciente</span>
                         </div>
                     </div>
-                    
                     
                     <div class="hidden md:block overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -54,7 +57,8 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
-                                <?php $__currentLoopData = $members; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $member): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                
+                                <?php $__currentLoopData = $latestMembers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $member): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr class="hover:bg-blue-50/30 transition-colors group">
                                     <td class="px-8 py-5">
                                         <div class="flex items-center gap-3">
@@ -94,9 +98,8 @@
                         </table>
                     </div>
 
-                    
                     <div class="md:hidden divide-y divide-gray-100">
-                        <?php $__empty_1 = true; $__currentLoopData = $members; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $member): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        <?php $__empty_1 = true; $__currentLoopData = $latestMembers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $member): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <div class="p-6 hover:bg-gray-50 transition-colors">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-3">
@@ -131,7 +134,7 @@
                             </div>
                         </div>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <div class="py-12 text-center text-gray-300 font-black uppercase text-[10px]">No hay miembros</div>
+                        <div class="py-12 text-center text-gray-300 font-black uppercase text-[10px]">No hay miembros aún</div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -140,7 +143,15 @@
                 <div class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                     <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
                         <h3 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Peticiones Pendientes</h3>
-                        <span class="bg-yellow-100 text-yellow-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest"><?php echo e(count($requests)); ?></span>
+                        <div class="flex items-center gap-4">
+                            <?php if(count($requests) > 0): ?>
+                            <form action="<?php echo e(route('grupos.requests.delete-all', $groupRole)); ?>" method="POST" onsubmit="return confirm('¿Eliminar TODAS las solicitudes?')">
+                                <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
+                                <button type="submit" class="text-[9px] font-black text-red-400 hover:text-red-600 uppercase tracking-widest transition-all">Eliminar Todas</button>
+                            </form>
+                            <?php endif; ?>
+                            <span class="bg-yellow-100 text-yellow-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest"><?php echo e(count($requests)); ?></span>
+                        </div>
                     </div>
                     <div class="p-4 space-y-3">
                         <?php $__empty_1 = true; $__currentLoopData = $requests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $req): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
@@ -184,7 +195,6 @@
                         </div>
                     </div>
                     <div class="p-8">
-                        
                         <?php if(session('success') && request()->routeIs('grupos.dashboard')): ?>
                             <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-2xl flex items-center gap-3 animate-fade-in">
                                 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -192,51 +202,44 @@
                             </div>
                         <?php endif; ?>
 
-                        <p class="text-[11px] text-gray-500 font-bold uppercase mb-6 tracking-tight">Establece una contraseña que los usuarios deban ingresar para acceder a los materiales después de ser aprobados.</p>
+                        <p class="text-[11px] text-gray-500 font-bold uppercase mb-6 tracking-tight">Establece una contraseña que los usuarios deban ingresar para acceder a los materiales.</p>
                         
                         <form action="<?php echo e(route('grupos.update-password', $groupRole)); ?>" method="POST" class="space-y-4">
-    <?php echo csrf_field(); ?>
-    <?php echo method_field('PATCH'); ?>
-    <div>
-        <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">
-            Contraseña de Acceso
-        </label>
-        
-        <div class="relative group">
-            
-            <input id="group_password" type="password" name="group_password" value="<?php echo e($group->group_password); ?>" 
-                placeholder="Sin contraseña (acceso libre)"
-                class="w-full p-4 pr-14 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-medium focus:ring-2 focus:ring-button transition-all text-s">
-            
-            
-            <button type="button" onclick="toggleGroupPassword()" 
-                class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-button transition-colors focus:outline-none">
-                
-                <svg id="eyeClosed" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.057 10.057 0 012.183-4.403M15 12a3 3 0 11-6 0 3 3 0 016 0zm6.362-3.638A9.956 9.956 0 0121.542 12c-1.274 4.057-5.064 7-9.542 7-1.447 0-2.812-.324-4.032-.904m3.582-11.096A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l3.582 3.582" />
-                </svg>
-                
-                <svg id="eyeOpen" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-            </button>
-        </div>
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('PATCH'); ?>
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">
+                                    Contraseña de Acceso
+                                </label>
+                                
+                                <div class="relative group">
+                                    <input id="group_password" type="password" name="group_password" value="<?php echo e($group->group_password); ?>" 
+                                        placeholder="Sin contraseña (acceso libre)"
+                                        class="w-full p-4 pr-14 bg-gray-50 border border-gray-200 rounded-2xl outline-none font-medium focus:ring-2 focus:ring-button transition-all text-s">
+                                    
+                                    <button type="button" onclick="toggleGroupPassword()" 
+                                        class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-button transition-colors focus:outline-none">
+                                        <svg id="eyeClosed" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.057 10.057 0 012.183-4.403M15 12a3 3 0 11-6 0 3 3 0 016 0zm6.362-3.638A9.956 9.956 0 0121.542 12c-1.274 4.057-5.064 7-9.542 7-1.447 0-2.812-.324-4.032-.904m3.582-11.096A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l3.582 3.582" />
+                                        </svg>
+                                        <svg id="eyeOpen" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
 
-        <p class="mt-2 text-[9px] text-gray-400 italic">Si dejas este campo vacío, los usuarios aprobados entrarán directamente sin validación extra.</p>
-    </div>
-
-    <button type="submit" class="w-full py-4 bg-blue-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg hover:bg-blue-950 transition-all active:scale-95">
-        Actualizar Contraseña
-    </button>
-</form>
+                            <button type="submit" class="w-full py-4 bg-blue-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg hover:bg-blue-950 transition-all active:scale-95">
+                                Actualizar Contraseña
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
 
             
             <div class="lg:col-span-4 space-y-8">
-                
                 <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                     <div class="flex justify-between items-center mb-8">
                         <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Últimos Archivos</h3>
@@ -262,14 +265,13 @@
                     </div>
                 </div>
 
-                
                 <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                     <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8">Estado Operativo</h3>
                     <div class="space-y-6">
                          <div class="p-5 bg-blue-50 rounded-3xl border border-blue-100 group hover:bg-blue-100 transition-colors flex items-center justify-between">
                             <div>
                                 <span class="block text-[8px] font-black text-button uppercase tracking-widest mb-1">Total Miembros</span>
-                                <span class="text-3xl font-black text-button leading-none"><?php echo e(count($members)); ?></span>
+                                <span class="text-3xl font-black text-button leading-none"><?php echo e($totalMembers); ?></span>
                             </div>
                             <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                                 <img src="<?php echo e(asset('img/icono_usuarios.png')); ?>" class="w-8 h-8">
@@ -278,18 +280,11 @@
                         <div class="p-5 bg-blue-100 rounded-3xl border border-purple-100 group hover:bg-blue-200 transition-colors flex items-center justify-between">
                             <div>
                                 <span class="block text-[8px] font-black text-blue-900 uppercase tracking-widest mb-1">Recursos Digitales</span>
-                                <span class="text-3xl font-black text-blue-900 leading-none"><?php echo e(count($materials)); ?></span>
+                                <span class="text-3xl font-black text-blue-900 leading-none"><?php echo e(DB::table('group_materials')->where('group_role', $slug)->count()); ?></span>
                             </div>
                             <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
                                 <img src="<?php echo e(asset('img/icono_archivo.png')); ?>" class="w-8 h-8">
                             </div>
-                        </div>
-                        <div class="p-5 bg-gray-50 rounded-3xl border border-gray-200 flex items-center justify-between">
-                            <div>
-                                <span class="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Rango de Edad</span>
-                                <span class="text-xl font-black text-gray-800 leading-none"><?php echo e($group->min_age); ?> a <?php echo e($group->max_age); ?> años</span>
-                            </div>
-                            
                         </div>
                     </div>
                 </div>
@@ -349,7 +344,6 @@
     </div>
 </div>
 
-
 <div id="statusModal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[120] hidden p-4">
     <div class="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 text-center animate-fade-in">
         <div id="statusIcon" class="mx-auto mb-6"></div>
@@ -375,11 +369,10 @@
         document.getElementById('statusMsg').textContent = message;
         icon.innerHTML = success ? 
             `<div class="w-16 h-16 bg-green-50 text-green-500 rounded-2xl flex items-center justify-center mx-auto"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>` :
-            `<div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg></div>`;
+            `<div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto"><svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg></div>`;
         modal.classList.remove('hidden'); modal.classList.add('flex');
     }
 
-    // SUBIDA
     document.getElementById('uploadForm')?.addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = this.querySelector('button[type="submit"]');
@@ -393,14 +386,11 @@
             if (data.success) {
                 showUIStatus('¡Éxito!', data.message);
                 setTimeout(() => location.reload(), 1500);
-            } else {
-                showUIStatus('Error', data.message || 'Error al subir.', false);
-            }
-        } catch (e) { showUIStatus('Error de Red', 'No se pudo conectar con el servidor.', false); }
+            } else { showUIStatus('Error', 'Error al subir.', false); }
+        } catch (e) { showUIStatus('Error de Red', 'No se pudo conectar.', false); }
         finally { btn.disabled = false; btn.textContent = 'SUBIR AHORA'; }
     });
 
-    // ELIMINAR RECURSO
     function confirmDeleteResource(id, name) {
         currentActionId = id; currentActionType = 'resource';
         document.getElementById('confirmTitle').textContent = '¿Eliminar Material?';
@@ -409,11 +399,10 @@
         document.getElementById('confirmActionModal').classList.add('flex');
     }
 
-    // REMOVER MIEMBRO
     function confirmRemoveMember(id, name) {
         currentActionId = id; currentActionType = 'member';
         document.getElementById('confirmTitle').textContent = '¿Remover Miembro?';
-        document.getElementById('confirmMsg').innerHTML = `Vas a retirar de la comunidad a: <br><span class="font-bold text-red-500">${name}</span>`;
+        document.getElementById('confirmMsg').innerHTML = `Vas a retirar a: <br><span class="font-bold text-red-500">${name}</span>`;
         document.getElementById('confirmActionModal').classList.remove('hidden');
         document.getElementById('confirmActionModal').classList.add('flex');
     }
@@ -424,25 +413,19 @@
             let url = currentActionType === 'resource' ? `/grupos/material/${currentActionId}/delete` : `/grupos/panel/<?php echo e($group->category); ?>/members/${currentActionId}`;
             const res = await fetch(url, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>', 'Accept': 'application/json' } });
             if (res.ok) location.reload();
-            else showUIStatus('Error', 'No se pudo completar la acción.', false);
-        } catch (err) { showUIStatus('Error Fatal', 'Conexión interrumpida.', false); }
+            else showUIStatus('Error', 'No se pudo completar.', false);
+        } catch (err) { showUIStatus('Error Fatal', 'Sin conexión.', false); }
         finally { this.disabled = false; }
     });
-</script>
-<script>
+
     function toggleGroupPassword() {
         const input = document.getElementById('group_password');
         const eyeOpen = document.getElementById('eyeOpen');
         const eyeClosed = document.getElementById('eyeClosed');
-
         if (input.type === 'password') {
-            input.type = 'text';
-            eyeOpen.classList.remove('hidden');
-            eyeClosed.classList.add('hidden');
+            input.type = 'text'; eyeOpen.classList.remove('hidden'); eyeClosed.classList.add('hidden');
         } else {
-            input.type = 'password';
-            eyeOpen.classList.add('hidden');
-            eyeClosed.classList.remove('hidden');
+            input.type = 'password'; eyeOpen.classList.add('hidden'); eyeClosed.classList.remove('hidden');
         }
     }
 </script>

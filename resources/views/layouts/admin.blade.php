@@ -75,7 +75,7 @@
 
     <footer class="bg-nav-footer p-6 mt-auto">
         <div class="container max-w-7xl mx-auto px-4 text-center text-text-light">
-            &copy; 2025 La Redonda - Inmaculada Concepción de Belgrano
+            &copy; 2026 La Redonda - Inmaculada Concepción de Belgrano
         </div>
     </footer>
 

@@ -71,12 +71,6 @@
                                     <?php echo e($material->file_type); ?>
 
                                 </span>
-                                
-                                <?php if($material->created_at->gt(now()->subHours(48))): ?>
-                                    <span class="px-2 py-0.5 rounded-lg text-[8px] font-black uppercase bg-green-500 text-white animate-pulse shadow-sm">
-                                        ¡NUEVO!
-                                    </span>
-                                <?php endif; ?>
                             </div>
                         </div>
 

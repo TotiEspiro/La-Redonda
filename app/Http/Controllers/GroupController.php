@@ -29,7 +29,6 @@ class GroupController extends Controller
 
     /**
      * Verifica si el usuario actual es un coordinador autorizado para el grupo.
-     * Incluye SuperAdmins y Admins generales.
      */
     private function isAuthorizedCoordinator($slug)
     {
@@ -74,7 +73,6 @@ class GroupController extends Controller
 
     /**
      * Panel de Gestión del Grupo (Solo para Coordinadores).
-     * Los miembros comunes son redirigidos a materiales o validación de clave.
      */
     public function groupDashboard($groupRole)
     {
@@ -85,35 +83,38 @@ class GroupController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // SEGURIDAD: Si el usuario NO es coordinador del grupo...
         if (!$this->isAuthorizedCoordinator($slug)) {
-            // Si es un miembro aprobado (tiene el rol del grupo)
             if ($user->hasRole($slug)) {
-                // Si el grupo tiene contraseña y el usuario NO la ha validado en esta sesión
                 if ($group->group_password && !session('group_unlocked_' . $slug)) {
                     return redirect()->route('grupos.verify-form', $groupRole)
                         ->with('info', 'Este grupo requiere una contraseña de acceso.');
                 }
-                // Si ya validó o no requiere, los miembros comunes van a la biblioteca de materiales
                 return redirect()->route('grupos.materials', $groupRole);
             }
             return redirect()->route('dashboard')->with('error', 'No tienes permisos de acceso.');
         }
 
-        // --- Lógica para el Panel de Coordinación (Admins) ---
         $groupName = $group->name;
         
-        $members = User::whereHas('roles', fn($q) => $q->where('name', $slug))
+        // Obtener los últimos 5 miembros agregados
+        $latestMembers = User::join('user_roles', 'users.id', '=', 'user_roles.user_id')
+            ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', $slug)
             ->whereDoesntHave('roles', fn($q) => $q->where('name', 'superadmin'))
-            ->with(['roles' => fn($q) => $q->where('name', $slug)])
+            ->select('users.*', 'user_roles.created_at as joined_at_group')
+            ->orderBy('user_roles.created_at', 'desc')
+            ->take(5)
             ->get()
-            ->map(function($member) use ($slug) {
-                $role = $member->roles->where('name', $slug)->first();
-                $member->joined_at = ($role && $role->pivot->created_at) ? Carbon::parse($role->pivot->created_at) : $member->created_at;
+            ->map(function($member) {
+                $member->joined_at = Carbon::parse($member->joined_at_group);
                 $member->is_active_now = $member->updated_at->diffInMinutes(now()) < 15;
                 return $member;
-            })
-            ->sortByDesc('joined_at');
+            });
+        
+        // Total de miembros reales del grupo para métricas
+        $totalMembers = User::whereHas('roles', fn($q) => $q->where('name', $slug))
+            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'superadmin'))
+            ->count();
         
         $materials = DB::table('group_materials')->where('group_role', $slug)->orderBy('created_at', 'desc')->take(10)->get()
             ->map(function($m) { $m->created_at = Carbon::parse($m->created_at); return $m; });
@@ -125,7 +126,57 @@ class GroupController extends Controller
             ->select('group_requests.*', 'users.name', 'users.email', 'users.age')
             ->get();
 
-        return view('grupos.dashboard-grupos', compact('group', 'groupName', 'groupRole', 'members', 'materials', 'requests', 'slug'));
+        return view('grupos.dashboard-grupos', compact('group', 'groupName', 'groupRole', 'latestMembers', 'totalMembers', 'materials', 'requests', 'slug'));
+    }
+
+    /**
+     * VISTA COMPLETA DE MIEMBROS: Con buscador funcional y paginación.
+     */
+    public function allMembers(Request $request, $groupRole)
+    {
+        $slug = $this->normalizeSlug($groupRole);
+        if (!$this->isAuthorizedCoordinator($slug)) abort(403);
+        
+        $group = Group::where('category', $slug)->firstOrFail();
+        $groupName = $group->name;
+        $search = trim($request->input('search'));
+        
+        // Consulta base con JOIN para fecha de ingreso al grupo
+        $query = User::join('user_roles', 'users.id', '=', 'user_roles.user_id')
+            ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+            ->where('roles.name', $slug)
+            ->whereDoesntHave('roles', fn($q) => $q->where('name', 'superadmin'))
+            ->select('users.*', 'user_roles.created_at as joined_at_group');
+
+        // Búsqueda en tiempo real
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('users.name', 'LIKE', "%{$search}%")
+                  ->orWhere('users.email', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $members = $query->orderBy('users.name', 'asc')
+                         ->paginate(15)
+                         ->withQueryString();
+
+        return view('grupos.members', compact('members', 'group', 'groupName', 'groupRole', 'slug', 'search'));
+    }
+
+    /**
+     * Eliminar todas las solicitudes pendientes masivamente.
+     */
+    public function deleteAllRequests($groupRole)
+    {
+        $slug = $this->normalizeSlug($groupRole);
+        if (!$this->isAuthorizedCoordinator($slug)) abort(403);
+
+        DB::table('group_requests')
+            ->where('group_role', $slug)
+            ->where('status', 'pending')
+            ->delete();
+
+        return back()->with('success', 'Todas las solicitudes pendientes han sido eliminadas.');
     }
 
     /**
@@ -155,12 +206,7 @@ class GroupController extends Controller
                 'title' => 'Más Grupos',
                 'desc' => 'Servicio, caridad y misiones especiales de nuestra parroquia.',
                 'slugs' => ['caridad', 'caritas', 'comedor']
-            ],
-            'mas_grupos' => [
-                'title' => 'Más Grupos',
-                'desc' => 'Servicio, caridad y misiones especiales de nuestra parroquia.',
-                'slugs' => ['caridad', 'caritas', 'comedor']
-            ],
+            ]
         ];
 
         if (!isset($categoryMapping[$categorySlug])) {
@@ -185,7 +231,7 @@ class GroupController extends Controller
     }
 
     /**
-     * Subida de Material con notificación automática.
+     * Subida de Material (Soporte para Cloud Storage y Local).
      */
     public function uploadMaterial(Request $request, $groupRole) {
         $slug = $this->normalizeSlug($groupRole);
@@ -199,7 +245,9 @@ class GroupController extends Controller
         ]);
 
         try {
-            $filePath = $request->file('file')->store('materials/' . $slug, 'public');
+            $disk = config('filesystems.default'); 
+            $filePath = $request->file('file')->store('materials/' . $slug, $disk);
+            
             DB::table('group_materials')->insert([
                 'group_role' => $slug, 'title' => $request->title, 'description' => $request->description,
                 'type' => $request->type, 'file_path' => $filePath, 'is_active' => true, 
@@ -209,21 +257,20 @@ class GroupController extends Controller
             $members = User::whereHas('roles', fn($q) => $q->where('name', $slug))->get();
             if ($members->isNotEmpty()) {
                 $group = Group::where('category', $slug)->first();
-                try {
-                    // Si el grupo tiene clave y el usuario no la validó, la notificación lo envía a validar
-                    $targetUrl = ($group && $group->group_password) 
-                        ? route('grupos.verify-form', $groupRole)
-                        : route('grupos.materials', $groupRole);
+                $targetUrl = ($group && $group->group_password) 
+                    ? route('grupos.verify-form', $groupRole)
+                    : route('grupos.materials', $groupRole);
 
-                    Notification::send($members, new AvisoComunidad(
-                        "Nuevo material en " . ($group->name ?? $slug),
-                        "Se ha compartido: " . $request->title,
-                        $targetUrl
-                    ));
-                } catch (\Exception $e) { Log::warning("Error Push: " . $e->getMessage()); }
+                Notification::send($members, new AvisoComunidad(
+                    "Nuevo material en " . ($group->name ?? $slug),
+                    "Se ha compartido: " . $request->title,
+                    $targetUrl
+                ));
             }
-            return response()->json(['success' => true, 'message' => 'Material subido y comunidad notificada.']);
-        } catch (\Exception $e) { return response()->json(['success' => false], 500); }
+            return response()->json(['success' => true, 'message' => 'Material subido correctamente.']);
+        } catch (\Exception $e) { 
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500); 
+        }
     }
 
     /**
@@ -233,6 +280,7 @@ class GroupController extends Controller
     {
         $slug = $this->normalizeSlug($groupRole);
         $group = Group::where('category', $slug)->firstOrFail();
+        $groupName = $group->name;
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -240,7 +288,6 @@ class GroupController extends Controller
             return redirect()->route('dashboard')->with('error', 'Acceso restringido.');
         }
 
-        // SEGURIDAD: Solo exigimos contraseña a los miembros comunes (los coordinadores pasan directo)
         if ($group->group_password && !session('group_unlocked_' . $slug) && !$this->isAuthorizedCoordinator($slug)) {
             return redirect()->route('grupos.verify-form', $groupRole);
         }
@@ -248,31 +295,66 @@ class GroupController extends Controller
         $materials = DB::table('group_materials')->where('group_role', $slug)->where('is_active', true)->orderBy('created_at', 'desc')->paginate(12);
 
         $materials->getCollection()->transform(function($m) {
+            $disk = config('filesystems.default');
             $m->created_at = Carbon::parse($m->created_at);
-            $m->file_type = $m->type;
+            
+            try {
+                $m->public_url = Storage::disk($disk)->url($m->file_path);
+            } catch(\Exception $e) { $m->public_url = '#'; }
+            
             $type = strtolower($m->type);
-            
-            if ($type === 'pdf') $m->file_icon = 'img/icono_pdf.png';
-            elseif (in_array($type, ['jpg', 'png', 'jpeg', 'image'])) $m->file_icon = 'img/icono_imagen.png';
-            elseif (in_array($type, ['mp4', 'mov', 'avi', 'video'])) $m->file_icon = 'img/icono_video.png';
-            elseif (in_array($type, ['mp3', 'wav', 'audio'])) $m->file_icon = 'img/icono_audio.png';
-            else $m->file_icon = 'img/icono_docs.png';
+            $m->file_icon = match(true) {
+                $type === 'pdf' => 'img/icono_pdf.png',
+                in_array($type, ['jpg', 'png', 'jpeg', 'image']) => 'img/icono_imagen.png',
+                in_array($type, ['mp4', 'mov', 'video']) => 'img/icono_video.png',
+                in_array($type, ['mp3', 'wav', 'audio']) => 'img/icono_audio.png',
+                default => 'img/icono_docs.png'
+            };
 
-            $m->file_size_formatted = ($m->file_path && Storage::disk('public')->exists($m->file_path)) 
-                ? round(Storage::disk('public')->size($m->file_path) / 1024 / 1024, 2) . ' MB' 
-                : '---';
+            $m->file_size_formatted = '---';
+            try {
+                if (Storage::disk($disk)->exists($m->file_path)) {
+                    $m->file_size_formatted = round(Storage::disk($disk)->size($m->file_path) / 1024 / 1024, 2) . ' MB';
+                }
+            } catch (\Exception $e) {}
             
-            $m->can_preview = in_array($type, ['pdf', 'image', 'jpg', 'png', 'jpeg', 'mp4', 'mov', 'video', 'mp3', 'wav', 'audio']);
+            $m->can_preview = in_array($type, ['pdf', 'image', 'jpg', 'png', 'jpeg', 'mp4', 'mov', 'video']);
             return $m;
         });
 
-        return view('grupos.materials', [
-            'group' => $group, 'groupName' => $group->name, 'groupRole' => $groupRole, 'materials' => $materials
-        ]);
+        return view('grupos.materials', compact('group', 'groupName', 'groupRole', 'materials'));
     }
 
     /**
-     * Procesa solicitudes de unión.
+     * Ver material (Redirección o Archivo).
+     */
+    public function viewMaterial($id) {
+        $m = DB::table('group_materials')->where('id', $id)->first();
+        if (!$m) abort(404);
+        
+        $disk = config('filesystems.default');
+        if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
+
+        if ($disk === 's3' || $disk === 'r2') {
+            return redirect(Storage::disk($disk)->url($m->file_path));
+        }
+
+        return response()->file(Storage::disk($disk)->path($m->file_path), ['Content-Disposition' => 'inline']);
+    }
+
+    /**
+     * Descarga de material.
+     */
+    public function downloadMaterial($id) {
+        $m = DB::table('group_materials')->where('id', $id)->first();
+        if (!$m) abort(404);
+
+        $disk = config('filesystems.default');
+        return Storage::disk($disk)->download($m->file_path, $m->title);
+    }
+
+    /**
+     * Procesa solicitudes de unión de coordinadores.
      */
     public function handleRequest(Request $request, $requestId) {
         $sol = DB::table('group_requests')->where('id', $requestId)->first();
@@ -284,21 +366,13 @@ class GroupController extends Controller
         if ($status === 'approved') { 
             $u = User::find($sol->user_id); 
             $r = Role::where('name', $sol->group_role)->first(); 
-            $group = Group::where('category', $sol->group_role)->first();
-
             if ($u && $r) { 
                 $u->roles()->syncWithoutDetaching([$r->id]); 
-                
-                // Link de bienvenida dinámico
-                $targetUrl = ($group && $group->group_password) 
-                    ? route('grupos.verify-form', $sol->group_role)
-                    : route('grupos.materials', $sol->group_role);
-
                 try { 
                     $u->notify(new AvisoComunidad(
                         "¡Bienvenido!", 
                         "Tu solicitud para " . str_replace('_', ' ', $sol->group_role) . " ha sido aceptada.",
-                        $targetUrl
+                        route('grupos.materials', $sol->group_role)
                     )); 
                 } catch (\Exception $e) {} 
             } 
@@ -307,37 +381,33 @@ class GroupController extends Controller
     }
 
     /**
-     * Remover miembro de un grupo.
+     * Remover miembro de un grupo parroquial.
      */
     public function removeMember($groupRole, $userId) {
         $slug = $this->normalizeSlug($groupRole);
         if (!$this->isAuthorizedCoordinator($slug)) abort(403);
-        $u = User::findOrFail($userId); $r = Role::where('name', $slug)->first(); 
+        $u = User::findOrFail($userId); 
+        $r = Role::where('name', $slug)->first(); 
         if ($r) $u->roles()->detach($r->id);
         return response()->json(['success' => true]);
     }
 
+    /**
+     * Elimina material físicamente y de la BD.
+     */
     public function deleteMaterial($id) {
         $m = DB::table('group_materials')->where('id', $id)->first(); 
         if ($m && $this->isAuthorizedCoordinator($m->group_role)) {
-            if ($m->file_path) Storage::disk('public')->delete($m->file_path); 
+            Storage::disk(config('filesystems.default'))->delete($m->file_path); 
             DB::table('group_materials')->where('id', $id)->delete(); 
             return response()->json(['success' => true]); 
         }
         return response()->json(['success' => false], 403);
     }
 
-    public function viewMaterial($id) {
-        $m = DB::table('group_materials')->where('id', $id)->first();
-        if (!$m || !Storage::disk('public')->exists($m->file_path)) abort(404);
-        return response()->file(Storage::disk('public')->path($m->file_path), ['Content-Disposition' => 'inline']);
-    }
-
-    public function downloadMaterial($id) {
-        $m = DB::table('group_materials')->where('id', $id)->first();
-        return ($m && Storage::disk('public')->exists($m->file_path)) ? Storage::disk('public')->download($m->file_path) : abort(404);
-    }
-
+    /**
+     * Feligrés solicita unirse a un grupo.
+     */
     public function sendRequest(Request $request, $groupRole) {
         $slug = $this->normalizeSlug($groupRole);
         /** @var \App\Models\User $user */
@@ -354,68 +424,43 @@ class GroupController extends Controller
     }
 
     public function index() { return view('grupos.index', ['groups' => Group::where('is_active', true)->get()]); }
-    public function completeOnboarding(Request $request) { Auth::user()->update(['onboarding_completed' => true, 'age' => $request->age]); return response()->json(['success' => true]); }
-    public function getRecommendedGroups(Request $request) { return response()->json(Group::where('is_active', true)->where('min_age', '<=', $request->age)->where('max_age', '>=', $request->age)->get()); }
+    
+    public function completeOnboarding(Request $request) { 
+        Auth::user()->update(['onboarding_completed' => true, 'age' => $request->age]); 
+        return response()->json(['success' => true]); 
+    }
+    
+    public function getRecommendedGroups(Request $request) { 
+        return response()->json(Group::where('is_active', true)->where('min_age', '<=', $request->age)->where('max_age', '>=', $request->age)->get()); 
+    }
 
-    /**
-     * Muestra el formulario para ingresar la contraseña del grupo.
-     */
     public function showVerifyPassword($groupRole)
     {
         $slug = $this->normalizeSlug($groupRole);
         $group = Group::where('category', $slug)->firstOrFail();
-        
-        if (session('group_unlocked_' . $slug)) {
-            return redirect()->route('grupos.materials', $groupRole);
-        }
-
-        if (!$group->group_password) {
-            return redirect()->route('grupos.dashboard', $groupRole);
-        }
-
+        if (session('group_unlocked_' . $slug)) return redirect()->route('grupos.materials', $groupRole);
         return view('grupos.verify-password', compact('group', 'groupRole'));
     }
 
-    /**
-     * Verifica la contraseña ingresada.
-     */
     public function verifyPassword(Request $request, $groupRole)
     {
         $slug = $this->normalizeSlug($groupRole);
         $group = Group::where('category', $slug)->firstOrFail();
         $request->validate(['password' => 'required|string']);
-
         if ($request->password === $group->group_password) {
             session(['group_unlocked_' . $slug => true]);
-            return redirect()->route('grupos.materials', $groupRole)->with('success', '¡Clave aceptada!');
+            return redirect()->route('grupos.materials', $groupRole);
         }
-        return back()->withErrors(['password' => 'La contraseña es incorrecta. Pídela a tu coordinador.']);
+        return back()->withErrors(['password' => 'La contraseña es incorrecta.']);
     }
 
-    /**
-     * Acción del administrador para actualizar la clave del grupo.
-     * CORRECCIÓN: Se sincroniza con el modelo actualizado ($fillable).
-     */
     public function updateGroupPassword(Request $request, $groupRole)
     {
         $slug = $this->normalizeSlug($groupRole);
-        
-        // Verificación de autoridad
-        if (!$this->isAuthorizedCoordinator($slug)) {
-            abort(403, 'No tienes permiso para gestionar la seguridad de este grupo.');
-        }
-
-        $request->validate([
-            'group_password' => 'nullable|string|min:4|max:255',
-        ]);
-
+        if (!$this->isAuthorizedCoordinator($slug)) abort(403);
+        $request->validate(['group_password' => 'nullable|string|min:4|max:255']);
         $group = Group::where('category', $slug)->firstOrFail();
-        
-        // Guardamos en la DB (Ahora funciona gracias al cambio en Group.php)
-        $group->update([
-            'group_password' => $request->group_password
-        ]);
-
-        return back()->with('success', 'Configuración de seguridad actualizada correctamente.');
+        $group->update(['group_password' => $request->group_password]);
+        return back()->with('success', 'Configuración de seguridad actualizada.');
     }
 }

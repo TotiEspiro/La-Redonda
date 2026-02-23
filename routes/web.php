@@ -139,6 +139,10 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('grupos')->group(function () {
         // Dashboard de Grupo (Solo Coordinadores o acceso a materiales)
         Route::get('/{groupRole}/panel-comunidad', [GroupController::class, 'groupDashboard'])->name('grupos.dashboard');
+        Route::get('/grupos/{groupRole}/miembros', [GroupController::class, 'allMembers'])->name('grupos.members');
+        Route::delete('/grupos/{groupRole}/solicitudes/todas', [GroupController::class, 'deleteAllRequests'])->name('grupos.requests.delete-all');
+
+
         
         // --- Seguridad de Acceso (NUEVO: Contraseña de Grupo) ---
         Route::get('/{groupRole}/validar-acceso', [GroupController::class, 'showVerifyPassword'])->name('grupos.verify-form');
