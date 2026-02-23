@@ -106,7 +106,7 @@
                 <div class="mobile-content">
                     <span class="text-[10px] text-button font-medium bg-blue-50 px-2 py-0.5 rounded-full inline-block w-fit mb-4">Servicio Nocturno</span>
                     <span class="text-[9px] font-black text-button bg-blue-50 px-2 py-1 rounded-lg uppercase tracking-wider ml-2 whitespace-nowrap">Jueves 20:00 hs</span>
-                    <p class="text-text-light text-sm leading-relaxed">Recorrida nocturna para acompañar y asistir con alimentos a hermanos en situación de calle.</p>
+                    <p class="text-text-light text-sm leading-relaxed mb-4">Recorrida nocturna para acompañar y asistir con alimentos a hermanos en situación de calle.</p>
                 </div>
 
                 <div class="mt-auto flex flex-col gap-3">

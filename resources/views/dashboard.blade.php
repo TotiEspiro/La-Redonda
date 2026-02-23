@@ -158,7 +158,7 @@
                     <div class="schedule-content hidden md:block p-8 text-center flex-1">
                         <div class="space-y-6 text-text-dark">
                             <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Lunes a Sábado</span><p class="text-gray-800 font-bold text-sm">10:00 | 17:30 | 19:30</p></div>
-                            <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Domingo</span><p class="text-gray-800 font-bold text-sm leading-relaxed">08:00 | 09:30 | 11:00<br>12:30 | 18:00 | 19:00<br>20:00</p></div>
+                            <div><span class="block font-black text-gray-400 text-[10px] uppercase mb-2 tracking-widest">Domingo</span><p class="text-gray-800 font-bold text-sm leading-relaxed">08:00 | 09:30 | 11:00<br>12:30 | 18:00 | 19:30<br>20:30</p></div>
                         </div>
                     </div>
                 </div>
