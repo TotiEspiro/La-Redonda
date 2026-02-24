@@ -250,8 +250,8 @@ class GroupController extends Controller
             $disk = config('filesystems.default'); 
             $file = $request->file('file');
             
-            // Usamos putFile para mayor compatibilidad con drivers S3/Supabase
-            $filePath = Storage::disk($disk)->putFile('materials/' . $slug, $file);
+            // CAMBIO CRÍTICO: Añadimos 'public' para asegurar que Supabase permita la lectura del archivo
+            $filePath = Storage::disk($disk)->putFile('materials/' . $slug, $file, 'public');
             
             // Creamos el registro usando Eloquent
             GroupMaterial::create([
@@ -283,7 +283,7 @@ class GroupController extends Controller
             return response()->json(['success' => true, 'message' => 'Material subido correctamente.']);
         } catch (\Exception $e) { 
             Log::error("Error en uploadMaterial: " . $e->getMessage());
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500); 
+            return response()->json(['success' => false, 'error' => 'Error técnico al subir: ' . $e->getMessage()], 500); 
         }
     }
 
@@ -322,14 +322,21 @@ class GroupController extends Controller
         $m = GroupMaterial::findOrFail($id);
         $disk = config('filesystems.default');
 
-        if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
-
-        // Si es S3/R2/Supabase, redirigimos a la URL pública
-        if (in_array($disk, ['s3', 'r2', 'supabase'])) {
-            return redirect(Storage::disk($disk)->url($m->file_path));
+        // Para discos remotos (S3, Supabase, R2), redirigimos directamente a la URL pública
+        if ($disk === 's3' || $disk === 'r2' || $disk === 'supabase') {
+             $url = Storage::disk($disk)->url($m->file_path);
+             Log::info("Visualizando archivo remoto: " . $url);
+             return redirect($url);
         }
 
-        return response()->file(Storage::disk($disk)->path($m->file_path), ['Content-Disposition' => 'inline']);
+        // Si es local, intentamos mostrarlo como archivo o caer a la URL de storage
+        try {
+            if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
+            return response()->file(Storage::disk($disk)->path($m->file_path), ['Content-Disposition' => 'inline']);
+        } catch (\Exception $e) {
+            // Fallback si path() falla (lo cual ocurre en la nube)
+            return redirect(Storage::disk($disk)->url($m->file_path));
+        }
     }
 
     /**
@@ -338,6 +345,11 @@ class GroupController extends Controller
     public function downloadMaterial($id) {
         $m = GroupMaterial::findOrFail($id);
         $disk = config('filesystems.default');
+        
+        if ($disk === 's3' || $disk === 'r2' || $disk === 'supabase') {
+            return redirect(Storage::disk($disk)->url($m->file_path));
+        }
+        
         return Storage::disk($disk)->download($m->file_path, $m->file_name);
     }
 
