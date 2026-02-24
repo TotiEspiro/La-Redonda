@@ -32,7 +32,6 @@ class AuthController extends Controller
     }
 
     /**
-     * AVISO DE VERIFICACIÓN
      * Esta vista se muestra cuando el usuario está logueado pero no verificado.
      */
     public function showVerificationNotice()
@@ -43,7 +42,7 @@ class AuthController extends Controller
     }
 
     /**
-     * PROCESAR VERIFICACIÓN DESDE EL MAIL
+     * Verificación del mail
      */
     public function verifyEmail(Request $request, $id, $hash)
     {
@@ -65,7 +64,7 @@ class AuthController extends Controller
     }
 
     /**
-     * REENVIAR EMAIL DE ACTIVACIÓN
+     * Reenviar mail de verificación
      */
     public function resendVerificationEmail(Request $request)
     {
@@ -79,7 +78,7 @@ class AuthController extends Controller
     }
 
     /**
-     * INICIO DE SESIÓN
+     * Inicio de Sesión
      */
     public function login(Request $request)
     {
@@ -94,13 +93,9 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
 
-            /**
-             * LÓGICA PARA CUENTAS NUEVAS VS EXISTENTES
-             * Fecha de corte: 21 de Febrero de 2026.
-             */
             $cutoffDate = Carbon::parse('2026-02-21 00:00:00');
 
-            // Flujo Profesional: Si no está verificado y es cuenta nueva, redirigir al aviso (sin desloguear)
+            // Si no está verificado y es cuenta nueva, redirigir al aviso (sin desloguear)
             if (!$user->email_verified_at && $user->created_at->gt($cutoffDate)) {
                 return redirect()->route('verification.notice');
             }
@@ -171,7 +166,7 @@ class AuthController extends Controller
     }
 
     /**
-     * REGISTRO DE USUARIO
+     * Registro de Usuario
      */
     public function register(Request $request)
     {
@@ -213,7 +208,7 @@ class AuthController extends Controller
             // Enviar notificación nativa
             $user->sendEmailVerificationNotification();
 
-            // Flujo Profesional: Loguear y mandar al aviso de verificación
+            // Loguear y mandar al aviso de verificación
             Auth::login($user);
             return redirect()->route('verification.notice');
 
@@ -224,7 +219,7 @@ class AuthController extends Controller
         }
     }
 
-    // --- SOCIALITE (Google / Facebook) ---
+    // Login Google
 
     public function redirectToProvider($provider)
     {

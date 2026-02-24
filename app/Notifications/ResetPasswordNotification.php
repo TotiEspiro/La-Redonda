@@ -29,7 +29,7 @@ class ResetPasswordNotification extends Notification
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
-        // IMPORTANTE: Aquí apuntamos al diseño del mail, NO al de la carpeta auth
+        // Aquí apuntamos al diseño del mail
         return (new MailMessage)
             ->subject('Restablecer Contraseña - La Redonda')
             ->view('emails.email-reset', [

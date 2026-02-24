@@ -20,7 +20,7 @@ class NuevaIntencion extends Notification
 
     public function via($notifiable)
     {
-        // Enviamos a la base de datos y al canal Push
+        // Envia a la base de datos y al canal push
         return ['database', WebPushChannel::class];
     }
 

@@ -31,25 +31,23 @@ class AvisoComunidad extends Notification
      */
     public function via($notifiable)
     {
-        // 'database' para la lista interna en la web y WebPushChannel para notificaciones de sistema
         return ['database', WebPushChannel::class];
     }
 
     /**
-     * IMPORTANTE: Define los datos que se guardan en la tabla 'notifications'.
-     * Estos campos son los que consume el componente de notificaciones en la página.
+     * Define los datos que se guardan en la tabla 'notifications'.
      */
     public function toArray($notifiable)
     {
         return [
             'title'   => $this->titulo,
             'message' => $this->mensaje,
-            'url'     => $this->url, // Esto corrige el problema del '#' en la web
+            'url'     => $this->url,
         ];
     }
 
     /**
-     * Lógica para la notificación Push de navegador/sistema (Celulares/PC)
+     * Lógica para la notificación de navegador/sistema (Celulares/PC)
      */
     public function toWebPush($notifiable, $notification)
     {
@@ -59,7 +57,7 @@ class AvisoComunidad extends Notification
             ->badge('/img/badge_logo_redonda.png')
             ->body($this->mensaje)
             ->action('Ver ahora', 'view_app')
-            ->data(['url' => $this->url]) // Envía la URL al Service Worker
+            ->data(['url' => $this->url]) 
             ->options(['TTL' => 1000]);
     }
 }

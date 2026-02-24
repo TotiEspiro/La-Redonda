@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Notification;
 
 class AnnouncementController extends Controller
 {
+    /**
+     * Lista todos los anuncios para el administrador.
+     */
     public function index()
     {
         $announcements = Announcement::orderBy('order')
@@ -24,11 +27,17 @@ class AnnouncementController extends Controller
         return view('admin.announcements.index', compact('announcements'));
     }
 
+    /**
+     * Muestra el formulario de creación.
+     */
     public function create()
     {
         return view('admin.announcements.create');
     }
 
+    /**
+     * Guarda un nuevo anuncio en la nube (Supabase/S3).
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -39,94 +48,84 @@ class AnnouncementController extends Controller
             'cropped_image' => 'nullable|string', 
             'is_active' => 'sometimes|boolean',
             'order' => 'required|integer|min:0'
-            ],
-            [ 'image.max' => 'La imagen es muy pesada para el servidor. Intenta con una de menos de 15MB.',
+        ], [
+            'image.max' => 'La imagen es muy pesada. Intenta con una de menos de 15MB.',
         ]);
 
         try {
             $validated['modal_id'] = 'modal_' . Str::random(8);
+            $disk = config('filesystems.default'); // Usará 's3' (Supabase) automáticamente
 
-            // Manejo de imagen recortada o normal
-            if ($request->has('cropped_image') && !empty($request->cropped_image)) {
+            // 1. Manejo de imagen (Prioriza la recortada/cropped)
+            if ($request->filled('cropped_image')) {
                 $imageData = $request->cropped_image;
-                $mime = null;
                 $extension = 'jpg';
                 
-                if (strpos($imageData, 'data:image/jpeg;base64,') === 0) {
-                    $mime = 'image/jpeg';
-                    $extension = 'jpg';
-                } elseif (strpos($imageData, 'data:image/png;base64,') === 0) {
-                    $mime = 'image/png';
-                    $extension = 'png';
-                } elseif (strpos($imageData, 'data:image/gif;base64,') === 0) {
-                    $mime = 'image/gif';
-                    $extension = 'gif';
-                } elseif (strpos($imageData, 'data:image/webp;base64,') === 0) {
-                    $mime = 'image/webp';
-                    $extension = 'webp';
-                }
+                // Detectar formato Base64
+                if (str_contains($imageData, 'data:image/png')) $extension = 'png';
+                elseif (str_contains($imageData, 'data:image/webp')) $extension = 'webp';
                 
-                if ($mime) {
-                    $imageData = str_replace("data:{$mime};base64,", '', $imageData);
-                    $imageData = str_replace(' ', '+', $imageData);
-                    $imageName = time() . '_cropped.' . $extension;
-                    $imagePath = 'announcements/' . $imageName;
-                    Storage::disk('public')->put($imagePath, base64_decode($imageData));
-                    $validated['image'] = $imagePath;
-                }
+                $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $imageData);
+                $imageData = str_replace(' ', '+', $imageData);
+                $imageName = time() . '_announcement.' . $extension;
+                $imagePath = 'announcements/' . $imageName;
+
+                // Guardar directamente en el disco configurado (Supabase)
+                Storage::disk($disk)->put($imagePath, base64_decode($imageData), 'public');
+                $validated['image'] = $imagePath;
+
             } elseif ($request->hasFile('image')) {
-                if (!Storage::disk('public')->exists('announcements')) {
-                    Storage::disk('public')->makeDirectory('announcements');
-                }
                 $image = $request->file('image');
                 $imageName = time() . '_' . Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $image->getClientOriginalExtension();
-                $imagePath = $image->storeAs('announcements', $imageName, 'public');
+                
+                // storeAs ya usa el disco configurado
+                $imagePath = $image->storeAs('announcements', $imageName, $disk);
                 $validated['image'] = $imagePath;
             }
 
-            $validated['is_active'] = $request->has('is_active') ? true : false;
+            $validated['is_active'] = $request->has('is_active');
 
-            // Crear el anuncio
+            // 2. Crear el registro en la base de datos
             $announcement = Announcement::create($validated);
 
-            // --- LÓGICA DE NOTIFICACIÓN CORREGIDA ---
+            // 3. Notificar a la comunidad si está activo
             if ($announcement->is_active) {
-                // Buscamos usuarios que quieran recibir anuncios
                 $usersToNotify = User::where('notify_announcements', true)->get();
-
                 if ($usersToNotify->isNotEmpty()) {
                     try {
-                        // Usamos el sistema nativo de Laravel. 
-                        // Esto llena automáticamente notifiable_id, notifiable_type y la columna 'data' en JSON.
                         Notification::send($usersToNotify, new AvisoComunidad(
                             'Nuevo Aviso Parroquial',
                             'Se ha publicado: ' . $announcement->title,
                             route('home') 
                         ));
                     } catch (\Exception $e) {
-                        // "Degradación graciosa": Si fallan las llaves de notificación Push (Windows/OpenSSL),
-                        // el anuncio se guarda igual pero se loguea el aviso.
-                        Log::warning("Anuncio ID {$announcement->id} creado, pero falló el envío Push: " . $e->getMessage());
+                        Log::warning("Anuncio {$announcement->id} creado, pero falló notificación Push: " . $e->getMessage());
                     }
                 }
             }
 
             return redirect()->route('admin.announcements.index')
-                ->with('success', 'Anuncio publicado y notificaciones enviadas exitosamente');
+                ->with('success', 'Anuncio publicado exitosamente en la nube');
 
         } catch (\Exception $e) {
             Log::error('Error al crear anuncio:', ['error' => $e->getMessage()]);
             return redirect()->back()
-                ->with('error', 'Error al crear el anuncio: ' . $e->getMessage())
+                ->with('error', 'Error técnico: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
+    /**
+     * Formulario de edición.
+     */
     public function edit(Announcement $announcement)
     {
         return view('admin.announcements.edit', compact('announcement'));
     }
 
+    /**
+     * Actualiza el anuncio y gestiona archivos en la nube.
+     */
     public function update(Request $request, Announcement $announcement)
     {
         $validated = $request->validate([
@@ -140,93 +139,110 @@ class AnnouncementController extends Controller
         ]);
 
         try {
-            if ($request->has('cropped_image') && !empty($request->cropped_image)) {
-                if ($announcement->getRawImagePath() && Storage::disk('public')->exists($announcement->getRawImagePath())) {
-                    Storage::disk('public')->delete($announcement->getRawImagePath());
+            $disk = config('filesystems.default');
+            $oldImagePath = $announcement->getRawImagePath(); // Asegúrate de tener este método en el modelo
+
+            if ($request->filled('cropped_image')) {
+                // Borrar anterior de la nube
+                if ($oldImagePath && Storage::disk($disk)->exists($oldImagePath)) {
+                    Storage::disk($disk)->delete($oldImagePath);
                 }
                 
                 $imageData = $request->cropped_image;
-                $mime = null;
-                $extension = 'jpg';
+                $imageData = preg_replace('#^data:image/\w+;base64,#i', '', $imageData);
+                $imageName = time() . '_update.' . 'jpg';
+                $imagePath = 'announcements/' . $imageName;
                 
-                if (strpos($imageData, 'data:image/jpeg;base64,') === 0) { $mime = 'image/jpeg'; $extension = 'jpg'; }
-                elseif (strpos($imageData, 'data:image/png;base64,') === 0) { $mime = 'image/png'; $extension = 'png'; }
-                elseif (strpos($imageData, 'data:image/gif;base64,') === 0) { $mime = 'image/gif'; $extension = 'gif'; }
-                elseif (strpos($imageData, 'data:image/webp;base64,') === 0) { $mime = 'image/webp'; $extension = 'webp'; }
-                
-                if ($mime) {
-                    $imageData = str_replace("data:{$mime};base64,", '', $imageData);
-                    $imageData = str_replace(' ', '+', $imageData);
-                    $imageName = time() . '_cropped.' . $extension;
-                    $imagePath = 'announcements/' . $imageName;
-                    Storage::disk('public')->put($imagePath, base64_decode($imageData));
-                    $validated['image'] = $imagePath;
-                }
+                Storage::disk($disk)->put($imagePath, base64_decode($imageData), 'public');
+                $validated['image'] = $imagePath;
+
             } elseif ($request->hasFile('image')) {
-                if ($announcement->getRawImagePath() && Storage::disk('public')->exists($announcement->getRawImagePath())) {
-                    Storage::disk('public')->delete($announcement->getRawImagePath());
+                // Borrar anterior
+                if ($oldImagePath && Storage::disk($disk)->exists($oldImagePath)) {
+                    Storage::disk($disk)->delete($oldImagePath);
                 }
+
                 $image = $request->file('image');
-                $imageName = time() . '_' . Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $image->getClientOriginalExtension();
-                $imagePath = $image->storeAs('announcements', $imageName, 'public');
+                $imageName = time() . '_upd_' . Str::random(5) . '.' . $image->getClientOriginalExtension();
+                $imagePath = $image->storeAs('announcements', $imageName, $disk);
                 $validated['image'] = $imagePath;
             } else {
-                $validated['image'] = $announcement->getRawImagePath();
+                // Mantener imagen actual si no se sube nada
+                $validated['image'] = $oldImagePath;
             }
 
-            $validated['is_active'] = $request->has('is_active') ? true : false;
-
+            $validated['is_active'] = $request->has('is_active');
             $announcement->update($validated);
 
             return redirect()->route('admin.announcements.index')
-                ->with('success', 'Anuncio actualizado exitosamente');
+                ->with('success', 'Anuncio actualizado correctamente');
 
         } catch (\Exception $e) {
-            Log::error('Error al actualizar anuncio:', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('error', 'Error: ' . $e->getMessage())->withInput();
+            Log::error('Error al actualizar:', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Error al actualizar: ' . $e->getMessage())->withInput();
         }
     }
 
+    /**
+     * Elimina el anuncio y el archivo físico de Supabase.
+     */
     public function destroy(Announcement $announcement)
     {
         try {
-            if ($announcement->getRawImagePath() && Storage::disk('public')->exists($announcement->getRawImagePath())) {
-                Storage::disk('public')->delete($announcement->getRawImagePath());
+            $disk = config('filesystems.default');
+            $imagePath = $announcement->getRawImagePath();
+
+            if ($imagePath && Storage::disk($disk)->exists($imagePath)) {
+                Storage::disk($disk)->delete($imagePath);
             }
+            
             $announcement->delete();
-            return redirect()->route('admin.announcements.index')->with('success', 'Anuncio eliminado');
+            return redirect()->route('admin.announcements.index')->with('success', 'Anuncio eliminado de la nube');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al eliminar');
+            return redirect()->back()->with('error', 'Error al eliminar anuncio');
         }
     }
 
+    /**
+     * Elimina todos los anuncios y sus imágenes.
+     */
     public function deleteAll()
     {
         try {
+            $disk = config('filesystems.default');
             $announcements = Announcement::all();
+
             foreach ($announcements as $announcement) {
-                if ($announcement->getRawImagePath() && Storage::disk('public')->exists($announcement->getRawImagePath())) {
-                    Storage::disk('public')->delete($announcement->getRawImagePath());
+                $path = $announcement->getRawImagePath();
+                if ($path && Storage::disk($disk)->exists($path)) {
+                    Storage::disk($disk)->delete($path);
                 }
             }
-            Announcement::truncate();
-            return redirect()->route('admin.announcements.index')->with('success', "Anuncios eliminados");
+
+            Announcement::query()->delete();
+            return redirect()->route('admin.announcements.index')->with('success', "Todos los anuncios han sido borrados");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error al eliminar');
+            return redirect()->back()->with('error', 'Error al realizar la limpieza masiva');
         }
     }
 
+    /**
+     * Activa/Desactiva rápidamente un aviso.
+     */
     public function toggleStatus(Announcement $announcement)
     {
         try {
             $announcement->update(['is_active' => !$announcement->is_active]);
-            $status = $announcement->is_active ? 'activado' : 'desactivado';
-            return redirect()->back()->with('success', "Anuncio {$status}");
+            $msg = $announcement->is_active ? 'activado' : 'desactivado';
+            return redirect()->back()->with('success', "Anuncio {$msg} correctamente");
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al cambiar estado');
         }
     }
 
+    /**
+     * Actualiza el orden de los anuncios (vía AJAX).
+     */
     public function updateOrder(Request $request)
     {
         $request->validate([
@@ -245,6 +261,9 @@ class AnnouncementController extends Controller
         }
     }
 
+    /**
+     * Acciones masivas sobre avisos seleccionados.
+     */
     public function bulkActions(Request $request)
     {
         $request->validate([
@@ -254,21 +273,26 @@ class AnnouncementController extends Controller
         ]);
 
         try {
+            $disk = config('filesystems.default');
             $announcements = Announcement::whereIn('id', $request->ids);
+
             if ($request->action === 'delete') {
-                $announcementsToDelete = $announcements->get();
-                foreach ($announcementsToDelete as $announcement) {
-                    if ($announcement->getRawImagePath() && Storage::disk('public')->exists($announcement->getRawImagePath())) {
-                        Storage::disk('public')->delete($announcement->getRawImagePath());
+                $list = $announcements->get();
+                foreach ($list as $ann) {
+                    $path = $ann->getRawImagePath();
+                    if ($path && Storage::disk($disk)->exists($path)) {
+                        Storage::disk($disk)->delete($path);
                     }
                 }
                 $announcements->delete();
             } else {
                 $announcements->update(['is_active' => ($request->action === 'activate')]);
             }
-            return redirect()->back()->with('success', 'Acción masiva realizada');
+
+            return redirect()->back()->with('success', 'Acción masiva completada');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error en acción masiva');
+            Log::error("Error Bulk: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Error en la operación masiva');
         }
     }
 }

@@ -25,7 +25,7 @@ class IntentionController extends Controller
         ]);
 
         try {
-            // 1. Guardamos la intención primero (Lo más importante)
+            // Guardamos la intención primero
             $intention = Intention::create([
                 'type' => $validated['intentionType'],
                 'name' => $validated['name'],
@@ -35,15 +35,12 @@ class IntentionController extends Controller
                 'status' => 'pending',
             ]);
 
-            // 2. Intentamos notificar
+            // Notifica
             if (Auth::check()) {
                 try {
-                    // Esto dispara la señal a la DB y al Celular
                     Auth::user()->notify(new NuevaIntencion($intention));
                 } catch (\Exception $e) {
-                    // Si falla el envío (por OpenSSL o llaves), solo lo logueamos
-                    // pero NO enviamos error 500 al usuario.
-                    Log::warning("La intención se guardó, pero la notificación Push falló: " . $e->getMessage());
+                    Log::warning("La intención se guardó, pero la notificación falló: " . $e->getMessage());
                 }
             }
 
@@ -55,7 +52,7 @@ class IntentionController extends Controller
 
         } catch (\Exception $e) {
             // Este catch solo se activa si falla la creación en la base de datos
-            Log::error("Error crítico al guardar intención: " . $e->getMessage());
+            Log::error("Error al guardar intención: " . $e->getMessage());
             return response()->json([
                 'success' => false, 
                 'message' => 'No se pudo guardar la intención en este momento.'

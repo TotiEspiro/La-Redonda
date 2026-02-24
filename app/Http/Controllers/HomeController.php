@@ -17,7 +17,6 @@ class HomeController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
-        // Si es miembro de algún grupo, mandarlo a su dashboard principal
         foreach ($user->roles as $role) {
             $grupoRoles = ['catequesis', 'juveniles', 'acutis', 'coro', 'san_joaquin', 'santa_ana', 'ardillas', 'costureras', 'misioneros', 'caridad_comedor'];
             if (in_array($role->name, $grupoRoles)) {

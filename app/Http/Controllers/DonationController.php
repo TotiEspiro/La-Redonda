@@ -44,13 +44,13 @@ class DonationController extends Controller
                 'status' => 'completed',
             ]);
 
-            // 2. Notificar al usuario (Push + Campana)
+            // 2. Notificar al usuario
             if (Auth::check()) {
                 try {
                     Auth::user()->notify(new NuevaDonacion($donation));
                 } catch (\Exception $e) {
-                    // Evitamos error 500 si fallan las llaves VAPID o OpenSSL
-                    Log::warning("Donación guardada, pero falló la notificación Push: " . $e->getMessage());
+                    // Evita error 500 si fallan las llaves VAPID o OpenSSL
+                    Log::warning("Donación guardada, pero falló la notificación: " . $e->getMessage());
                 }
             }
 
@@ -60,7 +60,7 @@ class DonationController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Error crítico en Donación: " . $e->getMessage());
+            Log::error("Error en Donación: " . $e->getMessage());
             return response()->json([
                 'success' => false, 
                 'message' => 'Hubo un problema al procesar la donación.'

@@ -51,7 +51,6 @@ class AdminController extends Controller
 
     /**
      * Actualización dinámica de roles.
-     * Esta versión busca por 'slug' y 'name' para asegurar la sincronización 
      * tras la migración de la columna slug.
      */
     public function updateUserRoles(Request $request, $id)
@@ -63,25 +62,25 @@ class AdminController extends Controller
             return back()->with('error', 'Los privilegios del Super Administrador son permanentes y no pueden ser modificados.');
         }
 
-        // Recolectamos los datos enviados desde los dos grupos de checkboxes de la vista
+        // Recolecta los datos enviados desde los dos grupos de checkboxes de la vista
         $basicRoles = $request->input('basic_roles', []); // admin, usuario
         $groupRoles = $request->input('roles', []);       // catequesis_ninos, admin_acutis, etc.
         
-        // Fusionamos en una lista única de identificadores (slugs/names)
+        // Fusiona en una lista única de identificadores (slugs/names)
         $requestedIdentifiers = array_filter(array_unique(array_merge($basicRoles, $groupRoles)));
 
         try {
-            // Buscamos los roles en la BD comparando contra slug o name por seguridad
+            // Buscamos los roles en la base de datos comparando contra slug o name por seguridad
             $rolesInDb = Role::whereIn('slug', $requestedIdentifiers)
                              ->orWhereIn('name', $requestedIdentifiers)
                              ->get();
 
             $roleIds = $rolesInDb->pluck('id')->toArray();
 
-            // Sincronizamos la relación: elimina los anteriores y agrega los nuevos IDs
+            // Sincroniza la relación: elimina los anteriores y agrega los nuevos IDs
             $user->roles()->sync($roleIds);
             
-            // Verificamos si hubo algún identificador que no se encontró en la base de datos
+            // Verifica si hubo algún identificador que no se encontró en la base de datos
             $foundIdentifiers = $rolesInDb->pluck('slug')->merge($rolesInDb->pluck('name'))->unique()->toArray();
             $missing = array_diff($requestedIdentifiers, $foundIdentifiers);
 

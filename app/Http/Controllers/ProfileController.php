@@ -19,7 +19,7 @@ class ProfileController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Obtenemos las notificaciones con paginación para el historial de la derecha
+        // Obtenie las notificaciones con paginación para el historial de la derecha
         $notifications = $user->notifications()->latest()->paginate(10);
         
         return view('profile.show', compact('user', 'notifications'));
@@ -59,7 +59,7 @@ class ProfileController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        // Actualizamos los datos y marcamos el onboarding como completado
+        // Actualiza los datos y marcamos el onboarding como completado
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
@@ -73,14 +73,13 @@ class ProfileController extends Controller
 
     /**
      * Actualiza la preferencia global de notificaciones vía AJAX.
-     * Esto controla si se envían o no avisos Push al celular y PC.
+     * Esto controla si se envían o no avisos push al celular y PC.
      */
     public function updatePreference(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // El valor viene como 0 o 1
         $user->update([
             'notify_announcements' => (bool)$request->notify
         ]);
@@ -94,8 +93,7 @@ class ProfileController extends Controller
 
     /**
      * Elimina físicamente todas las notificaciones del usuario.
-     * Este es el método que realmente "limpia" la barra y el historial.
-     */
+     *  */
     public function destroyAllNotifications()
     {
         /** @var \App\Models\User $user */

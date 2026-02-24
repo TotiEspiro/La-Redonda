@@ -46,7 +46,7 @@ class GroupController extends Controller
     }
 
     /**
-     * DASHBOARD CENTRAL DE USUARIO (HUB)
+     * Inicio de Usuario
      */
     public function userDashboard()
     {
@@ -96,7 +96,7 @@ class GroupController extends Controller
 
         $groupName = $group->name;
         
-        // Obtener los últimos 5 miembros agregados con JOIN
+        // Obtener los últimos 5 miembros agregados
         $latestMembers = User::join('user_roles', 'users.id', '=', 'user_roles.user_id')
             ->join('roles', 'user_roles.role_id', '=', 'roles.id')
             ->where('roles.name', $slug)
@@ -129,7 +129,7 @@ class GroupController extends Controller
     }
 
     /**
-     * VISTA COMPLETA DE MIEMBROS: Con buscador funcional y paginación.
+     * Vista de miembros del grupo parroquial.
      */
     public function allMembers(Request $request, $groupRole)
     {
@@ -301,7 +301,6 @@ class GroupController extends Controller
             $m->created_at = Carbon::parse($m->created_at);
             try { $m->public_url = Storage::disk($disk)->url($m->file_path); } catch(\Exception $e) { $m->public_url = '#'; }
             
-            // CORRECCIÓN: Aseguramos que file_type exista para evitar el error de stdClass
             $m->file_type = property_exists($m, 'type') ? $m->type : 'desconocido';
             $type = strtolower($m->file_type);
 
@@ -410,7 +409,7 @@ class GroupController extends Controller
 
         DB::table('group_requests')->insert(['user_id' => $user->id, 'group_role' => $slug, 'status' => 'pending', 'created_at' => now(), 'updated_at' => now()]);
 
-        // NOTIFICACIÓN A COORDINADORES: Alguien quiere unirse
+        // Notificación para coordinadores
         $admins = User::whereHas('roles', function($q) use ($slug) {
             $q->whereIn('name', ['superadmin', 'admin', 'admin_' . $slug]);
         })->get();

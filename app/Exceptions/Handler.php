@@ -19,9 +19,6 @@ class Handler extends ExceptionHandler
         'password_confirmation',
     ];
 
-    /**
-     * Register the exception handling callbacks for the application.
-     */
     public function register(): void
     {
         $this->reportable(function (Throwable $e) {
@@ -29,7 +26,6 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (InvalidSignatureException $e, $request) {
-            // Verificamos si la ruta que falló es la de verificación de email
             if ($request->routeIs('verification.verify')) {
                 return redirect()
                     ->route('auth.verification.expire')

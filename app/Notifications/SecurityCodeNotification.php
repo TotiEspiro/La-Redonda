@@ -21,7 +21,7 @@ class SecurityCodeNotification extends Notification
     }
 
     /**
-     * Definimos los canales. En este caso, solo vía mail.
+     * Define los canales. Solo vía mail.
      */
     public function via($notifiable): array
     {
