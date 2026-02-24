@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Group;
 use App\Models\Role;
-use App\Models\GroupMaterial; // Importamos el modelo para evitar errores de stdClass
+use App\Models\GroupMaterial; // Usamos el modelo Eloquent para evitar errores de stdClass
 use App\Models\Announcement;
 use App\Notifications\AvisoComunidad; 
 use Illuminate\Support\Facades\Auth;
@@ -81,6 +81,8 @@ class GroupController extends Controller
         $group = Group::where('category', $slug)->first();
         if (!$group) abort(404);
 
+        $groupName = $group->name; // Sincronizado para evitar errores de variable indefinida
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -95,8 +97,6 @@ class GroupController extends Controller
             return redirect()->route('dashboard')->with('error', 'No tienes permisos de acceso.');
         }
 
-        $groupName = $group->name;
-        
         // Obtener los últimos 5 miembros agregados
         $latestMembers = User::join('user_roles', 'users.id', '=', 'user_roles.user_id')
             ->join('roles', 'user_roles.role_id', '=', 'roles.id')
@@ -233,7 +233,7 @@ class GroupController extends Controller
     }
 
     /**
-     * Subida de Material.
+     * Subida de Material a la Nube (Supabase / S3).
      */
     public function uploadMaterial(Request $request, $groupRole) {
         $slug = $this->normalizeSlug($groupRole);
@@ -249,8 +249,11 @@ class GroupController extends Controller
         try {
             $disk = config('filesystems.default'); 
             $file = $request->file('file');
-            $filePath = $file->store('materials/' . $slug, $disk);
             
+            // Usamos putFile para mayor compatibilidad con drivers S3/Supabase
+            $filePath = Storage::disk($disk)->putFile('materials/' . $slug, $file);
+            
+            // Creamos el registro usando Eloquent
             GroupMaterial::create([
                 'user_id' => Auth::id(),
                 'group_role' => $slug,
@@ -263,6 +266,7 @@ class GroupController extends Controller
                 'is_active' => true,
             ]);
 
+            // Notificación a miembros del grupo
             $members = User::whereHas('roles', fn($q) => $q->where('name', $slug))->get();
             if ($members->isNotEmpty()) {
                 $group = Group::where('category', $slug)->first();
@@ -278,6 +282,7 @@ class GroupController extends Controller
             }
             return response()->json(['success' => true, 'message' => 'Material subido correctamente.']);
         } catch (\Exception $e) { 
+            Log::error("Error en uploadMaterial: " . $e->getMessage());
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500); 
         }
     }
@@ -290,6 +295,7 @@ class GroupController extends Controller
         $slug = $this->normalizeSlug($groupRole);
         $group = Group::where('category', $slug)->firstOrFail();
         $groupName = $group->name;
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -310,13 +316,19 @@ class GroupController extends Controller
     }
 
     /**
-     * Ver material.
+     * Ver material (Redirección a URL de Supabase).
      */
     public function viewMaterial($id) {
         $m = GroupMaterial::findOrFail($id);
         $disk = config('filesystems.default');
+
         if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
-        if ($disk === 's3' || $disk === 'r2') return redirect(Storage::disk($disk)->url($m->file_path));
+
+        // Si es S3/R2/Supabase, redirigimos a la URL pública
+        if (in_array($disk, ['s3', 'r2', 'supabase'])) {
+            return redirect(Storage::disk($disk)->url($m->file_path));
+        }
+
         return response()->file(Storage::disk($disk)->path($m->file_path), ['Content-Disposition' => 'inline']);
     }
 
@@ -361,7 +373,7 @@ class GroupController extends Controller
     }
 
     /**
-     * Eliminar material.
+     * Eliminar material físico y lógico.
      */
     public function deleteMaterial($id) {
         $m = GroupMaterial::findOrFail($id); 
