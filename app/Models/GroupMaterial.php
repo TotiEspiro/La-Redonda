@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class GroupMaterial extends Model
 {
@@ -26,6 +27,23 @@ class GroupMaterial extends Model
         'file_size' => 'integer'
     ];
 
+    /**
+     * Accesor para obtener la URL pública del archivo.
+     * Soporta local y Supabase automáticamente.
+     */
+    public function getFileUrlAttribute()
+    {
+        if (!$this->file_path) return null;
+        
+        try {
+            return Storage::disk(config('filesystems.default'))->url($this->file_path);
+        } catch (\Exception $e) {
+            // Fallback manual para Supabase si el driver tiene errores de visibilidad
+            $baseUrl = rtrim(config('filesystems.disks.s3.url'), '/');
+            return $baseUrl . '/' . ltrim($this->file_path, '/');
+        }
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -36,71 +54,31 @@ class GroupMaterial extends Model
         return $query->where('group_role', $groupRole)->where('is_active', true);
     }
 
-    public function scopeByUser($query, $userId = null)
-    {
-        return $query->where('user_id', $userId ?? auth()->id());
-    }
-
-    public function getGroupNameAttribute()
-    {
-        $groupNames = [
-            'catequesis' => 'Catequesis',
-            'juveniles' => 'Juveniles',
-            'acutis' => 'Acutis',
-            'juan_pablo' => 'Juan Pablo',
-            'coro' => 'Coro',
-            'san_joaquin' => 'San Joaquín',
-            'santa_ana' => 'Santa Ana',
-            'ardillas' => 'Ardillas',
-            'costureras' => 'Costureras',
-            'misioneros' => 'Misioneros',
-            'caridad_comedor' => 'Caridad y Comedor'
-        ];
-
-        return $groupNames[$this->group_role] ?? $this->group_role;
-    }
-
     public function getFileIconAttribute()
     {
         $basePath = 'img/'; 
         
-        // Mapeo de tipos a nombres de archivo de imagen
         $icons = [
-            'pdf' => 'icono_docs.png',
-            
-            // Microsoft Office
+            'pdf' => 'icono_pdf.png',
             'doc' => 'icono_docs.png', 
             'docx' => 'word.png',
             'xls' => 'excel.png', 
             'xlsx' => 'excel.png',
             'ppt' => 'icono_docs.png', 
             'pptx' => 'powerpoint.png',
-            
-            // Multimedia
-            'image' => 'image.png',
+            'image' => 'icono_imagen.png',
+            'jpg' => 'icono_imagen.png',
+            'jpeg' => 'icono_imagen.png',
+            'png' => 'icono_imagen.png',
             'video' => 'icono_video.png',
-            'audio' => 'audio.png',
-            
-            // Otros
+            'mp4' => 'icono_video.png',
+            'audio' => 'icono_audio.png',
+            'mp3' => 'icono_audio.png',
             'zip' => 'icono_archivo.png'
         ];
 
-        // Obtiene el nombre del archivo o usa default.png
-        $filename = $icons[$this->file_type] ?? 'default.png';
-        
+        $filename = $icons[strtolower($this->file_type)] ?? 'icono_docs.png';
         return $basePath . $filename;
-    }
-
-    // Tipos permitidos para vista previa
-    public function getCanPreviewAttribute()
-    {
-        return in_array($this->file_type, [
-            'image', 'video', 'audio', 'pdf', 
-            'doc', 'xls', 'ppt', 
-            'jpg', 'jpeg', 'png', 'gif', 'webp',
-            'mp4', 'webm', 'mp3', 'wav',
-            'docx', 'xlsx', 'pptx'
-        ]);
     }
 
     public function getFileSizeFormattedAttribute()

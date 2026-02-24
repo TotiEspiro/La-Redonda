@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Group;
 use App\Models\Role;
+use App\Models\GroupMaterial; // Importamos el modelo para evitar errores de stdClass
 use App\Models\Announcement;
 use App\Notifications\AvisoComunidad; 
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +47,7 @@ class GroupController extends Controller
     }
 
     /**
-     * Inicio de Usuario
+     * DASHBOARD CENTRAL DE USUARIO (HUB)
      */
     public function userDashboard()
     {
@@ -115,8 +116,7 @@ class GroupController extends Controller
             ->whereDoesntHave('roles', fn($q) => $q->where('name', 'superadmin'))
             ->count();
         
-        $materials = DB::table('group_materials')->where('group_role', $slug)->orderBy('created_at', 'desc')->take(10)->get()
-            ->map(function($m) { $m->created_at = Carbon::parse($m->created_at); return $m; });
+        $materials = GroupMaterial::where('group_role', $slug)->orderBy('created_at', 'desc')->take(10)->get();
 
         $requests = DB::table('group_requests')
             ->join('users', 'group_requests.user_id', '=', 'users.id')
@@ -129,7 +129,7 @@ class GroupController extends Controller
     }
 
     /**
-     * Vista de miembros del grupo parroquial.
+     * VISTA COMPLETA DE MIEMBROS: Con buscador dinámico.
      */
     public function allMembers(Request $request, $groupRole)
     {
@@ -248,12 +248,19 @@ class GroupController extends Controller
 
         try {
             $disk = config('filesystems.default'); 
-            $filePath = $request->file('file')->store('materials/' . $slug, $disk);
+            $file = $request->file('file');
+            $filePath = $file->store('materials/' . $slug, $disk);
             
-            DB::table('group_materials')->insert([
-                'group_role' => $slug, 'title' => $request->title, 'description' => $request->description,
-                'type' => $request->type, 'file_path' => $filePath, 'is_active' => true, 
-                'created_at' => now(), 'updated_at' => now()
+            GroupMaterial::create([
+                'user_id' => Auth::id(),
+                'group_role' => $slug,
+                'title' => $request->title,
+                'description' => $request->description,
+                'file_path' => $filePath,
+                'file_name' => $file->getClientOriginalName(),
+                'file_type' => $request->type,
+                'file_size' => $file->getSize(),
+                'is_active' => true,
             ]);
 
             $members = User::whereHas('roles', fn($q) => $q->where('name', $slug))->get();
@@ -294,34 +301,10 @@ class GroupController extends Controller
             return redirect()->route('grupos.verify-form', $groupRole);
         }
         
-        $materials = DB::table('group_materials')->where('group_role', $slug)->where('is_active', true)->orderBy('created_at', 'desc')->paginate(12);
-
-        $materials->getCollection()->transform(function($m) {
-            $disk = config('filesystems.default');
-            $m->created_at = Carbon::parse($m->created_at);
-            try { $m->public_url = Storage::disk($disk)->url($m->file_path); } catch(\Exception $e) { $m->public_url = '#'; }
-            
-            $m->file_type = property_exists($m, 'type') ? $m->type : 'desconocido';
-            $type = strtolower($m->file_type);
-
-            $m->file_icon = match(true) {
-                $type === 'pdf' => 'img/icono_pdf.png',
-                in_array($type, ['jpg', 'png', 'jpeg', 'image']) => 'img/icono_imagen.png',
-                in_array($type, ['mp4', 'mov', 'video']) => 'img/icono_video.png',
-                in_array($type, ['mp3', 'wav', 'audio']) => 'img/icono_audio.png',
-                default => 'img/icono_docs.png'
-            };
-
-            $m->file_size_formatted = '---';
-            try {
-                if (Storage::disk($disk)->exists($m->file_path)) {
-                    $m->file_size_formatted = round(Storage::disk($disk)->size($m->file_path) / 1024 / 1024, 2) . ' MB';
-                }
-            } catch (\Exception $e) {}
-            
-            $m->can_preview = in_array($type, ['pdf', 'image', 'jpg', 'png', 'jpeg', 'mp4', 'mov', 'video']);
-            return $m;
-        });
+        $materials = GroupMaterial::where('group_role', $slug)
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->paginate(12);
 
         return view('grupos.materials', compact('group', 'groupName', 'groupRole', 'materials'));
     }
@@ -330,8 +313,7 @@ class GroupController extends Controller
      * Ver material.
      */
     public function viewMaterial($id) {
-        $m = DB::table('group_materials')->where('id', $id)->first();
-        if (!$m) abort(404);
+        $m = GroupMaterial::findOrFail($id);
         $disk = config('filesystems.default');
         if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
         if ($disk === 's3' || $disk === 'r2') return redirect(Storage::disk($disk)->url($m->file_path));
@@ -342,10 +324,9 @@ class GroupController extends Controller
      * Descarga de material.
      */
     public function downloadMaterial($id) {
-        $m = DB::table('group_materials')->where('id', $id)->first();
-        if (!$m) abort(404);
+        $m = GroupMaterial::findOrFail($id);
         $disk = config('filesystems.default');
-        return Storage::disk($disk)->download($m->file_path, $m->title);
+        return Storage::disk($disk)->download($m->file_path, $m->file_name);
     }
 
     /**
@@ -383,10 +364,10 @@ class GroupController extends Controller
      * Eliminar material.
      */
     public function deleteMaterial($id) {
-        $m = DB::table('group_materials')->where('id', $id)->first(); 
-        if ($m && $this->isAuthorizedCoordinator($m->group_role)) {
+        $m = GroupMaterial::findOrFail($id); 
+        if ($this->isAuthorizedCoordinator($m->group_role)) {
             Storage::disk(config('filesystems.default'))->delete($m->file_path); 
-            DB::table('group_materials')->where('id', $id)->delete(); 
+            $m->delete();
             return response()->json(['success' => true]); 
         }
         return response()->json(['success' => false], 403);
@@ -411,7 +392,7 @@ class GroupController extends Controller
 
         // Notificación para coordinadores
         $admins = User::whereHas('roles', function($q) use ($slug) {
-            $q->whereIn('name', ['superadmin', 'admin', 'admin_' . $slug]);
+            $q->whereIn('name', ['superadmin', 'admin', 'admin_' . $slug, 'admin_grupo_parroquial']);
         })->get();
 
         if ($admins->isNotEmpty()) {
