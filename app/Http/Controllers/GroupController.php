@@ -250,12 +250,10 @@ class GroupController extends Controller
             $disk = config('filesystems.default'); 
             $file = $request->file('file');
             
-            // CAMBIO CRÍTICO: Añadimos 'public' para asegurar que Supabase permita la lectura del archivo
+            // Añadimos 'public' para asegurar que Supabase permita la lectura del archivo
             $filePath = Storage::disk($disk)->putFile('materials/' . $slug, $file, 'public');
             
             // Creamos el registro usando Eloquent
-            // SE ELIMINAN 'user_id', 'file_name' Y 'file_size' PORQUE NO EXISTEN EN LA BD SEGÚN EL ERROR SQL
-            // SE CAMBIA 'file_type' POR 'type' PARA COINCIDIR CON LA COLUMNA DE LA BD
             GroupMaterial::create([
                 'group_role' => $slug,
                 'title' => $request->title,
@@ -315,25 +313,32 @@ class GroupController extends Controller
     }
 
     /**
-     * Ver material (Redirección a URL de Supabase).
+     * Ver material (Abre el archivo EN LA PÁGINA sin redirigir a URL externa).
+     * Esto usa un stream para servir el archivo desde Supabase a través de Laravel.
      */
     public function viewMaterial($id) {
         $m = GroupMaterial::findOrFail($id);
         $disk = config('filesystems.default');
 
-        // Para discos remotos (S3, Supabase, R2), redirigimos directamente a la URL pública
-        if ($disk === 's3' || $disk === 'r2' || $disk === 'supabase') {
-             $url = Storage::disk($disk)->url($m->file_path);
-             Log::info("Visualizando archivo remoto: " . $url);
-             return redirect($url);
-        }
+        if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
 
-        // Si es local, intentamos mostrarlo como archivo o caer a la URL de storage
         try {
-            if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
-            return response()->file(Storage::disk($disk)->path($m->file_path), ['Content-Disposition' => 'inline']);
+            // Obtenemos el stream del archivo y el tipo mime
+            $stream = Storage::disk($disk)->readStream($m->file_path);
+            $mimeType = Storage::disk($disk)->mimeType($m->file_path);
+
+            // Retornamos una respuesta de stream para que el navegador lo abra inline
+            return response()->stream(function () use ($stream) {
+                fpassthru($stream);
+                if (is_resource($stream)) fclose($stream);
+            }, 200, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $m->title . '"',
+            ]);
+
         } catch (\Exception $e) {
-            // Fallback si path() falla (lo cual ocurre en la nube)
+            Log::error("Error al visualizar material {$id}: " . $e->getMessage());
+            // Si el stream falla, caemos a la URL directa como último recurso
             return redirect(Storage::disk($disk)->url($m->file_path));
         }
     }
@@ -344,12 +349,24 @@ class GroupController extends Controller
     public function downloadMaterial($id) {
         $m = GroupMaterial::findOrFail($id);
         $disk = config('filesystems.default');
-        
-        if ($disk === 's3' || $disk === 'r2' || $disk === 'supabase') {
-            return redirect(Storage::disk($disk)->url($m->file_path));
+
+        if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
+
+        try {
+            $stream = Storage::disk($disk)->readStream($m->file_path);
+            $mimeType = Storage::disk($disk)->mimeType($m->file_path);
+            $extension = pathinfo($m->file_path, PATHINFO_EXTENSION);
+
+            return response()->stream(function () use ($stream) {
+                fpassthru($stream);
+                if (is_resource($stream)) fclose($stream);
+            }, 200, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'attachment; filename="' . $m->title . '.' . $extension . '"',
+            ]);
+        } catch (\Exception $e) {
+            return Storage::disk($disk)->download($m->file_path, $m->title);
         }
-        
-        return Storage::disk($disk)->download($m->file_path, $m->file_name);
     }
 
     /**
