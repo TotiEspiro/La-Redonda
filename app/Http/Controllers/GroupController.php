@@ -254,15 +254,14 @@ class GroupController extends Controller
             $filePath = Storage::disk($disk)->putFile('materials/' . $slug, $file, 'public');
             
             // Creamos el registro usando Eloquent
-            // SE ELIMINA 'user_id' PORQUE NO EXISTE EN LA BASE DE DATOS SEGÚN EL ERROR SQL
+            // SE ELIMINAN 'user_id', 'file_name' Y 'file_size' PORQUE NO EXISTEN EN LA BD SEGÚN EL ERROR SQL
+            // SE CAMBIA 'file_type' POR 'type' PARA COINCIDIR CON LA COLUMNA DE LA BD
             GroupMaterial::create([
                 'group_role' => $slug,
                 'title' => $request->title,
                 'description' => $request->description,
                 'file_path' => $filePath,
-                'file_name' => $file->getClientOriginalName(),
-                'file_type' => $request->type,
-                'file_size' => $file->getSize(),
+                'type' => $request->type, 
                 'is_active' => true,
             ]);
 
