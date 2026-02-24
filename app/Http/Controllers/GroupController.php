@@ -254,8 +254,8 @@ class GroupController extends Controller
             $filePath = Storage::disk($disk)->putFile('materials/' . $slug, $file, 'public');
             
             // Creamos el registro usando Eloquent
+            // SE ELIMINA 'user_id' PORQUE NO EXISTE EN LA BASE DE DATOS SEGÚN EL ERROR SQL
             GroupMaterial::create([
-                'user_id' => Auth::id(),
                 'group_role' => $slug,
                 'title' => $request->title,
                 'description' => $request->description,
@@ -283,7 +283,7 @@ class GroupController extends Controller
             return response()->json(['success' => true, 'message' => 'Material subido correctamente.']);
         } catch (\Exception $e) { 
             Log::error("Error en uploadMaterial: " . $e->getMessage());
-            return response()->json(['success' => false, 'error' => 'Error técnico al subir: ' . $e->getMessage()], 500); 
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500); 
         }
     }
 
