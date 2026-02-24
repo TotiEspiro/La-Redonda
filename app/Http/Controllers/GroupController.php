@@ -81,7 +81,7 @@ class GroupController extends Controller
         $group = Group::where('category', $slug)->first();
         if (!$group) abort(404);
 
-        $groupName = $group->name; // Sincronizado para evitar errores de variable indefinida
+        $groupName = $group->name; 
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -253,8 +253,7 @@ class GroupController extends Controller
             // Subimos a Supabase con visibilidad pública
             $filePath = Storage::disk($disk)->putFile('materials/' . $slug, $file, 'public');
             
-            // Ajustamos las columnas a tu BD real (quitamos user_id, file_name, file_size)
-            // Cambiamos 'file_type' por 'type'
+            // Sincronizado con tu BD real: Usamos 'type' y quitamos columnas inexistentes
             GroupMaterial::create([
                 'group_role' => $slug,
                 'title' => $request->title,
@@ -310,10 +309,16 @@ class GroupController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(12);
 
-        // Mapeamos virtualmente las columnas que faltan en la BD para que la vista no se rompa
+        // MAPEO CRÍTICO PARA LA VISTA: Esto activa el botón "Abrir"
         $materials->getCollection()->transform(function($m) {
-            $m->file_type = $m->type; // Sincroniza 'type' con 'file_type' de la vista
-            $m->file_size_formatted = 'N/A'; // Columna no existente en BD
+            // Sincronizamos la columna 'type' con lo que espera la vista 'file_type'
+            $m->file_type = strtolower($m->type); 
+            
+            // Forzamos can_preview a true para los tipos compatibles con el visor
+            $previewable = ['pdf', 'image', 'jpg', 'png', 'jpeg', 'mp4', 'mov', 'video', 'audio', 'mp3'];
+            $m->can_preview = in_array($m->file_type, $previewable);
+            
+            $m->file_size_formatted = '---'; 
             return $m;
         });
 
@@ -321,8 +326,8 @@ class GroupController extends Controller
     }
 
     /**
-     * Ver material (Abre el archivo EN LA PÁGINA sin redirigir).
-     * Usa Streaming para servir el archivo desde Supabase a través del servidor de Laravel.
+     * Ver material (Abre el archivo EN EL MODAL/PÁGINA).
+     * Usa Streaming para servir el archivo desde Supabase a través del servidor.
      */
     public function viewMaterial($id) {
         $m = GroupMaterial::findOrFail($id);
@@ -331,11 +336,11 @@ class GroupController extends Controller
         if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
 
         try {
-            // Obtenemos el stream del archivo y su tipo MIME desde Supabase
+            // Obtenemos el stream y el tipo mime
             $stream = Storage::disk($disk)->readStream($m->file_path);
             $mimeType = Storage::disk($disk)->mimeType($m->file_path);
 
-            // Respondemos con un stream para que el navegador lo abra inline (dentro del iframe/modal)
+            // Respondemos con stream e inline para que el visor lo cargue dentro de la página
             return response()->stream(function () use ($stream) {
                 fpassthru($stream);
                 if (is_resource($stream)) fclose($stream);
@@ -346,8 +351,8 @@ class GroupController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error("Error al visualizar material {$id}: " . $e->getMessage());
-            // Si el motor de streaming falla, caemos a la URL directa como última opción
+            Log::error("Error visualizando material: " . $e->getMessage());
+            // Fallback a URL pública si falla el stream
             return redirect(Storage::disk($disk)->url($m->file_path));
         }
     }
@@ -362,17 +367,9 @@ class GroupController extends Controller
         if (!Storage::disk($disk)->exists($m->file_path)) abort(404);
 
         try {
-            $mimeType = Storage::disk($disk)->mimeType($m->file_path);
             $extension = pathinfo($m->file_path, PATHINFO_EXTENSION);
-
-            // Servimos la descarga a través de Laravel
-            return response()->streamDownload(function () use ($disk, $m) {
-                echo Storage::disk($disk)->get($m->file_path);
-            }, $m->title . '.' . $extension, [
-                'Content-Type' => $mimeType
-            ]);
+            return Storage::disk($disk)->download($m->file_path, $m->title . '.' . $extension);
         } catch (\Exception $e) {
-            // Fallback directo a Supabase
             return redirect(Storage::disk($disk)->url($m->file_path));
         }
     }
