@@ -13,14 +13,22 @@ class NuevaDonacion extends Notification
 
     public $donacion;
 
-    public function __construct($donacion) { $this->donacion = $donacion; }
+    public function __construct($donacion)
+    {
+        $this->donacion = $donacion;
+    }
 
+    /**
+     * VALIDACIÓN BLINDADA:
+     * Si el usuario desactivó la opción, el canal WebPushChannel nunca se activa.
+     */
     public function via($notifiable)
     {
+        // Siempre guardamos en la base de datos (campanita web)
         $channels = ['database'];
 
-        // Solo salta en el dispositivo si el usuario lo permite
-        if ($notifiable->notify_donations_intentions) {
+        // Solo si la preferencia es estrictamente true enviamos el aviso al dispositivo
+        if ($notifiable->notify_donations_intentions === true) {
             $channels[] = WebPushChannel::class;
         }
 
@@ -37,6 +45,9 @@ class NuevaDonacion extends Notification
         ];
     }
 
+    /**
+     * Formato para notificación Push nativa
+     */
     public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)
@@ -46,6 +57,6 @@ class NuevaDonacion extends Notification
             ->body("Monto: $" . number_format($this->donacion->amount, 2))
             ->action('Ver detalle', 'view_donations')
             ->data(['url' => route('admin.donations')])
-            ->options(['TTL' => 1000]);
+            ->options(['TTL' => 60]);
     }
 }
