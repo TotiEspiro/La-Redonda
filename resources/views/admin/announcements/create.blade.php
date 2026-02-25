@@ -19,7 +19,7 @@
                     <label class="block text-sm font-bold text-gray-700 mb-1">Título del Anuncio <span class="text-red-500">*</span></label>
                     <input type="text" name="title" required 
                            class="block w-full rounded-lg border-gray-300 bg-gray-50 border focus:bg-white focus:border-button focus:ring-button transition-colors p-3" 
-                           placeholder="Ej: Misa de Gallo"
+                           placeholder="Ingresá titulo del anuncio"
                            value="{{ old('title') }}">
                 </div>
                 
@@ -27,7 +27,7 @@
                     <label class="block text-sm font-bold text-gray-700 mb-1">Descripción Corta <span class="text-red-500">*</span></label>
                     <textarea name="short_description" required rows="2" 
                               class="block w-full rounded-lg border-gray-300 bg-gray-50 border focus:bg-white focus:border-button focus:ring-button transition-colors p-3"
-                              placeholder="Resumen breve para la lista...">{{ old('short_description') }}</textarea>
+                              placeholder="Ingresá descripción breve del anuncio">{{ old('short_description') }}</textarea>
                     <p class="text-xs text-gray-400 mt-1 text-right">Se muestra en la vista previa</p>
                 </div>
                 
@@ -35,7 +35,7 @@
                     <label class="block text-sm font-bold text-gray-700 mb-1">Descripción Completa <span class="text-red-500">*</span></label>
                     <textarea name="full_description" required rows="6" 
                               class="block w-full rounded-lg border-gray-300 bg-gray-50 border focus:bg-white focus:border-button focus:ring-button transition-colors p-3"
-                              placeholder="Detalles completos del anuncio...">{{ old('full_description') }}</textarea>
+                              placeholder="Ingresá descripción completa del anuncio...">{{ old('full_description') }}</textarea>
                 </div>
                 
                 <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">

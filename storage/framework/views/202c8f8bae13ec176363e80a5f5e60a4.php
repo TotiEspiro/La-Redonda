@@ -84,7 +84,7 @@
                         
                         <div class="flex items-center justify-between group">
                             <div class="flex flex-col pr-4">
-                                <span class="text-xs font-black text-text-dark uppercase tracking-tight">Vida de Comunidad</span>
+                                <span class="text-xs font-black text-text-dark uppercase tracking-tight">Comunidad Parroquial</span>
                                 <span class="text-[9px] text-gray-400 font-bold uppercase">Grupos y Materiales</span>
                             </div>
                             <button onclick="toggleNotification('community')" id="btn-community" 
@@ -191,8 +191,9 @@
                         </div>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <div class="p-32 text-center" id="empty-notif-state">
-                            <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-100 shadow-inner">
-                                <svg class="w-10 h-10 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0h-1.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <div class="w-15 h-15 opacity-50 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <img src="img/icono_campana.png" alt="Notificación"></div>
                             </div>
                             <p class="text-xs text-gray-400 font-black uppercase tracking-[0.3em]">Sin actividad reciente</p>
                         </div>
