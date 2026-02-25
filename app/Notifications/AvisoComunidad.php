@@ -23,15 +23,16 @@ class AvisoComunidad extends Notification
     }
 
     /**
-     * AQUÍ SE DECIDE SI SALTA EN EL CELULAR:
-     * Si 'notify_community' es false, solo se devuelve ['database'].
+     * VALIDACIÓN BLINDADA:
+     * El canal 'database' (campanita web) es permanente.
+     * El canal 'WebPushChannel' (celular/PC) solo se activa si la preferencia es estrictamente true.
      */
     public function via($notifiable)
     {
         $channels = ['database'];
 
-        // Si el usuario tiene activo el permiso, enviamos a WebPush (Celular/PC)
-        if ($notifiable->notify_community) {
+        // Solo si el usuario tiene activo el permiso explícito enviamos a WebPush
+        if ($notifiable->notify_community === true) {
             $channels[] = WebPushChannel::class;
         }
 
@@ -47,6 +48,9 @@ class AvisoComunidad extends Notification
         ];
     }
 
+    /**
+     * Formato para notificación Push nativa con TTL optimizado.
+     */
     public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)
@@ -56,6 +60,6 @@ class AvisoComunidad extends Notification
             ->body($this->mensaje)
             ->action('Ver ahora', 'view_app')
             ->data(['url' => $this->url]) 
-            ->options(['TTL' => 1000]);
+            ->options(['TTL' => 60]);
     }
 }
