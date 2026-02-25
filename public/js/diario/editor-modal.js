@@ -1,5 +1,6 @@
 /**
  * EditorModal - Lógica de edición avanzada y persistencia RESTful
+ * Soporte mejorado para dispositivos móviles (Touch Drag & Drop)
  */
 class EditorModal {
     constructor() {
@@ -39,9 +40,13 @@ class EditorModal {
             this.showCustomConfirm('¿Estás seguro de que quieres limpiar todo el mapa conceptual?', () => this.clearMindMap());
         });
 
-        // Eventos de Mouse Globales (Drag & Drop)
+        // Eventos de Mouse y Touch Globales (Drag & Drop)
         document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
         document.addEventListener('mouseup', () => this.handleMouseUp());
+        
+        // Soporte Táctil Global
+        document.addEventListener('touchmove', (e) => this.handleMouseMove(e), { passive: false });
+        document.addEventListener('touchend', () => this.handleMouseUp());
 
         // Manejo de Escape
         document.addEventListener('keydown', (e) => {
@@ -77,14 +82,13 @@ class EditorModal {
         setTimeout(() => this.updateConnections(), 300);
     }
 
-    /** --- GESTIÓN DE TAREAS (SIN BUCLES VACÍOS) --- **/
+    /** --- GESTIÓN DE TAREAS --- **/
 
     addTask(taskData = null) {
         const container = document.getElementById('tasksContainer');
         const template = document.getElementById('taskTemplate');
         if (!container || !template) return;
 
-        // Validación: No crear tarea si la última ya está vacía
         if (!taskData) {
             const lastTask = container.querySelector('.task-item:last-child');
             if (lastTask) {
@@ -106,7 +110,6 @@ class EditorModal {
             checkbox.checked = taskData.completed;
         }
 
-        // LIMPIEZA AUTOMÁTICA AL PERDER FOCO (BLUR)
         input.addEventListener('blur', () => {
             setTimeout(() => {
                 if (input.value.trim() === "" && item.parentNode) {
@@ -127,7 +130,7 @@ class EditorModal {
         if (!taskData) input.focus();
     }
 
-    /** --- MAPA CONCEPTUAL (FUNCIONALIDAD DE UNIÓN) --- **/
+    /** --- MAPA CONCEPTUAL (FUNCIONALIDAD TÁCTIL) --- **/
 
     addMindMapNode(data = null) {
         const container = document.querySelector('.mind-map-container');
@@ -145,15 +148,15 @@ class EditorModal {
         const input = node.querySelector('.node-text');
         input.value = data ? data.text : '';
 
+        // Eventos de inicio de arrastre (Mouse y Touch)
         node.addEventListener('mousedown', (e) => this.startDragging(e, node));
+        node.addEventListener('touchstart', (e) => this.startDragging(e, node), { passive: true });
         
-        // Botón Unir (🔗)
         node.querySelector('.connect-node')?.addEventListener('click', (e) => {
             e.stopPropagation();
             this.handleConnectionClick(id);
         });
 
-        // Botón Eliminar
         node.querySelector('.delete-node')?.addEventListener('click', (e) => {
             e.stopPropagation();
             this.deleteNode(id);
@@ -164,6 +167,57 @@ class EditorModal {
         this.updateConnections();
     }
 
+    startDragging(e, node) {
+        if (this.isConnecting) {
+            e.stopPropagation();
+            this.handleConnectionClick(node.dataset.id);
+            return;
+        }
+        if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+        
+        this.draggedNode = node;
+        const rect = node.getBoundingClientRect();
+        
+        // Detectar si es touch o mouse para obtener coordenadas
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        this.dragOffset.x = clientX - rect.left;
+        this.dragOffset.y = clientY - rect.top;
+
+        if (e.type === 'mousedown') e.preventDefault();
+    }
+
+    handleMouseMove(e) {
+        if (this.draggedNode) {
+            const canvas = document.getElementById('mindMapCanvas');
+            const rect = canvas.getBoundingClientRect();
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            let x = clientX - rect.left - this.dragOffset.x;
+            let y = clientY - rect.top - this.dragOffset.y;
+            
+            // Límites del canvas
+            x = Math.max(0, Math.min(x, rect.width - this.draggedNode.offsetWidth));
+            y = Math.max(0, Math.min(y, rect.height - this.draggedNode.offsetHeight));
+
+            this.draggedNode.style.left = `${x}px`;
+            this.draggedNode.style.top = `${y}px`;
+            this.updateConnections();
+
+            // Bloquear scroll si es táctil para permitir el arrastre fluido
+            if (e.touches && e.cancelable) {
+                e.preventDefault();
+            }
+        }
+    }
+
+    handleMouseUp() {
+        this.draggedNode = null;
+    }
+
     handleConnectionClick(id) {
         if (!this.isConnecting) {
             this.isConnecting = true;
@@ -172,7 +226,6 @@ class EditorModal {
             document.querySelector(`[data-id="${id}"]`)?.classList.add('ring-4', 'ring-blue-500');
         } else {
             if (this.sourceNodeId !== id) {
-                // Evitar conexiones duplicadas
                 const alreadyExists = this.connections.some(c => 
                     (c.from === this.sourceNodeId && c.to === id) || (c.from === id && c.to === this.sourceNodeId)
                 );
@@ -218,40 +271,6 @@ class EditorModal {
         });
     }
 
-    startDragging(e, node) {
-        if (this.isConnecting) {
-            e.stopPropagation();
-            this.handleConnectionClick(node.dataset.id);
-            return;
-        }
-        if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
-        this.draggedNode = node;
-        const rect = node.getBoundingClientRect();
-        this.dragOffset.x = e.clientX - rect.left;
-        this.dragOffset.y = e.clientY - rect.top;
-        e.preventDefault();
-    }
-
-    handleMouseMove(e) {
-        if (this.draggedNode) {
-            const canvas = document.getElementById('mindMapCanvas');
-            const rect = canvas.getBoundingClientRect();
-            let x = e.clientX - rect.left - this.dragOffset.x;
-            let y = e.clientY - rect.top - this.dragOffset.y;
-            
-            x = Math.max(0, Math.min(x, rect.width - this.draggedNode.offsetWidth));
-            y = Math.max(0, Math.min(y, rect.height - this.draggedNode.offsetHeight));
-
-            this.draggedNode.style.left = `${x}px`;
-            this.draggedNode.style.top = `${y}px`;
-            this.updateConnections();
-        }
-    }
-
-    handleMouseUp() {
-        this.draggedNode = null;
-    }
-
     clearMindMap() {
         const container = document.querySelector('.mind-map-container');
         if (container) container.innerHTML = '';
@@ -259,7 +278,7 @@ class EditorModal {
         this.updateConnections();
     }
 
-    /** --- GUARDADO REAL (RUTAS LARAVEL) --- **/
+    /** --- GUARDADO RESTFUL --- **/
 
     async save() {
         const titleInput = document.getElementById('docTitle');
@@ -293,7 +312,6 @@ class EditorModal {
             content = JSON.stringify({ nodes, connections: this.connections });
         }
 
-        // RUTAS BASADAS EN TU WEB.PHP
         const url = this.currentEntry ? `/diario/${this.currentEntry.id}` : '/diario';
         const method = this.currentEntry ? 'PUT' : 'POST';
 
@@ -314,13 +332,11 @@ class EditorModal {
             if (result.success) {
                 this.showNotification('¡Entrada guardada con éxito!', 'success');
                 this.close();
-                // RECARGAR PARA ACTUALIZAR INDEX.BLADE
                 setTimeout(() => location.reload(), 600);
             } else {
                 this.showNotification(result.message || 'Error al guardar', 'error');
             }
         } catch (error) {
-            console.error('Error:', error);
             this.showNotification('Error de conexión al servidor', 'error');
         }
     }
@@ -440,13 +456,13 @@ class EditorModal {
         const overlay = document.createElement('div');
         overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-[200] flex items-center justify-center p-4 backdrop-blur-sm';
         overlay.innerHTML = `
-            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full">
-                <div class="text-red-500 mb-4 flex justify-center"><i class="fas fa-exclamation-triangle text-4xl"></i></div>
-                <h3 class="text-xl font-bold text-gray-800 text-center mb-2">Confirmar Acción</h3>
-                <p class="text-gray-600 text-center mb-8">${message}</p>
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center">
+                <div class="text-red-500 mb-4"><i class="fas fa-exclamation-triangle text-4xl"></i></div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Confirmar Acción</h3>
+                <p class="text-gray-600 mb-8">${message}</p>
                 <div class="flex gap-4">
                     <button id="confirmCancel" class="flex-1 px-4 py-2 border rounded-xl hover:bg-gray-50">Cancelar</button>
-                    <button id="confirmOk" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg transition-all">Sí, Eliminar</button>
+                    <button id="confirmOk" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg transition-all">Eliminar</button>
                 </div>
             </div>
         `;
