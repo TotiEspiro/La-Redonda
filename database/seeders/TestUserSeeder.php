@@ -22,23 +22,19 @@ class TestUserSeeder extends Seeder
         $testUsers = [
             [
                 'name' => 'Carina Carballido',
-                'email' => 'test1@laredonda.com',
+                'email' => 'carinacarballido@davinci.com',
             ],
             [
                 'name' => 'Cecilia María Feijoo',
-                'email' => 'test2@laredonda.com',
+                'email' => 'ceciliafeijoo@davinci.com',
             ],
             [
-                'name' => 'Usuario Prueba 3',
-                'email' => 'test3@laredonda.com',
+                'name' => 'Santiago Gallino',
+                'email' => 'santiagogallino@davinci.com',
             ],
             [
                 'name' => 'Usuario Prueba 4',
-                'email' => 'test4@laredonda.com',
-            ],
-            [
-                'name' => 'Usuario Prueba 5',
-                'email' => 'test5@laredonda.com',
+                'email' => 'prueba@davinci.com',
             ],
         ];
 
@@ -48,7 +44,7 @@ class TestUserSeeder extends Seeder
                 ['email' => $userData['email']],
                 [
                     'name' => $userData['name'],
-                    'password' => Hash::make('password123'), // Contraseña común para pruebas
+                    'password' => Hash::make('12345678'), // Contraseña común para pruebas
                     'age' => rand(18, 50),
                     'onboarding_completed' => true, // Saltamos el onboarding
                     'email_verified_at' => Carbon::now(), // Saltamos la verificación de mail
