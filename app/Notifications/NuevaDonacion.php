@@ -13,14 +13,18 @@ class NuevaDonacion extends Notification
 
     public $donacion;
 
-    public function __construct($donacion)
-    {
-        $this->donacion = $donacion;
-    }
+    public function __construct($donacion) { $this->donacion = $donacion; }
 
     public function via($notifiable)
     {
-        return ['database', WebPushChannel::class];
+        $channels = ['database'];
+
+        // Solo salta en el dispositivo si el usuario lo permite
+        if ($notifiable->notify_donations_intentions) {
+            $channels[] = WebPushChannel::class;
+        }
+
+        return $channels;
     }
 
     public function toArray($notifiable)
@@ -33,16 +37,13 @@ class NuevaDonacion extends Notification
         ];
     }
 
-    /**
-     * Formato para notificación Push nativa
-     */
     public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)
             ->title('¡Nueva Donación Recibida!')
             ->icon('/img/icono_donaciones_admin.png')
             ->badge('/img/badge_logo_redonda.png')
-            ->body("Monto: $" . number_format($this->donacion->amount, 2) . "\n¡Gracias por la generosidad!")
+            ->body("Monto: $" . number_format($this->donacion->amount, 2))
             ->action('Ver detalle', 'view_donations')
             ->data(['url' => route('admin.donations')])
             ->options(['TTL' => 1000]);

@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="min-h-screen bg-gray-50 py-8 md:py-12">
     <div class="max-w-2xl mx-auto px-4 text-left">
         <div class="bg-white shadow-xl rounded-[2.5rem] overflow-hidden border border-gray-100 animate-fade-in">
@@ -15,34 +13,48 @@
             </div>
 
             <div class="p-8 md:p-10">
-                <form action="{{ route('profile.update') }}" method="POST" class="space-y-8">
-                    @csrf
-                    @method('PUT')
+                <form action="<?php echo e(route('profile.update')); ?>" method="POST" class="space-y-8">
+                    <?php echo csrf_field(); ?>
+                    <?php echo method_field('PUT'); ?>
 
-                    {{-- Sección de Identidad --}}
+                    
                     <div class="space-y-6">
                         <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50 pb-2">Información Básica</h3>
                         
                         <div>
                             <label for="name" class="block text-xs font-black text-text-dark mb-2 uppercase tracking-tight">Nombre Completo</label>
                             <input type="text" name="name" id="name" 
-                                   value="{{ old('name', $user->name) }}"
+                                   value="<?php echo e(old('name', $user->name)); ?>"
                                    class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button focus:bg-white outline-none transition-all font-medium"
                                    placeholder="Tu nombre y apellido" required>
-                            @error('name') <p class="text-red-500 text-[10px] font-bold mt-2 uppercase">{{ $message }}</p> @enderror
+                            <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-[10px] font-bold mt-2 uppercase"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div>
                             <label for="email" class="block text-xs font-black text-text-dark mb-2 uppercase tracking-tight">Correo Electrónico</label>
                             <input type="email" name="email" id="email" 
-                                   value="{{ old('email', $user->email) }}"
+                                   value="<?php echo e(old('email', $user->email)); ?>"
                                    class="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-button focus:bg-white outline-none transition-all font-medium"
                                    placeholder="ejemplo@correo.com" required>
-                            @error('email') <p class="text-red-500 text-[10px] font-bold mt-2 uppercase">{{ $message }}</p> @enderror
+                            <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-[10px] font-bold mt-2 uppercase"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
                     </div>
 
-                    {{-- REQUERIMIENTOS --}}
+                    
                     <div class="space-y-6 pt-4">
                         <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-50 pb-2">Requisitos Parroquiales</h3>
                         
@@ -50,7 +62,7 @@
                             <div class="flex-1">
                                 <label for="age" class="block text-xs font-black text-button mb-2 uppercase tracking-tight text-center md:text-left">Tu Edad Real</label>
                                 <input type="number" name="age" id="age" 
-                                       value="{{ old('age', $user->age) }}"
+                                       value="<?php echo e(old('age', $user->age)); ?>"
                                        min="5" max="99"
                                        class="w-full px-5 py-4 bg-white border border-blue-200 rounded-2xl focus:ring-2 focus:ring-button outline-none transition-all text-center text-xl font-black text-button"
                                        placeholder="Ej: 25" required>
@@ -64,7 +76,14 @@
                                 </p>
                             </div>
                         </div>
-                        @error('age') <p class="text-red-500 text-[10px] font-bold mt-2 uppercase">{{ $message }}</p> @enderror
+                        <?php $__errorArgs = ['age'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-[10px] font-bold mt-2 uppercase"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div class="flex flex-col md:flex-row gap-4 pt-8">
@@ -72,7 +91,7 @@
                                 class="flex-1 bg-button text-white px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-900 transition-all active:scale-95">
                             Guardar Cambios
                         </button>
-                        <a href="{{ route('profile.show') }}" 
+                        <a href="<?php echo e(route('profile.show')); ?>" 
                            class="flex-1 bg-gray-100 text-gray-400 px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-widest text-center hover:bg-gray-200 transition-all">
                             Cancelar
                         </a>
@@ -82,4 +101,5 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\laragon\www\copia_laredo\La-Redonda\resources\views/profile/edit.blade.php ENDPATH**/ ?>

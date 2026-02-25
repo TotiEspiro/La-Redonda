@@ -15,10 +15,6 @@ class AvisoComunidad extends Notification
     public $mensaje;
     public $url;
 
-    /**
-     * Crea una nueva instancia de notificación.
-     * Se asegura que la URL nunca sea nula para evitar enlaces vacíos (#).
-     */
     public function __construct($titulo, $mensaje, $url = null)
     {
         $this->titulo = $titulo;
@@ -27,16 +23,21 @@ class AvisoComunidad extends Notification
     }
 
     /**
-     * Canales de envío.
+     * AQUÍ SE DECIDE SI SALTA EN EL CELULAR:
+     * Si 'notify_community' es false, solo se devuelve ['database'].
      */
     public function via($notifiable)
     {
-        return ['database', WebPushChannel::class];
+        $channels = ['database'];
+
+        // Si el usuario tiene activo el permiso, enviamos a WebPush (Celular/PC)
+        if ($notifiable->notify_community) {
+            $channels[] = WebPushChannel::class;
+        }
+
+        return $channels;
     }
 
-    /**
-     * Define los datos que se guardan en la tabla 'notifications'.
-     */
     public function toArray($notifiable)
     {
         return [
@@ -46,9 +47,6 @@ class AvisoComunidad extends Notification
         ];
     }
 
-    /**
-     * Lógica para la notificación de navegador/sistema (Celulares/PC)
-     */
     public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)

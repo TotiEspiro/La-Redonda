@@ -35,7 +35,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Actualizar los datos del perfil.
+     * Actualizar los datos básicos del perfil.
      * Valida obligatoriamente la edad para permitir la inscripción en grupos.
      */
     public function update(Request $request)
@@ -47,7 +47,6 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'age' => 'required|integer|min:5|max:99', // Requisito para grupos
-            'notify_announcements' => 'nullable|boolean' 
         ], [
             'age.required' => 'La edad es obligatoria para validar tu acceso a los grupos parroquiales.',
             'age.integer' => 'Por favor, ingresa un número válido para la edad.',
@@ -64,15 +63,14 @@ class ProfileController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'age' => $request->age,
-            'notify_announcements' => $request->has('notify_announcements'),
-            'onboarding_completed' => true // Al llenar el perfil, ya no es necesario el modal de bienvenida
+            'onboarding_completed' => true
         ]);
 
-        return redirect()->route('profile.show')->with('success', 'Perfil actualizado correctamente. Ya puedes inscribirte en tus comunidades.');
+        return redirect()->route('profile.show')->with('success', 'Perfil actualizado correctamente.');
     }
 
     /**
-     * Actualiza la preferencia global de notificaciones vía AJAX.
+     * Actualiza la preferencia granular de notificaciones vía AJAX (desde el Show).
      * Esto controla si se envían o no avisos push al celular y PC.
      */
     public function updatePreference(Request $request)
@@ -80,26 +78,35 @@ class ProfileController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        $user->update([
-            'notify_announcements' => (bool)$request->notify
-        ]);
+        $type = $request->type; // Puede ser 'announcements', 'community' o 'donations_intentions'
+        $field = 'notify_' . $type;
 
-        return response()->json([
-            'success' => true, 
-            'status' => $user->notify_announcements,
-            'message' => $user->notify_announcements ? 'Notificaciones activadas' : 'Notificaciones desactivadas'
-        ]);
+        // Validamos que el campo sea uno de los permitidos para evitar inyecciones
+        $allowedFields = ['notify_announcements', 'notify_community', 'notify_donations_intentions'];
+        
+        if (in_array($field, $allowedFields)) {
+            $user->update([
+                $field => (bool)$request->notify
+            ]);
+
+            return response()->json([
+                'success' => true, 
+                'status' => $user->$field,
+                'message' => 'Preferencia actualizada'
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Tipo no válido'], 400);
     }
 
     /**
      * Elimina físicamente todas las notificaciones del usuario.
-     *  */
+     */
     public function destroyAllNotifications()
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
         
-        // Borramos los registros de la tabla 'notifications' vinculados al usuario
         $user->notifications()->delete();
 
         return response()->json([

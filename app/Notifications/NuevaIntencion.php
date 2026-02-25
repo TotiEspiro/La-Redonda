@@ -18,34 +18,40 @@ class NuevaIntencion extends Notification
         $this->intencion = $intencion;
     }
 
+    /**
+     * VALIDACIÓN BLINDADA:
+     * Si el usuario desactivó la opción, el canal WebPushChannel nunca se activa.
+     */
     public function via($notifiable)
     {
-        // Envia a la base de datos y al canal push
-        return ['database', WebPushChannel::class];
+        // Siempre guardamos en la base de datos (campanita web)
+        $channels = ['database'];
+
+        // Solo si la preferencia es estrictamente true enviamos el aviso al dispositivo
+        if ($notifiable->notify_donations_intentions === true) {
+            $channels[] = WebPushChannel::class;
+        }
+
+        return $channels;
     }
 
     public function toArray($notifiable)
     {
         return [
             'title' => 'Nueva Intención Recibida',
-            'message' => "{$this->intencion->name} ha dejado una intención: " . substr($this->intencion->message, 0, 50) . "...",
-            'url' => route('admin.intentions'),
+            'message' => "Se ha registrado tu intención para la misa.",
+            'url' => route('dashboard'),
             'type' => 'intention'
         ];
     }
 
-    /**
-     * Formato para notificación Push nativa
-     */
     public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)
             ->title('Nueva Intención de Misa')
             ->icon('/img/icono_intenciones.png')
             ->badge('/img/badge_logo_redonda.png')
-            ->body("De: {$this->intencion->name}\nTipo: {$this->intencion->type}")
-            ->action('Revisar', 'view_intentions')
-            ->data(['url' => route('admin.intentions')])
-            ->options(['TTL' => 1000]);
+            ->body("¡Gracias! Tu intención ha sido recibida.")
+            ->options(['TTL' => 60]);
     }
 }

@@ -161,4 +161,4 @@
 
     #textSection ul { list-style-type: disc !important; padding-left: 2rem !important; margin: 1rem 0; }
     #textSection ol { list-style-type: decimal !important; padding-left: 2rem !important; margin: 1rem 0; }
-</style>
+</style><?php /**PATH C:\laragon\www\copia_laredo\La-Redonda\resources\views/diario/partials/editor-modal.blade.php ENDPATH**/ ?>

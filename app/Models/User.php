@@ -19,8 +19,16 @@ class User extends Authenticatable implements MustVerifyEmail
     use Notifiable, HasPushSubscriptions;
 
     protected $fillable = [
-        'name', 'email', 'password', 'diario_data', 'last_diario_entry', 
-        'age', 'onboarding_completed', 'notify_announcements',
+        'name', 
+        'email', 
+        'password', 
+        'diario_data', 
+        'last_diario_entry', 
+        'age', 
+        'onboarding_completed', 
+        'notify_announcements',
+        'notify_community', // Preferencia para materiales y grupos
+        'notify_donations_intentions', // Preferencia para aportes y oraciones
         // Campos para Social Login (Google/Facebook)
         'provider_id', 'provider_name', 'avatar',
         // Campos de Seguridad y Validación
@@ -35,6 +43,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'last_login_at' => 'datetime',
         'onboarding_completed' => 'boolean',
         'notify_announcements' => 'boolean',
+        'notify_community' => 'boolean',
+        'notify_donations_intentions' => 'boolean',
     ];
 
     /**
