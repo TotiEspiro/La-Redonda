@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // === 1. LÓGICA DE ACORDEONES (HORARIOS) ===
     const scheduleHeaders = document.querySelectorAll('.schedule-header');
 
     if (scheduleHeaders.length > 0) {
         scheduleHeaders.forEach(header => {
+            // Clonamos para asegurar que no haya listeners duplicados
             const newHeader = header.cloneNode(true);
             header.parentNode.replaceChild(newHeader, header);
             
@@ -27,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    
+    // === 2. LÓGICA DEL CAROUSEL DE ANUNCIOS (SWIPE INCLUIDO) ===
     const track = document.getElementById('carouselTrack');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -36,12 +38,14 @@ document.addEventListener('DOMContentLoaded', function() {
         let currentIndex = 0;
         let cardsPerView = 1;
         let touchStartX = 0;
+        let touchStartY = 0; // Añadido para detectar scroll vertical
         let touchEndX = 0;
 
         const cards = document.querySelectorAll('.announcement-wrapper');
         const totalCards = cards.length;
         
         function updateDimensions() {
+            // Configuramos tarjetas por vista: 1 en móvil, 2 en tablet/PC
             cardsPerView = window.innerWidth < 768 ? 1 : 2;
             
             const container = track.parentElement; 
@@ -71,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             track.style.transform = `translateX(${currentTranslate}px)`;
             
+            // Actualizar estado visual de los botones
             if(prevBtn && nextBtn) {
                 prevBtn.disabled = currentIndex === 0;
                 nextBtn.disabled = currentIndex === maxIndex;
@@ -82,18 +87,41 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Navegación por botones
         if(prevBtn) prevBtn.addEventListener('click', () => { if(currentIndex > 0) { currentIndex--; updatePosition(); }});
         if(nextBtn) nextBtn.addEventListener('click', () => { const maxIndex = totalCards - cardsPerView; if(currentIndex < maxIndex) { currentIndex++; updatePosition(); }});
 
-        track.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
-        track.addEventListener('touchend', e => { 
-            touchEndX = e.changedTouches[0].screenX; 
-            if (touchEndX < touchStartX - 50) { 
-                const maxIndex = totalCards - cardsPerView;
-                if (currentIndex < maxIndex) { currentIndex++; updatePosition(); }
+        // === SOPORTE TÁCTIL MEJORADO PARA CELULARES ===
+        track.addEventListener('touchstart', e => { 
+            touchStartX = e.touches[0].clientX; 
+            touchStartY = e.touches[0].clientY;
+        }, {passive: true});
+
+        track.addEventListener('touchmove', e => {
+            let touchMoveX = e.touches[0].clientX;
+            let touchMoveY = e.touches[0].clientY;
+            
+            let deltaX = Math.abs(touchStartX - touchMoveX);
+            let deltaY = Math.abs(touchStartY - touchMoveY);
+
+            // Si el movimiento es predominantemente horizontal, bloqueamos el scroll vertical
+            if (deltaX > deltaY) {
+                if (e.cancelable) e.preventDefault();
             }
-            if (touchEndX > touchStartX + 50) { 
-                if (currentIndex > 0) { currentIndex--; updatePosition(); }
+        }, {passive: false});
+
+        track.addEventListener('touchend', e => { 
+            touchEndX = e.changedTouches[0].clientX; 
+            const diffX = touchStartX - touchEndX;
+
+            // Umbral de 50px para evitar disparos accidentales
+            if (Math.abs(diffX) > 50) { 
+                if (diffX > 0) { // Deslizar hacia la izquierda (Siguiente)
+                    const maxIndex = totalCards - cardsPerView;
+                    if (currentIndex < maxIndex) { currentIndex++; updatePosition(); }
+                } else { // Deslizar hacia la derecha (Anterior)
+                    if (currentIndex > 0) { currentIndex--; updatePosition(); }
+                }
             }
         }, {passive: true});
 
@@ -105,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    
+    // === 3. LÓGICA DE MODALES (VISTA DETALLADA) ===
     const modals = document.querySelectorAll('.modal');
     const closeBtns = document.querySelectorAll('.modal-close');
     const readMoreBtns = document.querySelectorAll('.read-more-btn');
