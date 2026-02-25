@@ -116,7 +116,7 @@
         </section>
     </div>
 
-    {{-- SECCIÓN EVANGELIO (ANCHO COMPLETO Y TEXTO CENTRADO) --}}
+    {{-- SECCIÓN EVANGELIO --}}
     <section class="py-16 bg-nav-footer border-y border-sky-200 w-full overflow-hidden">
         <div class="max-w-4xl mx-auto px-6">
             <div class="gospel-content">
@@ -240,22 +240,70 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('carouselContainer');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    
     if (track && container) {
         let index = 0;
         const items = document.querySelectorAll('.announcement-wrapper');
+        
+        // Variables para gestos táctiles
+        let touchStartX = 0;
+        let touchStartY = 0;
+
         function updateCarousel() {
             const containerWidth = container.offsetWidth;
             let show = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1);
             const itemWidth = containerWidth / show;
             items.forEach(item => { item.style.width = `${itemWidth}px`; });
             track.style.transform = `translateX(-${index * itemWidth}px)`;
+            
             if(prevBtn) prevBtn.disabled = index === 0;
             if(nextBtn) nextBtn.disabled = index >= items.length - show;
         }
-        if(nextBtn) nextBtn.onclick = () => { let show = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1); if (index < items.length - show) { index++; updateCarousel(); } };
+
+        // Navegación por Click
+        if(nextBtn) nextBtn.onclick = () => { 
+            let show = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1); 
+            if (index < items.length - show) { index++; updateCarousel(); } 
+        };
         if(prevBtn) prevBtn.onclick = () => { if (index > 0) { index--; updateCarousel(); } };
-        window.addEventListener('resize', updateCarousel); updateCarousel();
+
+        track.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, {passive: true});
+
+        track.addEventListener('touchmove', (e) => {
+            let touchMoveX = e.touches[0].clientX;
+            let touchMoveY = e.touches[0].clientY;
+            
+            let deltaX = Math.abs(touchStartX - touchMoveX);
+            let deltaY = Math.abs(touchStartY - touchMoveY);
+
+            if (deltaX > deltaY) {
+                if (e.cancelable) e.preventDefault();
+            }
+        }, {passive: false});
+
+        track.addEventListener('touchend', (e) => {
+            let touchEndX = e.changedTouches[0].clientX;
+            let diffX = touchStartX - touchEndX;
+            let threshold = 50; 
+
+            if (Math.abs(diffX) > threshold) {
+                let show = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1);
+                if (diffX > 0) { 
+                    if (index < items.length - show) { index++; updateCarousel(); }
+                } else { 
+                    if (index > 0) { index--; updateCarousel(); }
+                }
+            }
+        }, {passive: true});
+
+        window.addEventListener('resize', updateCarousel); 
+        updateCarousel();
     }
+
+    // Lógica Colapsables (Horarios)
     document.querySelectorAll('.schedule-header').forEach(header => {
         header.addEventListener('click', () => {
             if (window.innerWidth < 768) {
@@ -263,14 +311,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 const content = card.querySelector('.schedule-content');
                 const chevron = header.querySelector('.schedule-chevron');
                 content.classList.toggle('hidden');
-                chevron.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                if (chevron) {
+                    chevron.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                }
             }
         });
     });
-    document.querySelectorAll('.read-more-btn').forEach(btn => { btn.onclick = () => { document.getElementById(btn.dataset.modal).classList.remove('hidden'); document.body.style.overflow = 'hidden'; }; });
-    document.querySelectorAll('.modal-close, .modal').forEach(el => { el.onclick = (e) => { if (e.target === el || el.classList.contains('modal-close')) { el.closest('.modal').classList.add('hidden'); document.body.style.overflow = 'auto'; } }; });
+
+    // Lógica Modales
+    document.querySelectorAll('.read-more-btn').forEach(btn => { 
+        btn.onclick = () => { 
+            const modal = document.getElementById(btn.dataset.modal);
+            if(modal) {
+                modal.classList.remove('hidden'); 
+                document.body.style.overflow = 'hidden'; 
+            }
+        }; 
+    });
+
+    document.querySelectorAll('.modal-close, .modal').forEach(el => { 
+        el.onclick = (e) => { 
+            if (e.target === el || el.classList.contains('modal-close')) { 
+                const modal = el.closest('.modal') || el;
+                modal.classList.add('hidden'); 
+                document.body.style.overflow = 'auto'; 
+            } 
+        }; 
+    });
 });
 </script>
+
 <style>
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
