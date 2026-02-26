@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="donations-container">
     <section class="donation-section full-width bg-white py-8 md:py-12 border-b-2 border-background-light">
         <div class="container max-w-7xl mx-auto px-4">
@@ -147,7 +145,7 @@
                     <h2 class="method-title text-2xl font-semibold text-text-dark mb-6 md:mb-8 text-center md:text-left">Donar QR</h2>
                     <div class="qr-section text-center bg-background-light p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 h-full flex flex-col justify-center">
                         <div class="qr-placeholder w-48 h-48 flex items-center justify-center text-text-light mx-auto mb-6 shadow-inner bg-white rounded-lg p-2">
-                            <img src="{{ asset('img/qr-mercadopago-inmaculada.jpeg') }}" alt="Codigo QR MercadoPago" class="w-full h-full object-contain">
+                            <img src="<?php echo e(asset('img/qr-mercadopago-inmaculada.jpeg')); ?>" alt="Codigo QR MercadoPago" class="w-full h-full object-contain">
                         </div>
                         <p class="info-text text-text-light leading-relaxed text-sm md:text-base">
                             Escanee el código QR o copie el alias para realizar una donación desde su billetera virtual.
@@ -159,7 +157,7 @@
     </section>
 </div>
 
-{{-- MODAL DE CONFIRMACIÓN --}}
+
 <div id="confirmationModal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black bg-opacity-70">
     <div class="relative transform bg-white rounded-2xl shadow-2xl transition-all w-full max-w-md p-6 md:p-8 overflow-hidden">
         <div class="flex justify-between items-center mb-6">
@@ -191,11 +189,11 @@
     </div>
 </div>
 
-{{-- MODAL DE ESTADO (Resultado final) --}}
+
 <div id="statusModal" class="hidden fixed inset-0 z-[60] items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm">
     <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 text-center animate-fade-in">
         <div id="statusModalIcon" class="mb-6">
-            {{-- Icono dinámico vía JS --}}
+            
         </div>
         <h3 id="statusModalTitle" class="text-2xl font-black text-text-dark mb-2 uppercase tracking-tighter"></h3>
         <p id="statusModalMessage" class="text-text-light mb-8 text-sm leading-relaxed"></p>
@@ -205,7 +203,7 @@
     </div>
 </div>
 
-<meta name="csrf-token" content="{{ csrf_token() }}">
+<meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 <script src="js/donaciones.js"></script>
 
 <script>
@@ -222,4 +220,5 @@
     @keyframes fade-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\laragon\www\copia_laredo\La-Redonda\resources\views/donaciones.blade.php ENDPATH**/ ?>

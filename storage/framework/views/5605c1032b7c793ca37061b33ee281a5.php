@@ -5,7 +5,7 @@
             <div class="flex justify-between items-center mb-3 md:mb-0">
                 <div class="flex items-center space-x-2">
                     <img src="../img/icono_biblia.png" class="w-8 h-8" alt="Diario"> 
-                    <h1 class="text-xl md:text-2xl font-bold text-gray-900">Diario de La Redonda</h1>
+                    <h1 class="text-3xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter">Diario de La Redonda</h1>
                 </div>
 
                 <div class="hidden md:block flex-1 max-w-md mx-6">
@@ -127,7 +127,7 @@
                 <img src="../img/icono_biblia.png" class="w-12 h-12 opacity-30" alt="Vacío"> 
             </div>
             <h3 class="text-lg font-bold text-gray-900">Tu diario está vacío</h3>
-            <p class="text-gray-500 text-sm mt-1 mb-6">Comienza a escribir tu historia hoy.</p>
+            <p class="text-gray-500 text-sm mt-1 mb-6">Comienza a escribir hoy.</p>
             <button id="createFirstDocumentBtn" class="bg-button text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition-colors shadow-sm text-sm">
                 + Crear Primer Documento
             </button>

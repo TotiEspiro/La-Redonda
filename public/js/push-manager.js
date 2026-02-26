@@ -4,7 +4,6 @@
  */
 window.subscribeUserToPush = async function() {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        console.warn('Push notifications are not supported in this browser.');
         return;
     }
 
@@ -39,11 +38,11 @@ window.subscribeUserToPush = async function() {
         });
 
         if (response.ok) {
-            console.log('Successfully subscribed to Push Notifications');
+            
         }
 
     } catch (error) {
-        console.error('Error during push subscription:', error);
+        
     }
 };
 

@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="bg-button p-8 text-white text-center">
@@ -30,9 +28,10 @@
             <p>Utilizamos cookies esenciales para mantener su sesión iniciada. Las notificacionesse utilizan para avisos de la comunidad y recordatorios, pudiendo ser desactivadas desde el perfil.</p>
 
             <div class="mt-10 pt-6 border-t border-gray-100 flex justify-center">
-                <img src="{{ asset('img/logo_redonda_texto.png') }}" class="h-12 opacity-50" alt="La Redonda">
+                <img src="<?php echo e(asset('img/logo_redonda_texto.png')); ?>" class="h-12 opacity-50" alt="La Redonda">
             </div>
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\laragon\www\copia_laredo\La-Redonda\resources\views/legal/privacidad.blade.php ENDPATH**/ ?>

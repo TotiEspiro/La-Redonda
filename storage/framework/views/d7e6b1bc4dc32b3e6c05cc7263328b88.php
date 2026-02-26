@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <style>
     .mobile-content {
         max-height: 0;
@@ -64,22 +62,21 @@
 </style>
 
 <div class="w-full">
-   <div class="text-center mt-12 mb-18 md:mb-12">
-        <h1 class="text-3xl md:text-4xl font-black text-text-dark mb-4 border-b-4 border-button pb-2 inline-block px-4 uppercase tracking-tighter">Jóvenes</h1>
+    <div class="text-center mt-12 mb-18 md:mb-12">
+        <h1 class="text-3xl md:text-4xl font-black text-text-dark mb-4 border-b-4 border-button pb-2 inline-block px-4 uppercase tracking-tighter">Mayores</h1>
         <p class="text-text-dark text-base md:text-lg max-w-3xl mx-auto mt-4 leading-relaxed px-2 pb-6">
-            Comunidad, formación y espiritualidad para chicos de 11 a 35 años.
+            Espacios de oración, fraternidad y servicio para adultos mayores.
         </p>
     </div>
-
     <div class="flex items-center justify-between mb-10 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 max-w-6xl mx-auto">
-        <a href="{{ route('grupos.catequesis') }}" class="flex items-center gap-2 text-button font-black uppercase text-[10px] tracking-widest hover:translate-x-[-4px] transition-transform group">
+        <a href="<?php echo e(route('grupos.jovenes')); ?>" class="flex items-center gap-2 text-button font-black uppercase text-[10px] tracking-widest hover:translate-x-[-4px] transition-transform group">
             <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-button group-hover:text-white transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
             </div>
-            <span class="hidden sm:inline">Catequesis</span>
+            <span class="hidden sm:inline">Jóvenes</span>
         </a>
-        <a href="{{ route('grupos.mayores') }}" class="flex items-center gap-2 text-button font-black uppercase text-[10px] tracking-widest hover:translate-x-[4px] transition-transform group">
-            <span class="hidden sm:inline">Mayores</span>
+        <a href="<?php echo e(route('grupos.especiales')); ?>" class="flex items-center gap-2 text-button font-black uppercase text-[10px] tracking-widest hover:translate-x-[4px] transition-transform group">
+            <span class="hidden sm:inline">Más Grupos</span>
             <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-button group-hover:text-white transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
             </div>
@@ -87,104 +84,93 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto px-4 pb-20">
-        @php 
+        <?php 
             $grupos = [
                 [
-                    'slug' => 'juveniles', 
-                    'nombre' => 'Juveniles', 
-                    'edad' => '12 a 17 años', 
-                    'img' => 'grupos_juveniles.jpg', 
+                    'slug' => 'santa_ana', 
+                    'nombre' => 'Santa Ana', 
+                    'categoria' => 'Mujeres Mayores', 
+                    'img' => 'grupo_santana.png', 
                     'link' => '',
-                    'desc' => 'Buscamos que los chicos sigan creciendo en la fe de una manera más en comunidad y que la puedan compartir con chicos de su edad!<br><br>Hacemos dinámicas, momentos de oración y también de recreación para que vayan formando una amistad entre ellos!'
+                    'desc' => 'Grupo de oración a la palabra de Dios dedicado especialmente para mujeres mayores.'
                 ],
                 [
-                    'slug' => 'acutis', 
-                    'nombre' => 'San Carlo Acutis', 
-                    'edad' => '18 a 24 años', 
-                    'img' => 'grupo_acutis.jpg', 
+                    'slug' => 'san_joaquin', 
+                    'nombre' => 'San Joaquín', 
+                    'categoria' => 'Hombres Mayores', 
+                    'img' => 'grupos_sanjoaquin.png', 
                     'link' => '',
-                    'desc' => '<strong>• Comunidad:</strong> La Fe no se vive solo, se trata de vivir la alegría de un Dios vivo junto con el otro.<br><strong>• Formación:</strong> Crecer en las cosas de Dios mediante charlas y testimonios.<br><strong>• Oración:</strong> Fundamental para seguir creciendo en el vínculo con Dios.'
+                    'desc' => 'Grupo de oración a la palabra de Dios dedicado especialmente para hombres mayores.'
                 ],
                 [
-                    'slug' => 'juan_pablo', 
-                    'nombre' => 'Juan Pablo II', 
-                    'edad' => '25 a 35 años', 
-                    'horario' => 'Miércoles 19:00 hs', 
-                    'img' => 'grupo_juanpablo.png', 
+                    'slug' => 'ardillas', 
+                    'nombre' => 'Ardillas', 
+                    'categoria' => 'Recreación', 
+                    'img' => 'grupo_ardillas.jpg', 
                     'link' => '',
-                    'desc' => 'Un espacio para madurar la fe en comunidad, compartir experiencias de vida y servicio.'
+                    'desc' => 'Formación continua, recreación y esparcimiento para adultos.'
                 ],
                 [
-                    'slug' => 'coro', 
-                    'nombre' => 'Coro', 
-                    'edad' => '18 a 30 años', 
-                    'img' => 'grupo_coro.jpg', 
-                    'link' => 'https://www.instagram.com/direct/t/105222797545921/',
-                    'desc' => 'Grupo de jóvenes y adultos que animan las celebraciones litúrgicas a través de la música y el canto, creando un ambiente de alegría.'
-                ],
-                [
-                    'slug' => 'misioneros', 
-                    'nombre' => 'Misioneros', 
-                    'edad' => '18 a 35 años', 
-                    'img' => 'grupo_misionero.jpg', 
+                    'slug' => 'costureras', 
+                    'nombre' => 'Costureras', 
+                    'categoria' => 'Servicio', 
+                    'img' => 'grupo_costureras.jpg', 
                     'link' => '',
-                    'desc' => 'Llevamos el Evangelio a otros barrios y comunidades a través del servicio y la alegría.'
+                    'desc' => 'Refacción de materiales para asistir a lugares careciados.'
                 ],
             ];
 
-            // Persistencia del estado desde la base de datos
             $userRequests = Auth::check() 
                 ? \DB::table('group_requests')->where('user_id', Auth::id())->pluck('status', 'group_role')->toArray()
                 : [];
-        @endphp
+        ?>
 
-        @foreach($grupos as $g)
-            @php 
+        <?php $__currentLoopData = $grupos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $g): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php 
                 $status = $userRequests[$g['slug']] ?? null;
                 $isValidated = ($status === 'pending' || $status === 'approved');
-            @endphp
+            ?>
             
             <div class="group-card group bg-white border border-gray-200 rounded-xl hover:border-button hover:shadow-lg transition-all duration-300 flex flex-col overflow-hidden h-full cursor-pointer lg:cursor-default" onclick="toggleCard(this)">
                 <div class="w-full bg-gray-100 md:h-64 overflow-hidden">
-                    <img src="{{ asset('img/'.$g['img']) }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('img/logo_redonda.png') }}';">
+                    <img src="<?php echo e(asset('img/'.$g['img'])); ?>" class="w-full h-full object-cover" onerror="this.src='<?php echo e(asset('img/logo_redonda.png')); ?>';">
                 </div>
                 <div class="p-6 flex flex-col flex-grow">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-text-dark text-lg uppercase tracking-tight">{{ $g['nombre'] }}</h3>
+                        <h3 class="font-bold text-text-dark text-lg uppercase tracking-tight"><?php echo e($g['nombre']); ?></h3>
                     </div>
 
                     <div class="mobile-content">
                         <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="text-[10px] text-button font-black uppercase bg-blue-50 px-2 py-1 rounded-full w-fit inline-block">{{ $g['edad'] }}</span>
+                            <span class="text-[10px] text-button font-black uppercase bg-blue-50 px-2 py-1 rounded-full w-fit inline-block"><?php echo e($g['categoria']); ?></span>
                         </div>
-                        <p class="text-text-light text-sm leading-relaxed mb-4">{!! $g['desc'] !!}</p>
+                        <p class="text-text-light text-sm leading-relaxed mb-4"><?php echo $g['desc']; ?></p>
                     </div>
 
                     <div class="mt-auto flex flex-col gap-3">
                         <div class="flex gap-2">
-                            {{-- BOTÓN DE INFO / VALIDACIÓN (Transformable a Check) --}}
-                            <button id="info-btn-{{ $g['slug'] }}" 
-                                    onclick="openCoordinatorModal(event, '{{ $g['slug'] }}', '{{ $g['nombre'] }}', '{{ $g['link'] }}')" 
-                                    @class([
+                            
+                            <button id="info-btn-<?php echo e($g['slug']); ?>" 
+                                    onclick="openCoordinatorModal(event, '<?php echo e($g['slug']); ?>', '<?php echo e($g['nombre']); ?>', '<?php echo e($g['link']); ?>')" 
+                                    class="<?php echo \Illuminate\Support\Arr::toCssClasses([
                                         'inline-flex items-center justify-center px-6 py-3 rounded-2xl font-black uppercase text-base tracking-widest border-2 transition-all shadow-lg active:scale-95',
                                         'bg-white text-button border-button hover:bg-button hover:text-white' => !$isValidated,
                                         'btn-info-validated' => $isValidated
-                                    ])>
-                                @if($isValidated)
+                                    ]); ?>">
+                                <?php if($isValidated): ?>
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="4"><path d="M5 13l4 4L19 7"></path></svg>
-                                @else
-                                    <img src="{{ asset('img/icono_info.png') }}" alt="Info" class="w-5 h-5">
-                                @endif
+                                <?php else: ?>
+                                    <img src="<?php echo e(asset('img/icono_info.png')); ?>" alt="Info" class="w-5 h-5">
+                                <?php endif; ?>
                             </button>
 
-                            <div class="flex-1 relative" id="container-{{ $g['slug'] }}">
-                                {{-- ESCUDO: Solo existe si NO está validado --}}
-                                @if(!$isValidated)
-                                    <div id="shield-{{ $g['slug'] }}" class="absolute inset-0 z-20 cursor-not-allowed" onclick="event.stopPropagation()"></div>
-                                @endif
+                            <div class="flex-1 relative" id="container-<?php echo e($g['slug']); ?>">
+                                <?php if(!$isValidated): ?>
+                                    <div id="shield-<?php echo e($g['slug']); ?>" class="absolute inset-0 z-20 cursor-not-allowed" onclick="event.stopPropagation()"></div>
+                                <?php endif; ?>
                                 
-                                <div id="visual-{{ $g['slug'] }}" @class(['join-btn-visual-lock' => !$isValidated]) onclick="event.stopPropagation()">
-                                    @include('partials.group-join-button', ['slug' => $g['slug'], 'nombre' => $g['nombre']])
+                                <div id="visual-<?php echo e($g['slug']); ?>" class="<?php echo \Illuminate\Support\Arr::toCssClasses(['join-btn-visual-lock' => !$isValidated]); ?>" onclick="event.stopPropagation()">
+                                    <?php echo $__env->make('partials.group-join-button', ['slug' => $g['slug'], 'nombre' => $g['nombre']], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
                                 </div>
                             </div>
                         </div>
@@ -192,24 +178,24 @@
                     </div>
                 </div>
             </div>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 
     <div class="text-center mt-8 md:mt-12">
-        <a href="{{ route('grupos.index') }}" class="inline-flex items-center bg-white text-button px-8 py-3 rounded-full font-black uppercase text-[10px] tracking-widest border-2 border-button hover:bg-button hover:text-white transition-all shadow-lg active:scale-95 mb-20">
+        <a href="<?php echo e(route('grupos.index')); ?>" class="inline-flex items-center bg-white text-button px-8 py-3 rounded-full font-black uppercase text-[10px] tracking-widest border-2 border-button hover:bg-button hover:text-white transition-all shadow-lg active:scale-95 mb-20">
             Ver Todos los Grupos
         </a>
     </div>
 </div>
 
-{{-- MODAL DE COORDINACIÓN REDISEÑADA --}}
+
 <div id="coordinatorModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden p-6 bg-black/80 backdrop-blur-md">
     <div class="bg-white rounded-[3.5rem] w-full max-w-sm overflow-hidden shadow-2xl animate-modal-pop p-10 flex flex-col items-center text-center">
         
-        <div class="w-20 h-20 rounded-[2rem] flex items-center justify-center mb-8">
+       <div class="w-20 h-20 rounded-[2rem] flex items-center justify-center mb-8">
             <div class=" rounded-2xl flex items-center justify-center">
                 <div class="text-[#5cb1e3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <img src="{{ asset('img/logo_nav_redonda.png')  }}" alt="La Redonda" class="w-16 h-16">
+                    <img src="<?php echo e(asset('img/logo_nav_redonda.png')); ?>" alt="La Redonda" class="w-16 h-16">
                 </div>
             </div>
         </div>
@@ -220,11 +206,11 @@
             Para sumarte a <strong id="modalGroupName" class="text-[#5cb1e3] italic">Grupo</strong>, primero debés contactar a la coordinación.
         </p>
 
-        {{-- BOTÓN DE INSTAGRAM (Botón de acción real) --}}
+        
         <a id="coordinatorLink" href="https://www.instagram.com/direct/t/105222797545921/" target="_blank" 
            class="w-full flex items-center justify-center gap-4 py-4 px-6 bg-gradient-to-br from-white to-sky-50 border-2 border-sky-100 rounded-2xl shadow-sm hover:shadow-md hover:bg-sky-100 transition-all group mb-10">
             <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center border border-sky-100 group-hover:scale-110 transition-transform">
-                <img src="{{ asset('img/icono_instagram.png') }}" class="w-6 h-6 object-contain" alt="Instagram" onerror="this.src='https://www.svgrepo.com/show/521711/instagram.svg'">
+                <img src="<?php echo e(asset('img/icono_instagram.png')); ?>" class="w-6 h-6 object-contain" alt="Instagram" onerror="this.src='https://www.svgrepo.com/show/521711/instagram.svg'">
             </div>
             <div class="text-left">
                 <span class="block text-[11px] font-black text-[#5cb1e3] uppercase tracking-widest leading-none mb-1">Coordinación</span>
@@ -270,7 +256,6 @@
     function openCoordinatorModal(event, slug, name, link) {
         event.stopPropagation();
         
-        // No abrir si ya está en estado "Check" (Validado)
         const btn = document.getElementById('info-btn-' + slug);
         if (btn.classList.contains('btn-info-validated')) return;
 
@@ -311,13 +296,9 @@
         }
     }
 
-    /**
-     * DESBLOQUEO REAL: Transforma el botón y elimina el escudo para habilitar la segunda modal
-     */
     function unlockJoinButton() {
         if (!currentGroupSlug) return;
 
-        // 1. Transformamos el botón + en un Check azul
         const infoBtn = document.getElementById('info-btn-' + currentGroupSlug);
         if (infoBtn) {
             infoBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="4"><path d="M5 13l4 4L19 7"></path></svg>';
@@ -325,11 +306,9 @@
             infoBtn.classList.add('btn-info-validated');
         }
 
-        // 2. Eliminamos físicamente el escudo
         const shield = document.getElementById('shield-' + currentGroupSlug);
         if (shield) shield.remove();
 
-        // 3. Restauramos la visual del botón original (el de enviar solicitud)
         const visual = document.getElementById('visual-' + currentGroupSlug);
         if (visual) {
             visual.classList.remove('join-btn-visual-lock');
@@ -345,4 +324,5 @@
         if (event.target == modal) closeCoordinatorModal();
     }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\laragon\www\copia_laredo\La-Redonda\resources\views/grupos/mayores.blade.php ENDPATH**/ ?>

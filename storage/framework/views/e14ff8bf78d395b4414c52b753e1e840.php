@@ -1,11 +1,9 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="bg-button p-8 text-white text-center">
             <h1 class="text-3xl font-bold">Términos y Condiciones</h1>
-            <p class="mt-2 opacity-90 text-sm italic text-white">Última actualización: {{ date('d/m/Y') }}</p>
+            <p class="mt-2 opacity-90 text-sm italic text-white">Última actualización: <?php echo e(date('d/m/Y')); ?></p>
         </div>
         
         <div class="p-8 prose prose-blue max-w-none text-gray-600 leading-relaxed">
@@ -30,4 +28,5 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\laragon\www\copia_laredo\La-Redonda\resources\views/legal/terminos.blade.php ENDPATH**/ ?>

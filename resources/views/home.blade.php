@@ -60,7 +60,7 @@
     </div>
 </section>
 
-<section class="py-12 bg-sky-50">
+<section class="py-12 bg-nav-footer">
     <div class="container max-w-7xl mx-auto px-4">
         <div class="gospel-content text-left max-w-4xl mx-auto">
             <h2 class="gospel-title text-2xl md:text-3xl text-center font-semibold text-text-dark mb-6">Evangelio del Día</h2>
