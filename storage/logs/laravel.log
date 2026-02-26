@@ -32880,3 +32880,45 @@ Stack level 1.\"><span class=\"sf-dump-ellipsis sf-dump-ellipsis-path\">C:\\lara
 #61 C:\\laragon\\www\\copia_laredo\\La-Redonda\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('C:\\\\laragon\\\\www\\\\...')
 #62 {main}
 "} 
+[2026-02-26 03:14:39] local.INFO: AdminMiddleware ejecutándose para: admin  
+[2026-02-26 03:14:39] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:14:39] local.INFO: Acceso admin permitido  
+[2026-02-26 03:14:52] local.INFO: AdminMiddleware ejecutándose para: admin/intentions  
+[2026-02-26 03:14:52] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:14:52] local.INFO: Acceso admin permitido  
+[2026-02-26 03:15:05] local.INFO: AdminMiddleware ejecutándose para: admin/intentions  
+[2026-02-26 03:15:05] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:15:05] local.INFO: Acceso admin permitido  
+[2026-02-26 03:15:19] local.INFO: AdminMiddleware ejecutándose para: admin/intentions  
+[2026-02-26 03:15:19] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:15:19] local.INFO: Acceso admin permitido  
+[2026-02-26 03:15:43] local.INFO: AdminMiddleware ejecutándose para: admin/intentions  
+[2026-02-26 03:15:43] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:15:43] local.INFO: Acceso admin permitido  
+[2026-02-26 03:16:10] local.INFO: AdminMiddleware ejecutándose para: admin/intentions  
+[2026-02-26 03:16:10] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:16:10] local.INFO: Acceso admin permitido  
+[2026-02-26 03:17:58] local.INFO: AdminMiddleware ejecutándose para: admin/intentions  
+[2026-02-26 03:17:58] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:17:58] local.INFO: Acceso admin permitido  
+[2026-02-26 03:18:00] local.INFO: AdminMiddleware ejecutándose para: admin  
+[2026-02-26 03:18:00] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:18:00] local.INFO: Acceso admin permitido  
+[2026-02-26 03:18:01] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-26 03:18:01] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:18:01] local.INFO: Acceso admin permitido  
+[2026-02-26 03:19:37] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-26 03:19:37] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:19:37] local.INFO: Acceso admin permitido  
+[2026-02-26 03:19:50] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-26 03:19:50] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:19:50] local.INFO: Acceso admin permitido  
+[2026-02-26 03:19:53] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-26 03:19:53] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:19:53] local.INFO: Acceso admin permitido  
+[2026-02-26 03:20:35] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-26 03:20:35] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:20:35] local.INFO: Acceso admin permitido  
+[2026-02-26 03:21:20] local.INFO: AdminMiddleware ejecutándose para: admin/users  
+[2026-02-26 03:21:20] local.INFO: Usuario autenticado: {"id":1,"email":"superadmin@laredonda.com","role":"superadmin","isAdmin":true} 
+[2026-02-26 03:21:20] local.INFO: Acceso admin permitido  
