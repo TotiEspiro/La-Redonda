@@ -1,28 +1,27 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="min-h-screen bg-gray-50 py-4 md:py-8 overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         
-        {{-- Encabezado Adaptado --}}
+        
         <div class="mb-6 text-center md:text-left pt-2 md:pt-0">
             <div class="flex flex-col md:flex-row justify-between items-center gap-3">
                 <div class="w-full md:w-auto">
-                    <h1 class="text-xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter leading-tight">Materiales - {{ $groupName }}</h1>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900 uppercase tracking-tighter leading-tight">Materiales - <?php echo e($groupName); ?></h1>
                     <p class="text-gray-500 text-[11px] md:text-sm mt-1 font-medium uppercase tracking-wide">Recursos compartidos por coordinadores</p>
                 </div>
                 <div class="flex justify-center md:justify-end w-full md:w-auto">
                     <span class="px-4 py-1.5 bg-yellow-100 text-yellow-800 rounded-full text-[9px] md:text-[10px] font-black border border-yellow-200 uppercase tracking-[0.2em]">
-                        {{ $groupName }}
+                        <?php echo e($groupName); ?>
+
                     </span>
                 </div>
             </div>
         </div>
 
-        {{-- Barra de Herramientas Móvil: Sin Scroll Horizontal --}}
+        
         <div class="mb-8 flex flex-col lg:flex-row gap-4">
             
-            {{-- Filtros: Wrap en móvil para evitar scroll --}}
+            
             <div class="w-full lg:w-auto">
                 <div class="flex flex-wrap justify-center md:grid md:grid-cols-3 gap-2">
                     <button onclick="filterMaterials('all')" 
@@ -31,12 +30,12 @@
                     </button>
                     <button onclick="filterMaterials('doc')" 
                             class="filter-btn flex-1 md:flex-none whitespace-nowrap min-w-[110px] justify-center px-4 py-3 rounded-2xl border border-gray-100 text-gray-400 text-[10px] font-black uppercase tracking-widest transition-all flex items-center bg-white shadow-sm">
-                            <span class="mr-1.5"><img src="{{ asset('img/icono_docs.png') }}" class="w-4 h-4" onerror="this.style.display='none'"></span>
+                            <span class="mr-1.5"><img src="<?php echo e(asset('img/icono_docs.png')); ?>" class="w-4 h-4" onerror="this.style.display='none'"></span>
                             <span>Documentos</span>
                     </button>
                     <button onclick="filterMaterials('video')" 
                             class="filter-btn flex-1 md:flex-none whitespace-nowrap min-w-[110px] justify-center px-4 py-3 rounded-2xl border border-gray-100 text-gray-400 text-[10px] font-black uppercase tracking-widest transition-all flex items-center bg-white shadow-sm">
-                            <span class="mr-1.5"><img src="{{ asset('img/icono_multimedia.png') }}" class="w-4 h-4" onerror="this.style.display='none'"></span>
+                            <span class="mr-1.5"><img src="<?php echo e(asset('img/icono_multimedia.png')); ?>" class="w-4 h-4" onerror="this.style.display='none'"></span>
                             <span>Multimedia</span>
                     </button>
                 </div>
@@ -52,63 +51,66 @@
             </div>
         </div>
 
-        {{-- Grid de Materiales: 1 col móvil / 2-4 cols PC --}}
+        
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            @foreach($materials as $material)
+            <?php $__currentLoopData = $materials; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $material): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="bg-white rounded-[2rem] md:rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-blue-50 transition-all duration-500 material-card flex flex-col group overflow-hidden"
-                     data-type="{{ $material->file_type }}"
-                     data-title="{{ strtolower($material->title) }}">
+                     data-type="<?php echo e($material->file_type); ?>"
+                     data-title="<?php echo e(strtolower($material->title)); ?>">
                     
                     <div class="p-5 md:p-6 flex-1 flex flex-col">
                         <div class="flex justify-between items-start mb-4 md:mb-5">
                             <div class="w-10 h-10 md:w-12 md:h-12 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
-                                <img src="{{ asset($material->file_icon) }}" class="w-6 h-6 md:w-7 md:h-7 object-contain opacity-60 group-hover:opacity-100 transition-opacity" onerror="this.src='{{ asset('img/icono_docs.png') }}'">
+                                <img src="<?php echo e(asset($material->file_icon)); ?>" class="w-6 h-6 md:w-7 md:h-7 object-contain opacity-60 group-hover:opacity-100 transition-opacity" onerror="this.src='<?php echo e(asset('img/icono_docs.png')); ?>'">
                             </div>
                             
                             <div class="flex flex-col items-end gap-1.5">
                                 <span class="px-2 py-0.5 rounded-lg text-[8px] font-black uppercase bg-gray-50 text-gray-400 border border-gray-100 group-hover:bg-white transition-colors">
-                                    {{ $material->file_type }}
+                                    <?php echo e($material->file_type); ?>
+
                                 </span>
                             </div>
                         </div>
 
-                        <h3 class="font-black text-text-dark mb-2 line-clamp-2 text-sm md:text-base uppercase tracking-tight group-hover:text-button transition-colors leading-tight">{{ $material->title }}</h3>
+                        <h3 class="font-black text-text-dark mb-2 line-clamp-2 text-sm md:text-base uppercase tracking-tight group-hover:text-button transition-colors leading-tight"><?php echo e($material->title); ?></h3>
                         <p class="text-[11px] md:text-xs text-text-light mb-4 md:mb-6 line-clamp-3 flex-1 leading-relaxed font-medium">
-                            {{ $material->description ?? 'Recurso informativo compartido con la comunidad del grupo.' }}
+                            <?php echo e($material->description ?? 'Recurso informativo compartido con la comunidad del grupo.'); ?>
+
                         </p>
 
                         <div class="border-t border-gray-50 pt-4 mt-2 text-[8px] md:text-[9px] text-gray-300 font-black uppercase tracking-widest flex justify-between">
-                            <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> {{ $material->file_size_formatted }}</span>
-                            <span>{{ $material->created_at->format('d/m/Y') }}</span>
+                            <span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> <?php echo e($material->file_size_formatted); ?></span>
+                            <span><?php echo e($material->created_at->format('d/m/Y')); ?></span>
                         </div>
                     </div>
 
                     <div class="bg-gray-50/50 p-3 md:p-4 border-t border-gray-50 flex gap-2">
-                        <a href="{{ route('groups.download', $material->id) }}" class="flex-1 bg-white text-button border border-gray-200 text-center py-3 md:py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-button hover:text-white hover:border-button transition-all shadow-sm active:scale-95">Descargar</a>
-                        @if($material->can_preview)
-                        <button onclick="previewMaterial({{ $material->id }}, '{{ $material->file_type }}', '{{ route('groups.view', $material->id) }}', '{{ $material->title }}')" class="px-5 py-3 md:py-2.5 bg-blue-100 text-blue-600 rounded-xl text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all active:scale-95">Abrir</button>
-                        @endif
+                        <a href="<?php echo e(route('groups.download', $material->id)); ?>" class="flex-1 bg-white text-button border border-gray-200 text-center py-3 md:py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-button hover:text-white hover:border-button transition-all shadow-sm active:scale-95">Descargar</a>
+                        <?php if($material->can_preview): ?>
+                        <button onclick="previewMaterial(<?php echo e($material->id); ?>, '<?php echo e($material->file_type); ?>', '<?php echo e(route('groups.view', $material->id)); ?>', '<?php echo e($material->title); ?>')" class="px-5 py-3 md:py-2.5 bg-blue-100 text-blue-600 rounded-xl text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition-all active:scale-95">Abrir</button>
+                        <?php endif; ?>
                     </div>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
 
-        @if($materials->isEmpty())
+        <?php if($materials->isEmpty()): ?>
         <div class="text-center py-20 md:py-32 bg-white rounded-[2rem] md:rounded-[2.5rem] border-2 border-dashed border-gray-100 flex flex-col items-center">
             <div class="w-16 h-16 md:w-20 md:h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-                 <img src="{{ asset('img/icono_archivo.png') }}" class="w-10 h-10 opacity-20">
+                 <img src="<?php echo e(asset('img/icono_archivo.png')); ?>" class="w-10 h-10 opacity-20">
             </div>
             <p class="text-gray-400 font-black uppercase text-[10px] tracking-[0.2em] px-4 text-center">Aún no hay archivos compartidos en esta sección</p>
         </div>
-        @endif
+        <?php endif; ?>
 
         <div class="mt-12 flex justify-center pb-10">
-            {{ $materials->links() }}
+            <?php echo e($materials->links()); ?>
+
         </div>
     </div>
 </div>
 
-{{-- MODAL DE VISTA PREVIA --}}
+
 <div id="previewModal" class="fixed inset-0 bg-black/95 z-[100] hidden flex flex-col backdrop-blur-md">
     <div class="h-16 flex items-center justify-between px-4 md:px-6 bg-white shadow-xl z-10">
         <div class="flex flex-col min-w-0 flex-1 pr-4">
@@ -167,7 +169,7 @@ function previewMaterial(id, type, url, title) {
             content.innerHTML = `
                 <div class="bg-white p-8 md:p-20 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl text-center flex flex-col items-center animate-slide-up w-[90%] max-w-sm">
                     <div class="w-20 h-20 md:w-24 md:h-24 bg-blue-50 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mb-6 md:mb-8 shadow-inner">
-                        <img src="{{ asset('img/icono_audio.png') }}" class="w-10 h-10 md:w-12 md:h-12 opacity-40">
+                        <img src="<?php echo e(asset('img/icono_audio.png')); ?>" class="w-10 h-10 md:w-12 md:h-12 opacity-40">
                     </div>
                     <audio controls autoplay class="w-full mb-6">
                         <source src="${url}" type="audio/mpeg">
@@ -180,7 +182,7 @@ function previewMaterial(id, type, url, title) {
             content.innerHTML = `
                 <div class="text-center p-10 bg-white rounded-[2.5rem] shadow-2xl w-[90%] max-w-sm">
                     <div class="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                         <img src="{{ asset('img/icono_docs.png') }}" class="w-8 h-8 opacity-30">
+                         <img src="<?php echo e(asset('img/icono_docs.png')); ?>" class="w-8 h-8 opacity-30">
                     </div>
                     <h3 class="font-black text-gray-800 mb-4 uppercase tracking-tighter text-sm">VISTA PREVIA NO SOPORTADA</h3>
                     <a href="${url.replace('view', 'download')}" class="inline-block bg-button text-white px-8 py-3.5 rounded-2xl font-black uppercase text-xs shadow-lg shadow-blue-100 active:scale-95 transition-transform">Descargar archivo</a>
@@ -248,4 +250,5 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview
     .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\laragon\www\copia_laredo\La-Redonda\resources\views/grupos/materials.blade.php ENDPATH**/ ?>
