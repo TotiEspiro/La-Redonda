@@ -31,12 +31,10 @@
                     </button>
                     <button onclick="filterMaterials('doc')" 
                             class="filter-btn flex-1 md:flex-none whitespace-nowrap min-w-[110px] justify-center px-4 py-3 rounded-2xl border border-gray-100 text-gray-400 text-[10px] font-black uppercase tracking-widest transition-all flex items-center bg-white shadow-sm">
-                            <span class="mr-1.5"><img src="{{ asset('img/icono_docs.png') }}" class="w-4 h-4" onerror="this.style.display='none'"></span>
                             <span>Documentos</span>
                     </button>
                     <button onclick="filterMaterials('video')" 
                             class="filter-btn flex-1 md:flex-none whitespace-nowrap min-w-[110px] justify-center px-4 py-3 rounded-2xl border border-gray-100 text-gray-400 text-[10px] font-black uppercase tracking-widest transition-all flex items-center bg-white shadow-sm">
-                            <span class="mr-1.5"><img src="{{ asset('img/icono_multimedia.png') }}" class="w-4 h-4" onerror="this.style.display='none'"></span>
                             <span>Multimedia</span>
                     </button>
                 </div>
